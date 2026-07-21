@@ -1,0 +1,9 @@
+{
+    "editor.fontSize": 16,
+    // 设置编辑器的默认缩进为 2 个空格
+    "editor.tabSize": 2,
+    // 保存时自动格式化代码
+    "editor.formatOnSave": true,
+    // 设置 C/C++ 格式化工具为 clangFormat
+    "C_Cpp.formatting": "clangFormat",
+}
