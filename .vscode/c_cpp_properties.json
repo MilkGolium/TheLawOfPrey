@@ -1,0 +1,49 @@
+{
+  "configurations": [
+    {
+      "name": "macOS (auto)",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${env:RAYLIB_DIR}/include",
+        "/opt/homebrew/include",
+        "/usr/local/include",
+        "/usr/include"
+      ],
+      "defines": [],
+      "macFrameworkPath": [
+        "/System/Library/Frameworks",
+        "/Library/Frameworks"
+      ],
+      "compilerPath": "/usr/bin/clang",
+      "cStandard": "c11",
+      "intelliSenseMode": "macos-clang-arm64"
+    },
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${env:RAYLIB_DIR}/include",
+        "/usr/local/include",
+        "/usr/include"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "intelliSenseMode": "gcc-x64"
+    },
+    {
+      "name": "Win32",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${env:RAYLIB_DIR}/include",
+        "C:/msys64/mingw64/include",
+        "C:/Program Files (x86)/Windows Kits/10/Include/**"
+      ],
+      "defines": ["WIN32", "_WINDOWS"],
+      "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+      "cStandard": "c11",
+      "intelliSenseMode": "windows-gcc-x64"
+    }
+  ],
+  "version": 4
+}
