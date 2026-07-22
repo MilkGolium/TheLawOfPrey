@@ -32,20 +32,17 @@ int main(void) {
   InitWindow(screenWidth, screenHeight, "The Law Of Prey");
   SetTargetFPS(60);
 
+  // Temporary
+  // Enable fullscreen mode at the start
+  SetFullscreen(fullscreenEnabled);
+
   while (!WindowShouldClose()) {
     // Update
-    // Toggle fullscreen mode when F11 is pressed
-    if (IsKeyPressed(KEY_F11)) fullscreenEnabled = !fullscreenEnabled;
-    // Set the fullscreen state based on the boolean value
-    if (fullscreenEnabled)
-      EnableFullscreen();
-    else
-      DisableFullscreen();
 
     // Draw
     BeginDrawing();
     ClearBackground(BLACK);
-    DrawText("Hello, world!", 0, 0, 60, RED);
+    DrawText("Hello World", 0, 0, 60, RED);
     EndDrawing();
   }
 

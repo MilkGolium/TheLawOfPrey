@@ -1,13 +1,13 @@
 {
   "configurations": [
     {
-      "name": "macOS (auto)",
+      "name": "macOS",
       "includePath": [
         "${workspaceFolder}/**",
-        "${env:RAYLIB_DIR}/include",
         "/opt/homebrew/include",
-        "/usr/local/include",
-        "/usr/include"
+        // "${env:RAYLIB_DIR}/include", // 没有启用此环境变量
+        // "/usr/include", // 现代 macOS 不再包含 /usr/include
+        "/usr/local/include"
       ],
       "defines": [],
       "macFrameworkPath": [
@@ -39,7 +39,10 @@
         "C:/msys64/mingw64/include",
         "C:/Program Files (x86)/Windows Kits/10/Include/**"
       ],
-      "defines": ["WIN32", "_WINDOWS"],
+      "defines": [
+        "WIN32",
+        "_WINDOWS"
+      ],
       "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
       "cStandard": "c11",
       "intelliSenseMode": "windows-gcc-x64"
