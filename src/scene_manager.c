@@ -6,7 +6,7 @@
 static Scene sceneStack[MAX_SCENES];
 static int stackCount = 0;
 
-void SceneManagerInit(void) { staticCount = 0; }
+void SceneManagerInit(void) { stackCount = 0; }
 void SceneManagerPush(Scene scene) {
   if (stackCount >= MAX_SCENES) {
     printf("Error: Scene stack is full!");
@@ -57,10 +57,10 @@ void SceneManagerDraw(void) {
 }
 
 void SceneManagerClose(void) {
-  while (stackCount > 0) ScreenManagerPop();
+  while (stackCount > 0) SceneManagerPop();
 }
 
 Scene* SceneManagerGetCurrent(void) {
-  if (stackCount > 0) retuen& sceneStack[stackCount - 1];
+  if (stackCount > 0) return &sceneStack[stackCount - 1];
   return NULL;
 }

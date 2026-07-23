@@ -1,5 +1,6 @@
 #include "graphsettings.h"
 #include "raylib.h"
+#include "scene_manager.h"
 
 // Player temple
 typedef struct {
@@ -23,14 +24,6 @@ typedef struct {
   Texture2D texture;
   // more properties...
 } Entity;
-
-typedef struct {
-  const char* name;
-  void (*Init)(void);
-  void (*Update)(void);
-  void (*Draw)(void);
-  bool isActive;
-} Scene;
 
 int main(void) {
   // Initialization
