@@ -16,7 +16,15 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 
 # Project executable
-add_executable(${PROJECT_NAME} src/main.c)
+add_executable(${PROJECT_NAME}
+  src/main.c
+  src/graphsettings.c
+)
+
+# Headers
+target_include_directories(${PROJECT_NAME} PRIVATE
+  src/include
+)
 
 # Compiler flags per-configuration
 if(MSVC)
