@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME}
   src/main.c
   src/graphsettings.c
   src/scene_manager.c
+  src/settings_scene.c
+  src/main_menu_scene.c
 )
 
 # Headers

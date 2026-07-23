@@ -1,5 +1,7 @@
 #include "graphsettings.h"
 
+#include "raylib.h"
+
 // Function to enable fullscreen mode
 void EnableFullscreen(void) {
   if (!IsWindowFullscreen()) {

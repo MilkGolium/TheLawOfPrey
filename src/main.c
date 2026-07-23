@@ -1,8 +1,9 @@
 #include "graphsettings.h"
 #include "raylib.h"
 #include "scene_manager.h"
+#include "stddef.h"
 
-// Player temple
+// Player template
 typedef struct {
   int strength;
   int endurance;
@@ -10,20 +11,23 @@ typedef struct {
   int agility;
   int perception;
 
-  int hunger;  // 0 is full, and 100 is starving.
-  int thirst;  // 0 is hydrated, and 100 is dehydrated.
+  int hunger;  // 0 (full) - 100 (starving)
+  int thirst;  // 0 (hydrated) - 100 (dehydrated)
 
   int max_carry_weight;
   int reputation;
 } Player;
 
-// Entity temple
+// Entity template
 typedef struct {
   Vector2 position;
   bool has_render;
   Texture2D texture;
   // more properties...
 } Entity;
+
+// Declare scene creation function
+extern Scene CreateMainMenuScene(void);
 
 int main(void) {
   // Initialization
@@ -37,17 +41,31 @@ int main(void) {
   InitWindow(screenWidth, screenHeight, "The Law Of Prey");
 
   // Temporary
+
   // Enable fullscreen mode at the start
   SetTargetFPS(60);
-  SetFullscreen(fullscreenEnabled);
+
+  // SetFullscreen(fullscreenEnabled);
+
+  // Initialize the scene manager
+  SceneManagerInit();
+
+  // Enter main menu on startup
+  SceneManagerPush(CreateMainMenuScene());
 
   while (!WindowShouldClose()) {
     // Update
+    // Update the current scene
+    SceneManagerUpdate();
+
+    // If the scene stack is empty, all scenes have been popped, exit the
+    // program.
+    if (SceneManagerGetCurrent() == NULL) break;
 
     // Draw
     BeginDrawing();
-    ClearBackground(BLACK);
-    DrawText("Hello World", 0, 0, 60, RED);
+    // Draw current scene
+    SceneManagerDraw();
     EndDrawing();
   }
 

@@ -6,12 +6,12 @@
 
 #define MAX_SCENES 10
 
-typedef struct Scene {
+typedef struct {
   const char* name;
-  void (*Init)(void);    // Call when enter scene
-  void (*Update)(void);  // Update variables every frame
+  void (*Init)(void);    // Call when entering scene
+  void (*Update)(void);  // Updating variables every frame
   void (*Draw)(void);    // Drawing every frame
-  void (*Unload)(void);  // Clean when exit scene
+  void (*Unload)(void);  // Clean when exiting the scene
   bool isActive;
 } Scene;
 
