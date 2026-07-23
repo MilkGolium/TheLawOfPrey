@@ -67,7 +67,8 @@
 
 4. Windows
    - 建议安装：cmake、ninja、PowerShell（内置）以及 raylib 的 Windows 版本。
-   - raylib 可通过 vcpkg 安装（推荐管理第三方依赖）：
+   - 如果运行 `scripts\\build.ps1` 或 `scripts\\build.bat` 时 CMake 提示找不到 raylib，脚本会尝试自动安装 raylib（通过 vcpkg / winget 进行安装）。
+   - raylib 也可通过 vcpkg 手动安装（推荐管理第三方依赖）：
      - 安装 vcpkg 并集成： https://github.com/microsoft/vcpkg
      - vcpkg install raylib
    - 或使用预编译的 raylib 库并通过 -DRAYLIB_DIR=... 指定路径。
@@ -127,9 +128,3 @@ CI / 自动化建议
 
 结束语
 -----
-如果需要，文档可继续扩展为：
-- CI Workflow 示例（GitHub Actions yml）
-- 把 raylib 作为子模块或 FetchContent 的示例实现并演示自动构建
-- 更详细的 Windows/MSVC 使用说明与 vcpkg 集成示例
-
-如果同意，我可以把这些 CI 示例或自动化集成加入到仓库。
