@@ -10,7 +10,8 @@
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": true,
+      "externalConsole": false,
+      "internalConsoleOptions": "openOnSessionStart",
       "MIMode": "lldb",
       "preLaunchTask": "Build Debug"
     }
