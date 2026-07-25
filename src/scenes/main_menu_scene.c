@@ -1,8 +1,10 @@
+#include "entity.h"
 #include "raylib.h"
 #include "scene_manager.h"
 
-// 前向声明设置场景的创建函数
 extern Scene CreateSettingsScene(void);
+extern Scene CreateTestingScene(void);
+// extern Scene CreateLoadGameScene(void);
 
 static void MainMenuInit(void);
 static void MainMenuUpdate(void);
@@ -10,31 +12,33 @@ static void MainMenuDraw(void);
 static void MainMenuUnload(void);
 
 Scene CreateMainMenuScene(void) {
-  return (Scene){.name = "MainMenu",
+  return (Scene){.name = "Main Menu",
                  .Init = MainMenuInit,
                  .Update = MainMenuUpdate,
                  .Draw = MainMenuDraw,
                  .Unload = MainMenuUnload};
 }
 
-static void MainMenuInit(void) {
-  // 初始化菜单资源
-}
+static void MainMenuInit(void) {}
 
 static void MainMenuUpdate(void) {
-  // 按S进入设置
+  if (IsKeyPressed(KEY_ENTER)) {
+    SceneManagerSwitch(CreateTestingScene());
+  }
   if (IsKeyPressed(KEY_S)) {
-    SceneManagerPush(CreateSettingsScene());
+    SceneManagerSwitch(CreateSettingsScene());
+  }
+  if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q)) {
+    SceneManagerClose();
   }
 }
 
 static void MainMenuDraw(void) {
   ClearBackground(DARKBLUE);
   DrawText("Main Menu", 340, 200, 40, WHITE);
-  DrawText("Press S for Settings", 310, 260, 20, LIGHTGRAY);
-  DrawText("Press ESC to Quit", 320, 300, 20, LIGHTGRAY);
+  DrawText("Start Game (Enter)", 340, 260, 20, LIGHTGRAY);
+  DrawText("Settings (S)", 340, 320, 20, LIGHTGRAY);
+  DrawText("Quit (Ctrl-Q)", 340, 380, 20, LIGHTGRAY);
 }
 
-static void MainMenuUnload(void) {
-  // 清理菜单资源
-}
+static void MainMenuUnload(void) {}
