@@ -17,6 +17,8 @@ int main(void) {
 
   InitWindow(screenWidth, screenHeight, "The Law Of Prey");
 
+  SetExitKey(KEY_NULL);
+
   // Temporary
 
   // Enable fullscreen mode at the start
@@ -28,7 +30,7 @@ int main(void) {
   SceneManagerInit();
 
   // Enter main menu on startup
-  SceneManagerPush(CreateMainMenuScene());
+  SceneManagerSwitch(CreateMainMenuScene());
 
   while (!WindowShouldClose()) {
     // Update

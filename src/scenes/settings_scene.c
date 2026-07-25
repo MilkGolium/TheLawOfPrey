@@ -1,6 +1,9 @@
 #include "raylib.h"
 #include "scene_manager.h"
 
+// 需要知道返回哪个场景
+extern Scene CreateMainMenuScene(void);
+
 static void SettingsInit(void);
 static void SettingsUpdate(void);
 static void SettingsDraw(void);
@@ -15,13 +18,12 @@ Scene CreateSettingsScene(void) {
 }
 
 static void SettingsInit(void) {
-  // 初始化设置数据（如果需要）
+  // 初始化设置数据
 }
 
 static void SettingsUpdate(void) {
-  // 按ESC返回上一场景
-  if (IsKeyPressed(KEY_ESCAPE)) {
-    SceneManagerPop();
+  if (IsKeyPressed(KEY_Q)) {
+    SceneManagerSwitch(CreateMainMenuScene());
   }
 }
 
