@@ -1,4 +1,6 @@
-// Player template
+#ifndef PLAYER_H
+#define PLAYER_H
+
 typedef struct {
   int strength;
   int endurance;
@@ -12,3 +14,5 @@ typedef struct {
   int max_carry_weight;
   int reputation;
 } Player;
+
+#endif

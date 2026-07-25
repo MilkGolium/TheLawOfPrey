@@ -1,7 +1,6 @@
 #include "raylib.h"
 #include "scene_manager.h"
 
-// ?
 extern Scene CreateMainMenuScene(void);
 
 static void TestingPageInit(void);
@@ -17,15 +16,11 @@ Scene CreateTestingScene(void) {
                  .Unload = TestingPageUnload};
 }
 
-Vector2 objectPosition;
+static Vector2 objectPosition;
 
-static void TestingPageInit(void) {
-  // 初始化资源
-  objectPosition = (Vector2){0, 0};
-}
+static void TestingPageInit(void) { objectPosition = (Vector2){0, 0}; }
 
 static void TestingPageUpdate(void) {
-  // 按S进入设置
   if (IsKeyDown(KEY_W)) {
     objectPosition.y--;
   }
@@ -49,6 +44,4 @@ static void TestingPageDraw(void) {
            60, WHITE);
 }
 
-static void TestingPageUnload(void) {
-  // 清理菜单资源
-}
+static void TestingPageUnload(void) {}

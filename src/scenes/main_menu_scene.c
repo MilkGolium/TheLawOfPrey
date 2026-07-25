@@ -2,10 +2,9 @@
 #include "raylib.h"
 #include "scene_manager.h"
 
-// 前向声明其他场景的创建函数
 extern Scene CreateSettingsScene(void);
 extern Scene CreateTestingScene(void);
-// extern Scene CreateLoadGameScene(void);  // 等有了再取消注释
+// extern Scene CreateLoadGameScene(void);
 
 static void MainMenuInit(void);
 static void MainMenuUpdate(void);
@@ -20,9 +19,7 @@ Scene CreateMainMenuScene(void) {
                  .Unload = MainMenuUnload};
 }
 
-static void MainMenuInit(void) {
-  // 初始化菜单资源
-}
+static void MainMenuInit(void) {}
 
 static void MainMenuUpdate(void) {
   if (IsKeyPressed(KEY_ENTER)) {
@@ -44,6 +41,4 @@ static void MainMenuDraw(void) {
   DrawText("Quit (Q)", 340, 380, 20, LIGHTGRAY);
 }
 
-static void MainMenuUnload(void) {
-  // 清理菜单资源
-}
+static void MainMenuUnload(void) {}
