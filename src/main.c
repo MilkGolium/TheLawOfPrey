@@ -1,30 +1,7 @@
 #include "graphsettings.h"
 #include "raylib.h"
 #include "scene_manager.h"
-#include "stddef.h"
-
-// Player template
-typedef struct {
-  int strength;
-  int endurance;
-  int constitution;
-  int agility;
-  int perception;
-
-  int hunger;  // 0 (full) - 100 (starving)
-  int thirst;  // 0 (hydrated) - 100 (dehydrated)
-
-  int max_carry_weight;
-  int reputation;
-} Player;
-
-// Entity template
-typedef struct {
-  Vector2 position;
-  bool has_render;
-  Texture2D texture;
-  // more properties...
-} Entity;
+#include "stddef.h"  // NULL 值需要这个头文件
 
 // Declare scene creation function
 extern Scene CreateMainMenuScene(void);
@@ -43,7 +20,7 @@ int main(void) {
   // Temporary
 
   // Enable fullscreen mode at the start
-  SetTargetFPS(60);
+  SetTargetFPS(120);
 
   SetFullscreen(fullscreenEnabled);
 
