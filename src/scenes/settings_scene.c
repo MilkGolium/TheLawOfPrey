@@ -19,7 +19,7 @@ Scene CreateSettingsScene(void) {
 static void SettingsInit(void) {}
 
 static void SettingsUpdate(void) {
-  if (IsKeyPressed(KEY_Q)) {
+  if (IsKeyPressed(KEY_ESCAPE)) {
     SceneManagerSwitch(CreateMainMenuScene());
   }
 }

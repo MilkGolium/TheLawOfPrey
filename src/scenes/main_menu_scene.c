@@ -28,7 +28,7 @@ static void MainMenuUpdate(void) {
   if (IsKeyPressed(KEY_S)) {
     SceneManagerSwitch(CreateSettingsScene());
   }
-  if (IsKeyPressed(KEY_Q)) {
+  if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q)) {
     SceneManagerClose();
   }
 }
@@ -38,7 +38,7 @@ static void MainMenuDraw(void) {
   DrawText("Main Menu", 340, 200, 40, WHITE);
   DrawText("Start Game (Enter)", 340, 260, 20, LIGHTGRAY);
   DrawText("Settings (S)", 340, 320, 20, LIGHTGRAY);
-  DrawText("Quit (Q)", 340, 380, 20, LIGHTGRAY);
+  DrawText("Quit (Ctrl-Q)", 340, 380, 20, LIGHTGRAY);
 }
 
 static void MainMenuUnload(void) {}
