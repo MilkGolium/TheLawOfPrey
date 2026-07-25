@@ -45,7 +45,7 @@ int main(void) {
   // Enable fullscreen mode at the start
   SetTargetFPS(60);
 
-  // SetFullscreen(fullscreenEnabled);
+  SetFullscreen(fullscreenEnabled);
 
   // Initialize the scene manager
   SceneManagerInit();
