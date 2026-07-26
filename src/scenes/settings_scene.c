@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include "scene_manager.h"
 
+extern Scene CreateMainMenuScene(void);
+
 static void SettingsInit(void);
 static void SettingsUpdate(void);
 static void SettingsDraw(void);
@@ -14,14 +16,11 @@ Scene CreateSettingsScene(void) {
                  .Unload = SettingsUnload};
 }
 
-static void SettingsInit(void) {
-  // 初始化设置数据（如果需要）
-}
+static void SettingsInit(void) {}
 
 static void SettingsUpdate(void) {
-  // 按ESC返回上一场景
   if (IsKeyPressed(KEY_ESCAPE)) {
-    SceneManagerPop();
+    SceneManagerSwitch(CreateMainMenuScene());
   }
 }
 
@@ -30,6 +29,4 @@ static void SettingsDraw(void) {
   DrawText("Settings", 350, 280, 40, WHITE);
 }
 
-static void SettingsUnload(void) {
-  // 保存设置、清理资源
-}
+static void SettingsUnload(void) {}

@@ -21,8 +21,9 @@ add_executable(${PROJECT_NAME}
   src/graphsettings.c
   src/scene_manager.c
   # Scenes
-  src/scenes/settings_scene.c
   src/scenes/main_menu_scene.c
+  src/scenes/settings_scene.c
+  src/scenes/testing_scene.c
 )
 
 # Headers
