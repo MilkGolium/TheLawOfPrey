@@ -2,12 +2,10 @@
 
 Jul-24-2026 起项目转为开源，此前成员职责解除。
 
-当前 src/ 的代码可能还存在中文注释，未来会处理。
-
-README 未来会分为中英双份，现在只有中文，等待处理，doc/ 目录下面的文档也会分成中英两份。
+`README.md` 未来会分为中英双份，现在只有中文，等待处理，doc/ 目录下面的文档也会分成中英两份。
 
 # 平台支持
-保证支持 FreeBSD 、 OpenBSD 、 Linux ，尽量支持 macOS 、 Windows 。因为弄不到证书，所以当前 Windows 上编译运行可能会遇到 SmartScreen 拦截，具体情况正等待测试。
+优先支持 FreeBSD 、 OpenBSD 、 Linux ，尽量支持 macOS 、 Windows 。因为弄不到证书，所以当前 Windows 上编译运行可能会遇到 SmartScreen 拦截，具体情况正等待测试。
 
 ## 项目简介
 正在构建程序基础，游戏内容待定。
