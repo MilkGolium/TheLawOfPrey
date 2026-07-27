@@ -26,3 +26,14 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 25,tar,焦油,"RESOURCE",60,res/textures/tar.png,来自地下的暗黑大手。,这个我熟，我在拉布雷亚看过。
 26,copper ore,铜矿石,"RESOURCE",60,res/textures/copper_ore.png,一种常见的金属矿石。,大有用处。
 27,electronic component,电子元件,"RESOURCE",60,res/textures/electronic_component.png,电子设备的核心。,能先进点了。
+28,Thunder Crown,雷鸣头冠,"RESOURCE",10,res/textures/Thunder_Crown.png,雷神翼龙的头冠。,蕴含着恐怖的力量。
+29,cooked Araucaria nut,烤南洋杉坚果,"CONSUMABLE",60,res/textures/Cooked_Araucaria_Nut.png,烤熟的南洋杉坚果。,香极了。
+30,fungal soup,菌菇汤,"CONSUMABLE",60,res/textures/fungal_soup.png,用蘑菇和木耳做成的汤。,堪比肉汤。
+31,grilled fern frond skewers,蕨类嫩芽烤串,"CONSUMABLE",60,res/textures/grilled_fern_frond_skewers.png,用蕨类嫩芽做成的烤串。,至少比生吃强。
+32,glass,玻璃,"RESOURCE",60,res/textures/glass.png,透明又坚硬的材料。,要把它做成刀吗？
+33,red bean pie,红豆派,"CONSUMABLE",20,res/textures/red_bean_pie.png,是不是看起来很诱人。,在这地狱中少数能让我感到欣慰的东西。
+34,starch chunk,淀粉块,"RESOURCE",60,res/textures/starch_chunk.png,来自于苏铁的宝贵淀粉。,哦，神圣的碳水。
+35,Spinosaurus tooth,棘龙牙齿,"RESOURCE",60,res/textures/Spinosaurus_tooth.png,棘龙的牙齿。,合格渔夫的证明。
+36,lungfish,肺鱼,"RESOURCE",30,res/textures/lungfish.png,一种古老的鱼类。,从海洋到陆地的证明！
+37,lamprey,七鳃鳗,"RESOURCE",30,res/textures/lamprey.png,令人惧怕的小东西。,我不想再看到它们了！
+38,lamprey pie,七鳃鳗派,"CONSUMABLE",20,res/textures/lamprey_pie.png,用七鳃鳗做成的美食。,吃它的时候我真希望我是盲人。
