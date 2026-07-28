@@ -28,8 +28,8 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 27,electronic component,电子元件,"RESOURCE",60,res/textures/electronic_component.png,电子设备的核心。,能先进点了。
 28,Thunder Crown,雷鸣头冠,"RESOURCE",10,res/textures/Thunder_Crown.png,雷神翼龙的头冠。,蕴含着恐怖的力量。
 29,cooked Araucaria nut,烤南洋杉坚果,"CONSUMABLE",60,res/textures/Cooked_Araucaria_Nut.png,烤熟的南洋杉坚果。,香极了。
-30,fungal soup,菌菇汤,"CONSUMABLE",60,res/textures/fungal_soup.png,用蘑菇和木耳做成的汤。,堪比肉汤。
-31,grilled fern frond skewers,蕨类嫩芽烤串,"CONSUMABLE",60,res/textures/grilled_fern_frond_skewers.png,用蕨类嫩芽做成的烤串。,至少比生吃强。
+30,fungal soup,菌菇汤,"CONSUMABLE",20,res/textures/fungal_soup.png,用蘑菇和木耳做成的汤。,堪比肉汤。
+31,grilled fern frond skewers,蕨类嫩芽烤串,"CONSUMABLE",20,res/textures/grilled_fern_frond_skewers.png,用蕨类嫩芽做成的烤串。,至少比生吃强。
 32,glass,玻璃,"RESOURCE",60,res/textures/glass.png,透明又坚硬的材料。,要把它做成刀吗？
 33,red bean pie,红豆派,"CONSUMABLE",20,res/textures/red_bean_pie.png,是不是看起来很诱人。,在这地狱中少数能让我感到欣慰的东西。
 34,starch chunk,淀粉块,"RESOURCE",60,res/textures/starch_chunk.png,来自于苏铁的宝贵淀粉。,哦，神圣的碳水。
@@ -37,3 +37,27 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 36,lungfish,肺鱼,"RESOURCE",30,res/textures/lungfish.png,一种古老的鱼类。,从海洋到陆地的证明！
 37,lamprey,七鳃鳗,"RESOURCE",30,res/textures/lamprey.png,令人惧怕的小东西。,我不想再看到它们了！
 38,lamprey pie,七鳃鳗派,"CONSUMABLE",20,res/textures/lamprey_pie.png,用七鳃鳗做成的美食。,吃它的时候我真希望我是盲人。
+39,cooked lamprey,烤七鳃鳗,"CONSUMABLE",20,res/textures/cooked_lamprey.png,烤熟的七鳃鳗。,啊哦。
+40,cooked lungfish,烤肺鱼,"CONSUMABLE",20,res/textures/cooked_lungfish.png,烤熟的肺鱼。,它看起来像在尖叫。
+41,roasted pine nuts,烤松子,"CONSUMABLE",60,res/textures/roasted_pine_nuts.png,烤熟的松子。,诱人的油脂香味配上松针香气，绝了。
+42,sago,西米,"CONSUMABLE",60,res/textures/sago_pudding.png,淀粉团子们。,好黏糊。
+43,sago pudding,西米露,"CONSUMABLE",20,res/textures/sago_pudding.png,用西米做成的布丁。,喝碗这个真是惬意。
+44,roasted ginkgo nuts,烤银杏果,"CONSUMABLE",60,res/textures/roasted_ginkgo_seeds.png,烤熟的银杏种子。,看起来很像开心果。
+45,ginkgo nut tofu,银杏豆腐,"CONSUMABLE",20,res/textures/ginkgo_nut_tofu.png,用银杏果仁做成的块状固体。,口感很奇怪。
+46,stuffed lungfish,填馅肺鱼,"CONSUMABLE",20,res/textures/stuffed_lungfish.png,用肺鱼做成的美食。,它不能呼吸了，但我可以。
+47,plank,木板,"RESOURCE",60,res/textures/plank.png,用木头加工而成的木板。,可以用来建造东西。
+48,stone brick,石砖,"RESOURCE",60,res/textures/stone_brick.png,用石头加工而成的砖块。,罗马不是一天建成的。
+49,raw meat,生兽肉,"RESOURCE",60,res/textures/raw_meat.png,新鲜的生肉。,杀死你，养活我。
+50,cooked meat,熟兽肉,"CONSUMABLE",60,res/textures/cooked_meat.png,烤熟的兽肉。,味道还可以。
+51,raw poultry,生禽肉,"RESOURCE",60,res/textures/raw_poultry.png,新鲜的生禽肉。,杀死你，养活我。
+52,ice,冰块,"RESOURCE",60,res/textures/ice.png,冰冻的水。,也许可以做成透镜生火。
+53,cooked poultry,熟禽肉,"CONSUMABLE",60,res/textures/cooked_poultry.png,烤熟的禽肉。,味道还可以。
+54,raw salmon,生鲑鱼肉,"RESOURCE",60,res/textures/raw_salmon.png,新鲜的生鲑鱼。,生鱼片！
+55,cooked salmon,熟鲑鱼肉,"CONSUMABLE",60,res/textures/cooked_salmon.png,烤熟的鲑鱼。,有点失望。
+56,smoked ham,烟熏火腿,"CONSUMABLE",20,res/textures/ham.png,熏制的大块兽肉。,让我想家了。
+57,plant sap,植物汁液,"RESOURCE",60,res/textures/plant_sap.png,带有甜味的植物精华。,虽然甜但是想到怎么来的就有点反胃。
+58,plant syrup,植物糖浆,"RESOURCE",60,res/textures/plant_syrup.png,由植物汁液熬制而成的糖浆。,太甜了。
+59,honey glazed ham,蜜汁火腿,"CONSUMABLE",20,res/textures/honey_glazed_ham.png,裹上糖浆的火腿。,太赞了！
+60,turkey feast,火鸡大餐,"CONSUMABLE",20,res/textures/turkey_feast.png,虽然这不是火鸡。,感恩节快乐。
+61,charcoal,木炭,"RESOURCE",60,res/textures/charcoal.png,由木头烧制而成的黑色物质。,可以用来生火。
+62,bone broth,骨头汤,"CONSUMABLE",20,res/textures/bone_broth.png,用兽骨熬制的汤。,也不是不可以。
