@@ -9,11 +9,12 @@ extern Scene CreateMainMenuScene(void);
 int main(void) {
   const int screenWidth = 1024;
   const int screenHeight = 768;
-  const bool fullscreenEnabled = true;
+  const bool fullscreenEnabled = false;
+  int targetFPS = 144;
 
   InitWindow(screenWidth, screenHeight, "The Law Of Prey");
   SetExitKey(KEY_NULL);
-  SetTargetFPS(120);
+  SetTargetFPS(targetFPS);
   SetFullscreen(fullscreenEnabled);
 
   SceneManagerInit();

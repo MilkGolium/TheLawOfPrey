@@ -18,12 +18,12 @@ Scene CreateTestingScene(void) {
                  .Unload = TestingPageUnload};
 }
 
-int FontSize;
+float FontSize;
 static Vector2 objectPosition;
 
 static void TestingPageInit(void) {
-  objectPosition = (Vector2){0, 0};
-  FontSize = 60;
+  objectPosition = (Vector2){241, 347};
+  FontSize = 30;
 }
 
 static void TestingPageUpdate(void) {
@@ -40,11 +40,13 @@ static void TestingPageUpdate(void) {
     objectPosition.x++;
   }
   if (IsKeyDown(KEY_Q)) {
-    FontSize--;
+    FontSize -= 0.1;
+    if (FontSize < 10) FontSize = 10;
   }
   if (IsKeyDown(KEY_E)) {
-    FontSize++;
+    FontSize += 0.1;
   }
+
   if (IsKeyPressed(KEY_ESCAPE)) {
     SceneManagerSwitch(CreateMainMenuScene());
   }
@@ -53,11 +55,11 @@ static void TestingPageUpdate(void) {
 static void TestingPageDraw(void) {
   ClearBackground(DARKBLUE);
   DrawText("Press ESC to return to main menu", objectPosition.x,
-           objectPosition.y, FontSize, WHITE);
+           objectPosition.y, (int)FontSize, WHITE);
 
   char debugText[64];
   snprintf(debugText, sizeof(debugText), "x:%d y:%d FontSize:%d",
-           (int)objectPosition.x, (int)objectPosition.y, FontSize);
+           (int)objectPosition.x, (int)objectPosition.y, (int)FontSize);
   int debugWidth = MeasureText(debugText, 20);
   DrawText(debugText, GetScreenWidth() - debugWidth - 10, 10, 20, GREEN);
 }
