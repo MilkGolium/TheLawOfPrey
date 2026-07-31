@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
   src/main.c
   src/graphsettings.c
   src/scene_manager.c
+  src/utils.c
   # Scenes
   src/scenes/main_menu_scene.c
   src/scenes/settings_scene.c
@@ -29,6 +30,11 @@ add_executable(${PROJECT_NAME}
 # Headers
 target_include_directories(${PROJECT_NAME} PRIVATE
   src/include
+)
+
+# 使用 CMakes 自动转义传递字符串常量
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+    PROJECT_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 # Compiler flags per-configuration
