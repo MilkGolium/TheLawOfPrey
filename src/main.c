@@ -3,6 +3,7 @@
 #include "graphsettings.h"
 #include "raylib.h"
 #include "scene_manager.h"
+#include "utils.h"
 
 extern Scene CreateMainMenuScene(void);
 
@@ -19,6 +20,8 @@ int main(void) {
 
   SceneManagerInit();
   SceneManagerSwitch(CreateMainMenuScene());
+
+  InitAssetsDirectory();
 
   while (!WindowShouldClose()) {
     SceneManagerUpdate();
