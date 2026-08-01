@@ -8,7 +8,7 @@ static void SettingsUpdate(void);
 static void SettingsDraw(void);
 static void SettingsUnload(void);
 
-static const char *kQuote =
+static const char* kQuote =
     "我们度过的每个平凡的日常，也许就是连续发生的奇迹。";
 static Font QuoteFont;
 
@@ -22,12 +22,10 @@ Scene CreateSettingsScene(void) {
 
 static void SettingsInit(void) {
   int codepointCount = 0;
-  int *codepoints = LoadCodepoints(kQuote, &codepointCount);
-  // 16px ark-pixel is an incomplete subset; 12px build covers all CJK.
+  int* codepoints = LoadCodepoints(kQuote, &codepointCount);
   QuoteFont = LoadFontEx(
-      "assets/fonts/ttf/ark_pixel/12px-proportional/"
-      "ark-pixel-12px-proportional-zh_cn.ttf",
-      36, codepoints, codepointCount);
+      "assets/fonts/otf/GlowSansSC_Normal/GlowSansSC-Normal-Regular.otf", 36,
+      codepoints, codepointCount);
   UnloadCodepoints(codepoints);
 }
 
@@ -39,7 +37,7 @@ static void SettingsUpdate(void) {
 
 static void SettingsDraw(void) {
   ClearBackground(DARKGRAY);
-  DrawText("Settings", 350, 280, 40, WHITE);
+  DrawText("Settings", 20, 20, 40, WHITE);
 
   const float fontSize = 36.0f;
   const float spacing = 1.0f;
