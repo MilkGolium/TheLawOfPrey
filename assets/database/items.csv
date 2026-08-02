@@ -61,3 +61,17 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 60,turkey feast,火鸡大餐,"CONSUMABLE",20,res/textures/turkey_feast.png,虽然这不是火鸡。,感恩节快乐。
 61,charcoal,木炭,"RESOURCE",60,res/textures/charcoal.png,由木头烧制而成的黑色物质。,可以用来生火。
 62,bone broth,骨头汤,"CONSUMABLE",20,res/textures/bone_broth.png,用兽骨熬制的汤。,也不是不可以。
+63,charging gel,充能凝胶,"RESOURCE",30,res/textures/charging_gel.png,恐怖力量的来源。,我感觉里面的能量随时会爆出来。
+64,Tyrannosaurus skin,霸王龙皮,"RESOURCE",30,res/textures/Tyrannosaurus_skin.png,恐怖暴君的的皮肤。,做成皮包带回去我就能发财了，哼。
+65,Tyrannosaurus tooth,霸王龙牙齿,"RESOURCE",30,res/textures/Tyrannosaurus_tooth.png,恐怖暴君的牙齿。,依然让我胆战心惊。
+66,Tyrannosaurus egg,霸王龙蛋,"RESOURCE",1,res/textures/Tyrannosaurus_egg.png,恐怖暴君的蛋。,我猜它的后代会吃空我的冰箱。
+67,bone knife,骨刀,"TOOL",1,res/textures/bone_knife.png,用兽骨制成的砍刀。,我要剥下你的皮。
+68,scrap axe,废料斧,"TOOL",1,res/textures/scrap_axe.png,用废料制成的斧头。,我可以砍树了。
+69,scrap pickaxe,废料镐,"TOOL",1,res/textures/scrap_pickaxe.png,用废料制成的镐。,我可以挖矿了。
+70,scrap launcher,废料发射器,"TOOL",1,res/textures/scrap_launcher.png,可以尝试发射乱七八糟的东西。,用这个东西把家里搞的乱七八糟。
+71,stone hammer,石锤,"TOOL",1,res/textures/stone_hammer.png,更高效的翻找前辈遗物。,土木老哥最爱。
+72,scrap helmet,废料头盔,"EQUIP",1,res/textures/scrap_helmet.png,用破烂拼凑的头盔。,看起来更像拾荒者了。
+73,scrap chestplate,废料胸甲,"EQUIP",1,res/textures/scrap_chestplate.png,用破烂拼凑的胸甲。,拾荒者皮肤。
+74,simple backpack,简易背包,"EQUIP",1,res/textures/simple_backpack.png,用木棍和草绳做成的小包。,可以装更多东西了。
+75,T-Rex backpack,霸王龙皮包,"EQUIP",1,res/textures/T-Rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
+76,savage club,野蛮大棒,"TOOL",1,res/textures/savage_club.png,镶嵌着霸王龙牙齿的恐怖武器。,这一下会很疯狂。
