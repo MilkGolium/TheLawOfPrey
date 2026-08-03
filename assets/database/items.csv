@@ -75,3 +75,17 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 74,simple backpack,简易背包,"EQUIP",1,res/textures/simple_backpack.png,用木棍和草绳做成的小包。,可以装更多东西了。
 75,T-Rex backpack,霸王龙皮包,"EQUIP",1,res/textures/T-Rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
 76,savage club,野蛮大棒,"TOOL",1,res/textures/savage_club.png,镶嵌着霸王龙牙齿的恐怖武器。,这一下会很疯狂。
+77,scrap spear,废料长矛,"TOOL",1,res/textures/scrap_spear.png,用废料制成的长矛。,我要刺穿你。
+78,Spinosaurus harpoon,棘龙鱼叉,"TOOL",1,res/textures/Spinosaurus_harpoon.png,用棘龙牙齿制成的鱼叉。,永不空军。
+79,thunder battleaxe,雷鸣战斧,"TOOL",1,res/textures/thunder_battleaxe.png,镶嵌着雷神翼龙头冠的战斧。,POWER!
+80,feather coat,羽毛大衣,"EQUIP",1,res/textures/feather_coat.png,用羽毛制成的保暖大衣。,温暖而又柔软。
+81,Mammoth hide hat,猛犸象皮帽,"EQUIP",1,res/textures/Mammoth_hide_hat.png,用猛犸象毛制成的帽子。,保暖又时尚。
+82,Mammoth hide coat,猛犸象皮大衣,"EQUIP",1,res/textures/Mammoth_hide_coat.png,用猛犸象毛制成的大衣。,保暖又时尚。
+83,generator upgrade kit,发电机升级套件,"RESOURCE",1,res/textures/generator_upgrade_kit.png,可以让发电机更高效。,老一辈电工的自信。
+84,building upgrade kit,建筑升级套件,"RESOURCE",1,res/textures/building_upgrade_kit.png,更大更坚固。,老一辈建筑师的自信。
+85,Mammoth meat,猛犸象肉,"RESOURCE",60,res/textures/Mammoth_meat.png,新鲜的猛犸象肉。,我该跳战舞庆祝吗？
+86,super Mammoth meatball,超级猛犸象肉丸,"CONSUMABLE",20,res/textures/super_Mammoth_meatball.png,用猛犸象肉做成的肉丸。,史前一万年的味道。
+87,large feather,大羽毛,"RESOURCE",60,res/textures/large_feather.png,一根巨大的羽毛。,我可以用它做成薄扇。
+88,dino saddle,恐龙鞍,"EQUIP",1,res/textures/dino_saddle.png,用骨头和金属制成的恐龙鞍。,蒙古人行为。
+89,charge spear,冲锋长矛,"TOOL",1,res/textures/charge_spear.png,冲刺冲刺冲刺！,战斗爽！
+90,alloy material blueprint,合金材料蓝图,"RESOURCE",1,res/textures/alloy_material_blueprint.png,如何制作合金材料。,可以做出更坚固的东西了。
