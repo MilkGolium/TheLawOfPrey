@@ -89,3 +89,13 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 88,dino saddle,恐龙鞍,"EQUIP",1,res/textures/dino_saddle.png,用骨头和金属制成的恐龙鞍。,蒙古人行为。
 89,charge spear,冲锋长矛,"TOOL",1,res/textures/charge_spear.png,冲刺冲刺冲刺！,战斗爽！
 90,alloy material blueprint,合金材料蓝图,"RESOURCE",1,res/textures/alloy_material_blueprint.png,如何制作合金材料。,可以做出更坚固的东西了。
+91,alloy ingot,合金锭,"RESOURCE",60,res/textures/alloy_ingot.png,由多种金属熔炼而成的合金锭。,瞧瞧这光泽。
+92,alloy axe,合金斧,"TOOL",1,res/textures/alloy_axe.png,由合金锭制成的斧头。,砍树更轻松了。
+93,alloy pickaxe,合金镐,"TOOL",1,res/textures/alloy_pickaxe.png,由合金锭制成的镐。,挖矿更轻松了。
+94,alloy shovel,合金铲,"TOOL",1,res/textures/alloy_shovel.png,由合金锭制成的铲子。,挖土更轻松了。
+95,scrap shovel,废料铲,"TOOL",1,res/textures/scrap_shovel.png,用废料制成的铲子。,挖呀挖呀挖。
+96,alloy machete,合金弯刀,"TOOL",1,res/textures/alloy_machete.png,由合金锭制成的弯刀。,生存战斗两不误。
+97,alloy crossbow,合金弩,"TOOL",1,res/textures/alloy_crossbow.png,由合金锭制成的弩。,终于不用徒手搏斗了。
+98,net launcher,网枪,"TOOL",1,res/textures/net_launcher.png,可以发射网子。,我要抓住你们。
+99,fishing rod,钓鱼竿,"TOOL",1,res/textures/fishing_rod.png,可以用来钓鱼。,子非鱼，安知鱼之乐。
+100,chromite ore,铬铁矿,"RESOURCE",60,res/textures/chromite_ore.png,一种常见的金属矿石。,可以用来制作合金。
