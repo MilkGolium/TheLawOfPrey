@@ -32,7 +32,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   src/include
 )
 
-# 使用 CMakes 自动转义传递字符串常量
+# Use CMake to automatically escape string literals
 target_compile_definitions(${PROJECT_NAME} PRIVATE 
     PROJECT_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
