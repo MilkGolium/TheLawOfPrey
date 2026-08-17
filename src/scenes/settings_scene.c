@@ -1,13 +1,11 @@
+// 设置界面
+
 #include "raylib.h"
 #include "scene_manager.h"
 
-#define TEXT_BTN_START "开始游戏"
-#define TEXT_BTN_LOAD "加载存档"
-#define TEXT_BTN_SETTING "设置（Settings）"
-#define TEXT_BTN_EXIT "退出"
+#define TEXT_BTN_TITLE "设置 Settings"
 // 宏拼接字符串
-#define ALL_SETTINGS_TEXT \
-  TEXT_BTN_START TEXT_BTN_LOAD TEXT_BTN_SETTING TEXT_BTN_EXIT
+#define ALL_SETTINGS_TEXT TEXT_BTN_TITLE
 
 extern Scene CreateMainMenuScene(void);
 
@@ -57,9 +55,9 @@ static void SettingsDraw(void) {
   const Vector2 textSize =
       MeasureTextEx(UIFont, ALL_SETTINGS_TEXT, fontSize, spacing);
   // 根据刚刚算出的文本宽高，将文本放在屏幕中央
-  const Vector2 textPos = {(GetScreenWidth() - textSize.x) / 2.0f,
-                           (GetScreenHeight() - fontSize) / 2.0f};
-  DrawTextEx(UIFont, "设置（Settings）", textPos, fontSize, spacing, WHITE);
+  const Vector2 TitleTextPos = {(GetScreenWidth() - textSize.x) / 2.0f,
+                                (GetScreenHeight() - fontSize) / 2.0f};
+  DrawTextEx(UIFont, "设置 Settings", TitleTextPos, fontSize, spacing, WHITE);
 }
 
 static void SettingsUnload(void) { UnloadFont(UIFont); }
