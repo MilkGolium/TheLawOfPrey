@@ -3,7 +3,7 @@
 
 概述
 ----
-本仓库在 assets/fonts/ttf/ark_pixel/ 下内置了"方舟像素字体"（Ark Pixel Font，
+本仓库在 `assets/fonts/ttf/ark_pixel/` 下内置了"方舟像素字体"（Ark Pixel Font，
 项目主页 https://github.com/TakWolf/ark-pixel-font ）的字体文件，共 3 种像素尺寸
 × 2 种宽度模式 × 7 种语言字形。该字体使用 SIL OFL-1.1 许可证（各子目录内附
 OFL.txt）。
@@ -16,6 +16,7 @@ OFL.txt）。
 ----
 字体按 像素尺寸 / 宽度模式 组织：
 
+```text
     assets/fonts/ttf/ark_pixel/
     ├── 10px-proportional/      10px 比例模式（约 520 KB/文件）
     ├── 10px-monospaced/        10px 等宽模式
@@ -23,7 +24,8 @@ OFL.txt）。
     ├── 12px-monospaced/        12px 等宽模式
     ├── 16px-proportional/      16px 比例模式（约 480 KB/文件，基础子集）
     └── 16px-monospaced/        16px 等宽模式
-
+```
+    
 每个子目录内含 7 个语言字形版本：
 
 - latin —— 泛拉丁语（西文标点）
@@ -35,7 +37,9 @@ OFL.txt）。
 - ko —— 朝鲜语
 
 字符覆盖情况（实测）
+
 ----
+
 对三个尺寸的 zh_cn 比例字体做了 cmap 实测（使用 fontTools 解析 TTF，结果适用于
 同尺寸的全部语言变体，各语言版本覆盖数一致，差异仅在字形写法）：
 
@@ -62,7 +66,9 @@ OFL.txt）。
 ----
 在 settings_scene.c 中最初使用 16px 比例字体加载一句话，运行结果变成：
 
+```text
     个个个个个个个个个个日个, 个个个个个个个个个个个
+```
 
 原因有两层：
 
@@ -86,6 +92,7 @@ OFL.txt）。
 先通过 `LoadCodepoints` 把字符串（UTF-8）解成码点数组，再交给 `LoadFontEx`，
 保证用到的每个字符都进入图集。代码示例（与 settings_scene.c 中一致）：
 
+```c
     static const char *kQuote =
         "我们度过的每个平凡的日常，也许就是连续发生的奇迹。";
     static Font QuoteFont;
@@ -100,20 +107,25 @@ OFL.txt）。
           36, codepoints, codepointCount);
       UnloadCodepoints(codepoints);
     }
-
+```
+    
 绘制时使用 `DrawTextEx`（按 UTF-8 逐码点绘制），配合 `MeasureTextEx` 居中：
 
+```c
     const float fontSize = 36.0f;
     const float spacing = 1.0f;
     const Vector2 textSize = MeasureTextEx(QuoteFont, kQuote, fontSize, spacing);
     const Vector2 textPos = {(GetScreenWidth() - textSize.x) / 2.0f,
                              (GetScreenHeight() - fontSize) / 2.0f};
     DrawTextEx(QuoteFont, kQuote, textPos, fontSize, spacing, WHITE);
+```
 
 卸载场景时记得 `UnloadFont(QuoteFont)`。
 
 如何选用字体
+
 ----
+
 1. 选尺寸：需要可靠覆盖常用中文时，**首选 12px**（完整字库）；10px 用于对文件
    体积敏感、且文本字符都较常见的场景；**避免使用 16px 渲染中文**，除非确认
    所有字符都在其 97 个 CJK 字形内。
@@ -123,7 +135,9 @@ OFL.txt）。
    合适、中西文混排观感更舒适；等宽模式用于需要严格对齐的场合。
 
 字号与整数倍缩放
+
 ----
+
 方舟像素字体是点阵风格字体，字形按固定像素网格绘制。为了保持像素边缘锐利、
 避免出现粗细不均的毛边，**渲染字号应为原生尺寸的整数倍**：
 
@@ -147,6 +161,7 @@ OFL.txt）。
 ----
 1. 检查字体覆盖（需要 python3 + fontTools）：
 
+```python3
        python3 -m pip install --user fonttools
        python3 - <<'EOF'
        from fontTools.ttLib import TTFont
@@ -156,7 +171,8 @@ OFL.txt）。
        missing = [c for c in text if ord(c) not in cmap]
        print('missing:', ''.join(missing) if missing else '无')
        EOF
-
+```
+       
 2. 运行时检查：加载字体后打印 `glyphCount`，并对每个码点调用 `GetGlyphIndex`，
    确认全部落在有效索引上（索引 0 属于第一个字形，注意与"缺字兜底"区分——
    兜底的表现是多个不同码点都返回同一个索引 0）。
@@ -165,7 +181,9 @@ OFL.txt）。
    避免 macOS 上截图时机导致的黑屏问题，配合系统 OCR 或人工查看确认字形正确。
 
 速查表
+
 ----
+
 - 渲染中文 → 用 12px-proportional-zh_cn，字号取 24/36/48（12 的整数倍）。
 - 加载方式 → `LoadCodepoints` + `LoadFontEx(..., 36, codepoints, count)`。
 - 绘制方式 → `DrawTextEx` / `MeasureTextEx`。
