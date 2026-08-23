@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.4.2)
 project(TheLawOfPrey VERSION 0.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
@@ -32,7 +32,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   src/include
 )
 
-# 使用 CMakes 自动转义传递字符串常量
+# Use CMake to automatically escape string literals
 target_compile_definitions(${PROJECT_NAME} PRIVATE 
     PROJECT_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )

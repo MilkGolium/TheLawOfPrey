@@ -1,3 +1,5 @@
+// 测试场景
+
 #include <stdio.h>
 
 #include "raylib.h"
