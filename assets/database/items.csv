@@ -1,5 +1,5 @@
 id,name_id,display_name,category,stack_max,texture,description,inspect_text
-1,branch,树枝,"RESOURCE, TOOL, EQUIP, BUILDING, CONSUMABLE, SPECIAL",60,res/textures/branch.png,一根普通的树枝。,干巴巴的，但能派上用场。
+1,branch,树枝,"RESOURCE",60,res/textures/branch.png,一根普通的树枝。,干巴巴的，但能派上用场。
 2,plant fiber,植物纤维,"RESOURCE",60,res/textures/plant_fiber.png,一种常见的材料。,可以用来干点什么。
 3,stone,石头,"RESOURCE",60,res/textures/stone.png,一块普通的石头。,沉甸甸的。
 4,scrap,废料,"RESOURCE",60,res/textures/scrap.png,前人们的馈赠。,可以回收再利用。
