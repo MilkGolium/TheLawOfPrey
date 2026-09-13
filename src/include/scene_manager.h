@@ -5,12 +5,10 @@
 #include <stdbool.h>
 
 typedef struct {
-  const char* name;
-  void (*Init)(void);
-  void (*Update)(void);
-  void (*Draw)(void);
-  void (*Unload)(void);
-  bool isActive;
+  void(*SceneManagerInit);
+  void(*SceneManagerUpdate);
+  void(*SceneManagerDraw);
+  void(*SceneManagerUnload);
 } Scene;
 
 void SceneManagerInit(void);

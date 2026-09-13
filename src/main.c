@@ -10,27 +10,20 @@ extern Scene CreateMainMenuScene(void);
 int main(void) {
   const int screenWidth = 1920;
   const int screenHeight = 1080;
-  const bool fullscreenEnabled = true;
-  int targetFPS = 144;
+  const bool fullscreenEnabled = true;  // 未来会去掉硬编码，从配置文件中读取
+  int targetFPS = 144;                  // 未来会去掉硬编码，从配置文件中读取
 
   InitWindow(screenWidth, screenHeight, "The Law Of Prey");
-  SetExitKey(KEY_NULL);
+  SetExitKey(KEY_NULL);  // 禁用 ESC 退出按键
   SetTargetFPS(targetFPS);
   SetFullscreen(fullscreenEnabled);
 
-  SceneManagerInit();
-  SceneManagerSwitch(CreateMainMenuScene());
-
+  // 用于切换开发和发行的 assets 位置。优先检查身边，其次根据项目结构来寻找。
   InitAssetsDirectory();
 
+  // 主循环
   while (!WindowShouldClose()) {
-    SceneManagerUpdate();
-
-    // Exit when all scenes have been popped
-    if (SceneManagerGetCurrent() == NULL) break;
-
     BeginDrawing();
-    SceneManagerDraw();
     EndDrawing();
   }
 

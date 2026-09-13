@@ -2,10 +2,13 @@
 
 #include <stddef.h>
 
+// 初始化 currentScene 指针
 static Scene* currentScene = NULL;
 
+// 初始化场景管理器
 void SceneManagerInit(void) { currentScene = NULL; }
 
+// 切换场景
 void SceneManagerSwitch(Scene scene) {
   if (currentScene != NULL) {
     if (currentScene->Unload) {
