@@ -24,14 +24,16 @@ typedef struct {
 } Scene;
 
 // 初始化场景管理器
-void SceneManagerInit(void);
-// 切换场景，需要传入一个场景结构；成功后会返回 1 ，失败返回 0
-int SceneManagerSwitch(Scene scene);
-// 更新场景管理器
-void SceneManagerUpdate(void);
+void InitSceneManager(void);
+// 切换当前场景并自动初始化；需要传入一个场景结构；成功后会返回 1 ，失败返回 0
+void SceneManager_SwitchCurrentScene(Scene*);
+// 更新当前场景
+void SceneManager_UpdateCurrentScene(void);
+// 绘制当前场景
+void SceneManager_DrawCurrentScene(void);
 // 清理释放资源
-void SceneManagerClean(void);
+void SceneManager_UnloadCurrentScene(void);
 // 查询当前场景，返回一个场景结构的指针
-Scene* SceneManagerGetCurrent(void);
+Scene* SceneManager_GetCurrentScene(void);
 
 #endif

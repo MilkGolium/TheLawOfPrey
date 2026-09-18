@@ -29,6 +29,7 @@ add_executable(${PROJECT_NAME}
 # Headers
 target_include_directories(${PROJECT_NAME} PRIVATE
   src/include
+  src/raygui/src
 )
 
 # Use CMake to automatically escape string literals
