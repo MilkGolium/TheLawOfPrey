@@ -61,3 +61,41 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 60,turkey feast,火鸡大餐,"CONSUMABLE",20,res/textures/turkey_feast.png,虽然这不是火鸡。,感恩节快乐。
 61,charcoal,木炭,"RESOURCE",60,res/textures/charcoal.png,由木头烧制而成的黑色物质。,可以用来生火。
 62,bone broth,骨头汤,"CONSUMABLE",20,res/textures/bone_broth.png,用兽骨熬制的汤。,也不是不可以。
+63,charging gel,充能凝胶,"RESOURCE",30,res/textures/charging_gel.png,恐怖力量的来源。,我感觉里面的能量随时会爆出来。
+64,Tyrannosaurus skin,霸王龙皮,"RESOURCE",30,res/textures/Tyrannosaurus_skin.png,恐怖暴君的的皮肤。,做成皮包带回去我就能发财了，哼。
+65,Tyrannosaurus tooth,霸王龙牙齿,"RESOURCE",30,res/textures/Tyrannosaurus_tooth.png,恐怖暴君的牙齿。,依然让我胆战心惊。
+66,Tyrannosaurus egg,霸王龙蛋,"RESOURCE",1,res/textures/Tyrannosaurus_egg.png,恐怖暴君的蛋。,我猜它的后代会吃空我的冰箱。
+67,bone knife,骨刀,"TOOL",1,res/textures/bone_knife.png,用兽骨制成的砍刀。,我要剥下你的皮。
+68,scrap axe,废料斧,"TOOL",1,res/textures/scrap_axe.png,用废料制成的斧头。,我可以砍树了。
+69,scrap pickaxe,废料镐,"TOOL",1,res/textures/scrap_pickaxe.png,用废料制成的镐。,我可以挖矿了。
+70,scrap launcher,废料发射器,"TOOL",1,res/textures/scrap_launcher.png,可以尝试发射乱七八糟的东西。,用这个东西把家里搞的乱七八糟。
+71,stone hammer,石锤,"TOOL",1,res/textures/stone_hammer.png,更高效的翻找前辈遗物。,土木老哥最爱。
+72,scrap helmet,废料头盔,"EQUIP",1,res/textures/scrap_helmet.png,用破烂拼凑的头盔。,看起来更像拾荒者了。
+73,scrap chestplate,废料胸甲,"EQUIP",1,res/textures/scrap_chestplate.png,用破烂拼凑的胸甲。,拾荒者皮肤。
+74,simple backpack,简易背包,"EQUIP",1,res/textures/simple_backpack.png,用木棍和草绳做成的小包。,可以装更多东西了。
+75,T-Rex backpack,霸王龙皮包,"EQUIP",1,res/textures/T-Rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
+76,savage club,野蛮大棒,"TOOL",1,res/textures/savage_club.png,镶嵌着霸王龙牙齿的恐怖武器。,这一下会很疯狂。
+77,scrap spear,废料长矛,"TOOL",1,res/textures/scrap_spear.png,用废料制成的长矛。,我要刺穿你。
+78,Spinosaurus harpoon,棘龙鱼叉,"TOOL",1,res/textures/Spinosaurus_harpoon.png,用棘龙牙齿制成的鱼叉。,永不空军。
+79,thunder battleaxe,雷鸣战斧,"TOOL",1,res/textures/thunder_battleaxe.png,镶嵌着雷神翼龙头冠的战斧。,POWER!
+80,feather coat,羽毛大衣,"EQUIP",1,res/textures/feather_coat.png,用羽毛制成的保暖大衣。,温暖而又柔软。
+81,Mammoth hide hat,猛犸象皮帽,"EQUIP",1,res/textures/Mammoth_hide_hat.png,用猛犸象毛制成的帽子。,保暖又时尚。
+82,Mammoth hide coat,猛犸象皮大衣,"EQUIP",1,res/textures/Mammoth_hide_coat.png,用猛犸象毛制成的大衣。,保暖又时尚。
+83,generator upgrade kit,发电机升级套件,"RESOURCE",1,res/textures/generator_upgrade_kit.png,可以让发电机更高效。,老一辈电工的自信。
+84,building upgrade kit,建筑升级套件,"RESOURCE",1,res/textures/building_upgrade_kit.png,更大更坚固。,老一辈建筑师的自信。
+85,Mammoth meat,猛犸象肉,"RESOURCE",60,res/textures/Mammoth_meat.png,新鲜的猛犸象肉。,我该跳战舞庆祝吗？
+86,super Mammoth meatball,超级猛犸象肉丸,"CONSUMABLE",20,res/textures/super_Mammoth_meatball.png,用猛犸象肉做成的肉丸。,史前一万年的味道。
+87,large feather,大羽毛,"RESOURCE",60,res/textures/large_feather.png,一根巨大的羽毛。,我可以用它做成薄扇。
+88,dino saddle,恐龙鞍,"EQUIP",1,res/textures/dino_saddle.png,用骨头和金属制成的恐龙鞍。,蒙古人行为。
+89,charge spear,冲锋长矛,"TOOL",1,res/textures/charge_spear.png,冲刺冲刺冲刺！,战斗爽！
+90,alloy material blueprint,合金材料蓝图,"RESOURCE",1,res/textures/alloy_material_blueprint.png,如何制作合金材料。,可以做出更坚固的东西了。
+91,alloy ingot,合金锭,"RESOURCE",60,res/textures/alloy_ingot.png,由多种金属熔炼而成的合金锭。,瞧瞧这光泽。
+92,alloy axe,合金斧,"TOOL",1,res/textures/alloy_axe.png,由合金锭制成的斧头。,砍树更轻松了。
+93,alloy pickaxe,合金镐,"TOOL",1,res/textures/alloy_pickaxe.png,由合金锭制成的镐。,挖矿更轻松了。
+94,alloy shovel,合金铲,"TOOL",1,res/textures/alloy_shovel.png,由合金锭制成的铲子。,挖土更轻松了。
+95,scrap shovel,废料铲,"TOOL",1,res/textures/scrap_shovel.png,用废料制成的铲子。,挖呀挖呀挖。
+96,alloy machete,合金弯刀,"TOOL",1,res/textures/alloy_machete.png,由合金锭制成的弯刀。,生存战斗两不误。
+97,alloy crossbow,合金弩,"TOOL",1,res/textures/alloy_crossbow.png,由合金锭制成的弩。,终于不用徒手搏斗了。
+98,net launcher,网枪,"TOOL",1,res/textures/net_launcher.png,可以发射网子。,我要抓住你们。
+99,fishing rod,钓鱼竿,"TOOL",1,res/textures/fishing_rod.png,可以用来钓鱼。,子非鱼，安知鱼之乐。
+100,chromite ore,铬铁矿,"RESOURCE",60,res/textures/chromite_ore.png,一种常见的金属矿石。,可以用来制作合金。
