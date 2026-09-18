@@ -15,7 +15,9 @@ void InitAssetsDirectory(void) {
 #ifdef PROJECT_ROOT_DIR
   else if (DirectoryExists(TextFormat("%s/assets", PROJECT_ROOT_DIR))) {
     ChangeDirectory(PROJECT_ROOT_DIR);
-    TraceLog(LOG_WARNING, "程序身边的 assets 不存在，已回退至开发目录：%s",
+    TraceLog(LOG_INFO,
+             "程序身边的 assets 不存在，已回退至开发目录：%s \n "
+             "这可能是因为程序正在开发目录中运行，没有打包发行。",
              GetWorkingDirectory());
   }
 #endif

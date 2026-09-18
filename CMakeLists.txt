@@ -22,14 +22,14 @@ add_executable(${PROJECT_NAME}
   src/scene_manager.c
   src/utils.c
   # Scenes
-  src/scenes/main_menu_scene.c
-  src/scenes/settings_scene.c
-  src/scenes/testing_scene.c
+  src/scenes/main_scene.c
+  src/scenes/scene_list.c
 )
 
 # Headers
 target_include_directories(${PROJECT_NAME} PRIVATE
   src/include
+  src/raygui/src
 )
 
 # Use CMake to automatically escape string literals
