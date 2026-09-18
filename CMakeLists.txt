@@ -22,9 +22,8 @@ add_executable(${PROJECT_NAME}
   src/scene_manager.c
   src/utils.c
   # Scenes
-  src/scenes/main_menu_scene.c
-  src/scenes/settings_scene.c
-  src/scenes/testing_scene.c
+  src/scenes/main_scene.c
+  src/scenes/scene_list.c
 )
 
 # Headers

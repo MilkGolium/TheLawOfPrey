@@ -9,9 +9,11 @@
 
 
 ## 平台支持
-优先支持 FreeBSD 、 Linux ，尽量支持 OpenBSD 、 macOS 、 Windows 。  
+确保支持 FreeBSD 、 Linux ，尽量支持 OpenBSD 、 macOS 、 Windows 。  
 因为弄不到证书，所以当前 Windows 上编译运行可能会遇到 SmartScreen 拦截；OpenBSD 在构建项目的时候遇到了一个头文件缺失问题，但是据说可以传入路径解决，而且此路径下的确发现了缺失的头文件。  
 具体情况正等待测试。
+
+2026-09-18 19:18 因为没有 Windows 电脑可供测试，无法确定 `script.ps1` 和 `script.bat` 是否有效，目前已经将文件废弃，请不要盲目使用。
 
 ## 项目简介
 正在构建程序基础，游戏内容待定。
@@ -19,9 +21,11 @@
 因游戏内容待定，所以项目名称为临时设置，未来可能会修改。
 
 ## 代码及文档规范
-- 交流与注释中的路径表示约定：默认从项目根目录起始，例如根目录下的 .clang-format 表示为 .clang-format ，main.c 在 项目根目录/src/main.c ，所以表示为 src/main.c 。
-- 代码中尽量不要使用 emoji ，以及 12345 类似的编号，以 ASCII 、汉字为主。
-- C 代码使用 Google Style ，限宽 80 字符，配置已经写在了 .clang-format 里面。
+- 交流与注释中的路径表示约定：默认从项目根目录起始，例如根目录下的 `.clang-format` 表示为 `.clang-format` ，`main.c` 在 项目根目录 `/src/main.c` ，所以表示为 `src/main.c` 。
+- 代码中不要使用 emoji ，注释不要包含 12345 类似的编号（ AI 经常这样做）；允许 ASCII 和中文汉字。
+- C 代码使用 Google Style ，限宽 80 字符，配置已经写在了 `.clang-format` 里面。
+- 文件名使用蛇形规范，例如 `main_scene.c`, `scene_manager.c` 。
+- 函数、结构使用大驼峰命名，例如 `MainScene->Init()`, `SceneManagerGetCurrent()`, `MainScene` 。
 
 ## 美术素材规范
 对于全屏图片，解析度不得高于 `1280*960` ，以免影响性能和体积。
@@ -46,7 +50,7 @@
 - `1280*720` 720p, HD
 
 ## Git LFS
-本仓库已经启用了 Git LFS ，全新拉取仓库以后请执行 `git lfs pull` 拉取字体、图片等二进制文件。
+本仓库已经启用了 Git LFS ，全新拉取仓库以后可以执行 `git lfs pull` 拉取字体、图片等二进制文件。
 
 ## 大事记
 Jul-24-2026 转为开源。

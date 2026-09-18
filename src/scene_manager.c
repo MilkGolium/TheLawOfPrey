@@ -2,50 +2,50 @@
 
 #include <stddef.h>
 
-// 初始化 currentScene 指针
-static Scene* currentScene = NULL;
+// 当前场景
+static Scene* currentScene;
 
-// 初始化场景管理器
+// 初始化
 void SceneManagerInit(void) { currentScene = NULL; }
 
-// 切换场景
-void SceneManagerSwitch(Scene scene) {
+// 实现 SceneMagaerSwitch() ，用于切换场景
+int SceneManagerSwitch(Scene nextScene) {
+  // 检查当前是否存在场景，如果存在，将当前场景卸载，清理资源
   if (currentScene != NULL) {
-    if (currentScene->Unload) {
-      currentScene->Unload();
-    }
-    currentScene->isActive = false;
-  }
-
-  static Scene sceneStorage;
-  sceneStorage = scene;
-  currentScene = &sceneStorage;
-
-  currentScene->isActive = true;
-  if (currentScene->Init) {
-    currentScene->Init();
+    currentScene->SceneUnload();
+    // 将 currentScene 指向新的场景
+    currentScene = &nextScene;
+    // 顺便初始化新场景
+    currentScene->SceneInit();
+    return 0;
+  } else {
+    return 1;
   }
 }
 
-void SceneManagerUpdate(void) {
-  if (currentScene != NULL && currentScene->isActive && currentScene->Update) {
-    currentScene->Update();
+// 更新当前场景的数据
+void SceneManagerUpdateCurrentScene(void) {
+  if (currentScene != NULL) {
+    currentScene->SceneUpdate();
   }
 }
 
+// 绘制场景
 void SceneManagerDraw(void) {
-  if (currentScene != NULL && currentScene->isActive && currentScene->Draw) {
-    currentScene->Draw();
+  if (currentScene != NULL) {
+    currentScene->SceneDraw();
   }
 }
 
-void SceneManagerClose(void) {
+// 清理当前场景的数据
+void SceneManagerUnloadCurrentScene(void) {
   if (currentScene != NULL) {
-    if (currentScene->Unload) {
-      currentScene->Unload();
-    }
+    // 清理场景的数据
+    currentScene->SceneUnload();
+    // 将当前场景设置为 NULL
     currentScene = NULL;
   }
 }
 
-Scene* SceneManagerGetCurrent(void) { return currentScene; }
+// 获取当前场景的指针
+Scene* SceneManagerGetCurrentScene(void) { return currentScene; }

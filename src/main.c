@@ -2,6 +2,7 @@
 
 #include "graphsettings.h"
 #include "raylib.h"
+#include "scene_list.h"
 #include "scene_manager.h"
 #include "utils.h"
 
@@ -24,6 +25,8 @@ int main(void) {
   // 主循环
   while (!WindowShouldClose()) {
     BeginDrawing();
+    ClearBackground(BLUE);
+    MainScene.SceneDraw();
     EndDrawing();
   }
 
