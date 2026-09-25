@@ -1,5 +1,6 @@
 #include <stddef.h>
 
+#include "font.h"
 #include "graphsettings.h"
 #include "raylib.h"
 #include "scene_list.h"
@@ -33,6 +34,9 @@ int main(void) {
   // 用于切换开发和发行的 assets 位置。优先检查身边，其次根据项目结构来寻找。
   InitAssetsDirectory();
 
+  // 加载中文字体图集，收集 codepoint 并同步 raygui
+  InitGameFont();
+
   // === 主循环 ===
   while (!WindowShouldClose()) {
     SceneManager_UpdateCurrentScene();
@@ -47,6 +51,8 @@ int main(void) {
 
   // 空场景检测已经包含在函数内，无需再次检测
   SceneManager_UnloadCurrentScene();
+  // 释放字体图集（必须在 CloseWindow 之前，此时 GL 上下文尚在）
+  UnloadGameFont();
   CloseWindow();
   return 0;
 }
