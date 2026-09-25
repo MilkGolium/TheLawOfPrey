@@ -191,8 +191,15 @@ static void AddBufferCodepoints(void) {
       0x201C, 0x201D, 0x2018, 0x2019, 0xFF08, 0xFF09, 0x3010,
       0x3011, 0x300A, 0x300B, 0x2026, 0x2014,
   };
-  int n = (int)(sizeof(punct) / sizeof(punct[0]));
-  for (int i = 0; i < n; i++) MarkCodepoint(punct[i]);
+  int pn = (int)(sizeof(punct) / sizeof(punct[0]));
+  for (int i = 0; i < pn; i++) MarkCodepoint(punct[i]);
+
+  // 界面常用字（不在数据文件中但 UI 需要的汉字）
+  static const int uiChars[] = {
+      0x663E, 0x793A, 0x6D88, 0x606F, 0x6846, 0x6761, 0x6D4B, 0x5173, 0x95ED,
+  };
+  int un = (int)(sizeof(uiChars) / sizeof(uiChars[0]));
+  for (int i = 0; i < un; i++) MarkCodepoint(uiChars[i]);
 }
 
 static void CollectAllCodepoints(void) {
