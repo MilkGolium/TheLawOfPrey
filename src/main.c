@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "font.h"
@@ -17,10 +18,10 @@ int main(void) {
   // === 初始化 ===
 
   // 硬编码提供设置参数
-  const int screenWidth = 1920;         // 未来会去掉硬编码，从配置文件中读取
-  const int screenHeight = 1080;        // 未来会去掉硬编码，从配置文件中读取
-  const bool fullscreenEnabled = true;  // 未来会去掉硬编码，从配置文件中读取
-  int targetFPS = 144;                  // 未来会去掉硬编码，从配置文件中读取
+  const int screenWidth = 800;           // 未来会去掉硬编码，从配置文件中读取
+  const int screenHeight = 600;          // 未来会去掉硬编码，从配置文件中读取
+  const bool fullscreenEnabled = false;  // 未来会去掉硬编码，从配置文件中读取
+  int targetFPS = 144;                   // 未来会去掉硬编码，从配置文件中读取
 
   // 初始化场景管理器
   InitSceneManager();
