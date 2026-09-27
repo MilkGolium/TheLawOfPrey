@@ -19,7 +19,12 @@
 
 ### 程序
 
-- 中文字型载入：用 LoadFontEx 载入 `assets/fonts/ttf/zpix.ttf` 并 GuiSetFont ，否则界面中文全部显示为方框。
+- ~~中文字型载入：用 LoadFontEx 载入 `assets/fonts/ttf/zpix.ttf` 并 GuiSetFont ，否则界面中文全部显示为方框。~~ 已完成。
+- 修复 raygui 文字贴边：在 `InitGameFont` 中设置 `GuiSetStyle(DEFAULT, TEXT_PADDING, 6)` ，当前 TEXT_PADDING 默认为 0 导致文字与按钮边框重叠。
+- 移除 `font.c` 中的 `uiChars[]` 硬编码：界面常用字应从文件读取，不写死在代码中。
+- 扩展 `CollectAllCodepoints` 扫描 `assets/strings/` 目录，使场景 UI 文本的 codepoint 被自动收集。
+- 将 `main_scene.c` 中的中文字符串移入 `assets/strings/main_scene.csv` ，按 key 索引。
+- `main_scene.c` 在 `Init` 时从 CSV 按 key 加载字符串，不把展示文本写死在代码中。
 - 游玩场景骨架：新增 `src/scenes/game_scene.c` ，引入 Camera2D 、按地图文件渲染地砖、摄像机跟随玩家。
 - 玩家移动与碰撞：补全 `src/include/player.h` 的坐标与速度，WASD 移动，被不可通行地砖阻挡。
 - 物品数据层：解析 `assets/database/items.csv` ，按需加载物品图标并做缓存，处理路径前缀与扩展名大小写不一致的问题。
