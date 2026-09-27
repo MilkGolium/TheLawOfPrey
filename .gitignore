@@ -5,3 +5,6 @@ build/
 .DS_Store
 
 .cache
+
+# AI Agent
+/.workbuddy-ai

@@ -1,5 +1,7 @@
+#include <stdbool.h>
 #include <stddef.h>
 
+#include "font.h"
 #include "graphsettings.h"
 #include "raylib.h"
 #include "scene_list.h"
@@ -16,10 +18,10 @@ int main(void) {
   // === 初始化 ===
 
   // 硬编码提供设置参数
-  const int screenWidth = 1920;         // 未来会去掉硬编码，从配置文件中读取
-  const int screenHeight = 1080;        // 未来会去掉硬编码，从配置文件中读取
-  const bool fullscreenEnabled = true;  // 未来会去掉硬编码，从配置文件中读取
-  int targetFPS = 144;                  // 未来会去掉硬编码，从配置文件中读取
+  const int screenWidth = 800;           // 未来会去掉硬编码，从配置文件中读取
+  const int screenHeight = 600;          // 未来会去掉硬编码，从配置文件中读取
+  const bool fullscreenEnabled = false;  // 未来会去掉硬编码，从配置文件中读取
+  int targetFPS = 144;                   // 未来会去掉硬编码，从配置文件中读取
 
   // 初始化场景管理器
   InitSceneManager();
@@ -32,6 +34,9 @@ int main(void) {
 
   // 用于切换开发和发行的 assets 位置。优先检查身边，其次根据项目结构来寻找。
   InitAssetsDirectory();
+
+  // 加载中文字体图集，收集 codepoint 并同步 raygui
+  InitGameFont();
 
   // === 主循环 ===
   while (!WindowShouldClose()) {
@@ -47,6 +52,8 @@ int main(void) {
 
   // 空场景检测已经包含在函数内，无需再次检测
   SceneManager_UnloadCurrentScene();
+  // 释放字体图集（必须在 CloseWindow 之前，此时 GL 上下文尚在）
+  UnloadGameFont();
   CloseWindow();
   return 0;
 }

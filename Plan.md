@@ -8,8 +8,9 @@
 
 - `assets/fonts/ttf/zpix.ttf` 是全量字体，共 22240 个字形，其中 CJK 基本区 20902 个、
   半形与符号 687 个，文件大小 6.9MB ，`unitsPerEm = 1200` 。
-- 项目可见文字的来源有限且可枚举。仅 `assets/database/items.csv` 目前就用到 593 个
-  唯一字元（其中 528 个为 CJK）。
+- 项目可见文字的来源有限且可枚举。 `assets/database/items.csv` 整文件共有 593 个
+  唯一字元；其中三栏（ `display_name` 、 `description` 、 `inspect_text` ）合计 539 个。
+  两种口径下 CJK 均为 528 个，不影响后续估算。
 - raylib 6.0 没有 `SetFontDefault` ，只有 `GetFontDefault` 。因此 `DrawText()` 永远使用
   内置默认字体，画中文必定显示为方框。所有文字必须走 `DrawTextEx` 与 `MeasureTextEx` ，
   没有替代做法。

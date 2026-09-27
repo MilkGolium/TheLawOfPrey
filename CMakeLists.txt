@@ -18,6 +18,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 # Project executable
 add_executable(${PROJECT_NAME}
   src/main.c
+  src/font.c
   src/graphsettings.c
   src/scene_manager.c
   src/utils.c
