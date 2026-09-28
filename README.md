@@ -125,3 +125,6 @@ xxx 最大堆叠 60，特殊物品最大堆叠 10 。
 
 ## 大事记
 Jul-24-2026 转为开源。
+
+## 致谢
+本项目在开发过程中使用了 AI 编码工具 [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) 辅助代码编写与文档整理。
