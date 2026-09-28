@@ -241,7 +241,7 @@ static void CheckCallback(const char* text, void* userData) {
   while (text[offset] != '\0') {
     int cp = GetCodepointNext(text + offset, &cpSize);
     if (cpSize <= 0) cpSize = 1;  // 防止死循环
-    if (cp > 0 && !Font_HasGlyph(cp)) {
+    if (cp > 0 && !FontHasGlyph(cp)) {
       TraceLog(LOG_WARNING, "Font: 缺字 U+%04X", (unsigned)cp);
       (*missing)++;
     }
@@ -287,7 +287,7 @@ Font GetUIFont(int size) {
 
 // === 公开接口 ===
 
-bool Font_HasGlyph(int codepoint) {
+bool FontHasGlyph(int codepoint) {
   if (!collectedCps || collectedCount == 0) return false;
   int lo = 0, hi = collectedCount - 1;
   while (lo <= hi) {

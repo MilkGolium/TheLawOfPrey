@@ -16,8 +16,8 @@ void UnloadGameFont(void);
 // 不支持的尺寸会回退到 24。
 Font GetUIFont(int size);
 
-// 查询某 codepoint 是否已被收集并加载。
-bool Font_HasGlyph(int codepoint);
+// 查询某 codepoint 是否被收集进图集；不代表字体真有其字形，缺字仍会回退为 '?'。
+bool FontHasGlyph(int codepoint);
 
 // 绘制文本，封装 DrawTextEx。
 void DrawUIText(int posX, int posY, const char* text, int size, Color tint);

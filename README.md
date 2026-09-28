@@ -33,7 +33,7 @@
 - CSV 字段超过 `CSV_FIELD_MAX` (1024) 时要告警。当前被截掉的 codepoint 既不进图集也不报缺字（收集与检查走同一条截断路径），漏字完全无声。
 - 移除 `font.c` 中的 `uiChars[]` 硬编码，并把 `assets/strings/` 接入 codepoint 收集。两条是耦合的：先建 `assets/strings/main_scene.csv` （key,text 格式）迁入界面用字，再删掉 `uiChars[]` 及其循环，`CollectAllCodepoints` 增扫该目录。
 - `main_scene.c` 在 `Init` 时从 CSV 按 key 加载字符串，不把展示文本写死在 C 字面量里。
-- `Font_HasGlyph` 改名 `FontHasGlyph` ：其余接口都是大驼峰，该名字是唯一例外。改名时先确认调用方依赖的语义——它答的是「是否被收集」而不是「是否能渲染」。
+- ~~`Font_HasGlyph` 改名 `FontHasGlyph` ：其余接口都是大驼峰，该名字是唯一例外。~~ 已完成。注意它答的是「是否被收集」而不是「是否能渲染」，调用方别当后者用。
 - 收集阶段缓存文本引用，缺字检查复用，去掉对 `assets/database/*.csv` 的重复磁盘读取；同时让「字段被截断」变成可观测。
 - 补 `font.c` 健壮性：`MemAlloc` 返回值判空；引号字段内遇到 `\r\n` 的处理与普通行保持一致。
 - 为 CSV 解析补测试，覆盖 BOM 、 `""` 转义、 CRLF 、引号内换行、文件末尾无换行、超长字段。这些路径目前只靠人工推演，改解析时没有回归保护。
