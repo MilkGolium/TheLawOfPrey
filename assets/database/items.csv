@@ -99,3 +99,7 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 98,net launcher,网枪,"TOOL",1,res/textures/net_launcher.png,可以发射网子。,我要抓住你们。
 99,fishing rod,钓鱼竿,"TOOL",1,res/textures/fishing_rod.png,可以用来钓鱼。,子非鱼，安知鱼之乐。
 100,chromite ore,铬铁矿,"RESOURCE",60,res/textures/chromite_ore.png,一种常见的金属矿石。,可以用来制作合金。
+101,smoked fish,熏鱼,"CONSUMABLE",20,res/textures/smoked_fish.png,慢火熏制的鱼。,农家乐会有这种美味。
+102,sturgeon,鲟鱼,"CONSUMABLE",30,res/textures/sturgeon.png,新鲜的鲟鱼。,古老的鱼，在各个方面。
+103,sturgeon steak,鲟鱼排,"CONSUMABLE",20,res/textures/sturgeon_steak.png,用鲟鱼做成的美味鱼排。,现在变成古老的美味了。
+104,omelette,煎蛋卷,"CONSUMABLE",20,res/textures/omelette.png,用鸡蛋做成的美味煎蛋卷。,早餐的最佳选择。
