@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "scene_list.h"
 #include "scene_manager.h"
+#include "theme.h"
 #include "utils.h"
 
 // 注意：此定义只需要进行一次，用于启用 Raygui
@@ -37,6 +38,9 @@ int main(void) {
 
   // 加载中文字体图集，收集 codepoint 并同步 raygui
   InitGameFont();
+
+  // 字体度量就绪后再套配色，主题只允许改动颜色
+  InitTheme();
 
   // === 主循环 ===
   while (!WindowShouldClose()) {

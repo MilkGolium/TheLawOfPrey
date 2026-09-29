@@ -21,6 +21,7 @@ add_executable(${PROJECT_NAME}
   src/font.c
   src/graphsettings.c
   src/scene_manager.c
+  src/theme.c
   src/utils.c
   # Scenes
   src/scenes/main_scene.c
