@@ -132,8 +132,8 @@ static bool LooseEquals(const char* a, const char* b) {
   return *a == '\0' && *b == '\0';
 }
 
-// 只接受 6 位或 8 位十六进制，写作 0x 前缀亦可。少写位数会被
-// 静默补成不透明色，与其给出错误配色，不如直接判为非法。
+// 只接受 6 位或 8 位十六进制，写作 0x 前缀亦可。6 位按不透明处理。
+// 少于 6 位或介于两者之间的位数一律判为非法，避免静默产生错误配色。
 static bool ParseColor(const char* text, int* out) {
   const char* p = text;
   if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) p += 2;
@@ -145,6 +145,10 @@ static bool ParseColor(const char* text, int* out) {
   int digits = (int)(end - p);
   if (digits != 6 && digits != 8) return false;
   if (*end != '\0') return false;
+
+  // 不补高位的话 6 位会写成 0x00RRGGBB，raygui 按 0xRRGGBBAA 解包后
+  // 变成 r=0x00、g 与 b 各偏移一字节、a 拿到蓝色分量，四个通道全错。
+  if (digits == 6) value = (value << 8) | 0xFF;
 
   *out = (int)value;
   return true;

@@ -48,16 +48,12 @@
 `InitTheme()` 、 `GetThemeCount()` 、 `GetThemeName()` 、 `LoadTheme()` 、
 `GetCurrentThemeName()` 。以下为待处理项。
 
-- **`default.cfg` 的 6 位颜色值解析错误。** 格式说明写「`RRGGBB` 可省略
-  alpha（默认不透明）」，但 `src/theme.c` 的 `ParseColor()` 在 `strtoul`
-  之后直接 `*out = (int)value`，没有补高位。6 位输入 `838383` 得到的是
-  `0x00838383`，最终颜色为 `r=0x00 g=0x83 b=0x83 a=0x83`——**四个通道
-  全部错位，不只是 alpha 不透明性问题**，红色通道直接归零。修法是在位数
-  检查通过后（`digits == 6` 时）执行 `value = (value << 8) | 0xFF` 再写出。
-  目前所有实际配置都写 8 位，所以这个 bug 一直处于潜伏状态，没有被
-  启动日志暴露过。
-- 明确 6 位简写要不要支持。若不支持，把位数校验改成只接受 8 位并同步
-  修正 `default.cfg` 的格式说明，比留一个半对不对的分支更干净。
+- ~~**`default.cfg` 的 6 位颜色值解析错误。** `ParseColor()` 在 `strtoul`
+  之后直接 `*out = (int)value`，没有补高位，6 位输入 `838383` 得到
+  `0x00838383`，raygui 按 `0xRRGGBBAA` 解包后四个通道全部错位。~~
+  已完成。修法是在 `digits == 6` 时执行 `value = (value << 8) | 0xFF`，
+  已用 6 位 `0x838383` 实测，解析结果为 `0x838383ff`。
+- 6 位简写予以保留，按不透明处理，格式说明与实现现已一致。
 - 主题选择语义待定：`InitTheme()` 目前只自动加载 `default.cfg`，仅当它
   不存在时才退回到按文件名排序的首项。往 `assets/themes/` 里新增一个
   `.cfg` 并不会自动生效，`default.cfg` 顶部注释里「把新的 .cfg 放进
