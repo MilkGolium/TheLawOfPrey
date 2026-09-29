@@ -1,190 +1,145 @@
-字体库说明
+字体说明
 ========
 
-概述
-----
-本仓库在 `assets/fonts/ttf/ark_pixel/` 下内置了"方舟像素字体"（Ark Pixel Font，
-项目主页 https://github.com/TakWolf/ark-pixel-font ）的字体文件，共 3 种像素尺寸
-× 2 种宽度模式 × 7 种语言字形。该字体使用 SIL OFL-1.1 许可证（各子目录内附
-OFL.txt）。
+本文件记录仓库实际内置的字体、其授权状态，以及在 raylib 下加载像素字
+体时踩过的坑。
 
-需要特别注意的是：该字体仍处于积极开发阶段，**不同尺寸版本的字符覆盖差异极大**。
-本文件记录实测的覆盖情况、一次真实踩坑案例（中文渲染成"个个个……"）的原因、
-字体的选用方法，以及渲染字号与整数倍缩放的建议。
+当前唯一内置字体
+----------------
 
-目录结构
-----
-字体按 像素尺寸 / 宽度模式 组织：
+- 路径：`assets/fonts/ttf/fusion-pixel-12px-proportional-zh_hans.ttf`
+- 名称：Fusion Pixel Font 12px Proportional zh-Hans
+- 版本：2026.09.25（`TakWolf/fusion-pixel-font` 的 GitHub Release）
+- 用途：全局唯一界面字体，`src/font.c` 的 `FONT_PATH` 硬编码指向它
+- 字形数：36999
+- 文件 sha256：
+  `b2ee68647dc257fa697e4d0c78f9b59461bc504a023b9a3b5ad66f358bbb1613`
+- `upem = 1200`，原生 12px，本项目按 12 的整数倍（12 / 24 / 36）渲染
+- 授权：SIL Open Font License 1.1，许可全文见
+  `assets/fonts/ttf/licenses/`
 
-```text
-    assets/fonts/ttf/ark_pixel/
-    ├── 10px-proportional/      10px 比例模式（约 520 KB/文件）
-    ├── 10px-monospaced/        10px 等宽模式
-    ├── 12px-proportional/      12px 比例模式（约 4.8 MB/文件，完整字库）
-    ├── 12px-monospaced/        12px 等宽模式
-    ├── 16px-proportional/      16px 比例模式（约 480 KB/文件，基础子集）
-    └── 16px-monospaced/        16px 等宽模式
-```
-    
-每个子目录内含 7 个语言字形版本：
+### 为什么不是纯 Ark Pixel Font
 
-- latin —— 泛拉丁语（西文标点）
-- zh_cn —— 中文-中国大陆（《通用规范汉字表》写法，简体）
-- zh_hk —— 中文-香港（《常用字字形表》写法）
-- zh_tr —— 中文-传统印刷
-- zh_tw —— 中文-台湾（《国字标准字体》写法，繁体）
-- ja —— 日语（《常用汉字表》写法）
-- ko —— 朝鲜语
+原计划直接换用 Ark Pixel Font（同样是 OFL-1.1）。实测后发现它**缺少游
+戏实际在用的 7 个字**，会导致这些字在界面上渲染成 `?`：
 
-字符覆盖情况（实测）
+    恐 浆 筑 蕨 蘑 蛮 餐
 
-----
+缺字位置全部落在 `assets/database/items.csv` 的真实物品文本里，其中
+「恐」出现 5 次、「蕨」3 次、「浆」3 次，不是边缘用例。Ark Pixel 的
+7 个语言变体（`zh_hans` / `zh_hant` / `zh_tw` / `zh_hk` / `ja` / `ko` /
+`latin`）字形数完全相同（24869），覆盖范围一致，缺的是同一批字，换变
+体解决不了。
 
-对三个尺寸的 zh_cn 比例字体做了 cmap 实测（使用 fontTools 解析 TTF，结果适用于
-同尺寸的全部语言变体，各语言版本覆盖数一致，差异仅在字形写法）：
+因此改用 Fusion Pixel Font。它由 TakWolf 制作，**本身就包含 Ark
+Pixel**，另外合并了 cubic-11 与 galmuri 两个字体来补足覆盖度——缺的那
+7 个字正是从后两者补上的。三者全部是 OFL-1.1，所以许可结论与直接用
+Ark Pixel 完全一致。
 
-| 尺寸 | cmap 总条目 | CJK 统一表意文字 | CJK 标点 | 示例句子命中 |
-|------|------------|-----------------|---------|------------|
-| 10px | 4252       | 1076            | 64      | 25/25      |
-| 12px | 24433      | 18299           | 64      | 25/25      |
-| 16px | 3214       | 97              | 64      | 4/25       |
+### 授权构成
 
-示例句子为"我们度过的每个平凡的日常，也许就是连续发生的奇迹。"（含标点共 25
-个码点，去重后 23 个字形）。结论：
+`assets/fonts/ttf/licenses/` 保存了全部许可全文，逐一核对结果：
 
-- **12px 为完整字库**，覆盖 18299 个 CJK 统一表意文字，可放心用于任意常用中文
-  文本；代价是单文件约 4.8 MB。
-- **10px 为中型子集**（1076 个 CJK），覆盖常用汉字，但生僻字可能缺失。
-- **16px 为极小子集**（仅 97 个 CJK），只能覆盖极少数常用字，**不适合渲染任意
-  中文文本**。
+| 组件 | 许可 | 版权声明 | 保留字体名 |
+|------|------|----------|------------|
+| Fusion Pixel Font（整体） | OFL-1.1 | Copyright (c) 2022, TakWolf | 无 |
+| ark-pixel | OFL-1.1 | Copyright (c) 2021, TakWolf | 无 |
+| cubic-11 | OFL-1.1（另附 M+/IPA 类宽松许可，可任选） | M+ FONTS PROJECT 2005、COZ 2002-2004 | 无 |
+| galmuri | OFL-1.1 | Copyright (c) 2019-2025 Lee Minseo | 无 |
 
-官方 README 亦明确警告该字体"仍然缺少大量汉字"，并建议：8/10/12px 场景可临时
-使用缝合像素字体（fusion-pixel-font，https://github.com/TakWolf/fusion-pixel-font
-），16px 场景建议使用 Unifont（https://unifoundry.com/unifont/index.html ）。
+四份文件均无「with Reserved Font Name」条款，即不保留字体名，后续修改
+或再分发不受命名限制。OFL 允许把字体随软件打包、再分发乃至随商业产品
+销售，只要求不得单独出售字体本身，且必须随分发附带许可全文与版权声
+明——上述文件即为满足该要求而保留。
 
-踩坑案例：中文渲染成"个个个……"
-----
-在 settings_scene.c 中最初使用 16px 比例字体加载一句话，运行结果变成：
+换字体前的历史（供追溯）
+------------------------
 
-```text
-    个个个个个个个个个个日个, 个个个个个个个个个个个
-```
+此前内置的是 `assets/fonts/ttf/zpix.ttf`（Zpix／最像素），已删除。它
+是专有商业字体：上游仓库没有 LICENSE 文件，README 以价目表授权，商业
+单个产品 USD $1000 / RMB ￥7000，且版权声明禁止「修改、反编译、转换、
+拆分等反向操作」。正因为上游禁止转换，连运行时把字形栅格化进图集都存
+在合规争议，故直接移除而不是付费采购。
 
-原因有两层：
+同时删除的还有 `src/raygui/styles/` 下 20 个第三方样式字体（其中 13 个
+含字体的样式目录没有任何许可声明）。该目录从未被项目源码引用，raygui
+的样式加载接口已列入禁用清单。
 
-1. 字体缺字：这句话的 25 个码点中，16px 字体只包含 4 个（个、日、，、。），
-   其余 21 个（我、们、度、过……）在字体中不存在。
-2. raylib 的兜底行为：`LoadFontData` 加载字形时，**字体里没有的码点会被静默
-   跳过**，不进图集；绘制时 `GetGlyphIndex` 查不到该码点，**一律返回索引 0**，
-   即把图集里第一个字形画到每个缺字的位置上。本案例中字体命中的 4 个字（个、
-   日、，、。）本身能正常显示，但图集第一个字形恰好是"个"，其余 21 个缺字全部
-   画成了"个"，于是整句话几乎全部变成"个"。
+行高与像素格（换字体后的已知差异）
+----------------------------------
 
-排查要点：
+zpix 的 `hhea` 为 `ascent 1000 / descent -200 / lineGap 0`，在 12px 下
+行高正好 12.00px。Fusion Pixel 的 `hhea` 为 `ascent 1300 / descent
+-300 / lineGap 0`，同样 `upem = 1200`，但行高变成：
 
-- 不要用 `LoadFont` 加载中文：它只生成 ASCII 32..126 的 95 个字形，不包含任何
-  CJK 字形。
-- raylib 默认字体同样没有 CJK 字形，直接 `DrawText` 中文必然出错。
-- `LoadFontEx` 的 codepoints 参数决定图集内容；漏掉某个字符就会触发上述兜底。
+| 渲染字号 | zpix 行高 | Fusion 行高 |
+|----------|------------|--------------|
+| 12px | 12.00px | 16.00px |
+| 24px | 24.00px | 32.00px |
+| 36px | 36.00px | 48.00px |
 
-正确的加载方式
-----
-先通过 `LoadCodepoints` 把字符串（UTF-8）解成码点数组，再交给 `LoadFontEx`，
-保证用到的每个字符都进入图集。代码示例（与 settings_scene.c 中一致）：
+**行高不再是 12 的整数倍。** 图集尺寸仍由传给 `LoadFontEx` 的
+`fontSize` 决定（12 / 24 / 36），字形本身仍落在 12px 网格上，整数倍
+缩放的约束没有被破坏；受影响的是多行文字的纵向步进与控件高度计算。
 
-```c
-    static const char *kQuote =
-        "我们度过的每个平凡的日常，也许就是连续发生的奇迹。";
-    static Font QuoteFont;
+README 中「修复 raygui 文字贴边」一条原本是照 zpix 在 24px 下 CJK 墨迹
+高 22px 写下的，换字体后该数值已不成立，需要重新实测再定
+`TEXT_PADDING` 与各控件高度常量。
 
-    static void SettingsInit(void) {
-      int codepointCount = 0;
-      int *codepoints = LoadCodepoints(kQuote, &codepointCount);
-      // 16px ark-pixel 是不完整子集；12px 构建覆盖全部 CJK。
-      QuoteFont = LoadFontEx(
-          "assets/fonts/ttf/ark_pixel/12px-proportional/"
-          "ark-pixel-12px-proportional-zh_cn.ttf",
-          36, codepoints, codepointCount);
-      UnloadCodepoints(codepoints);
-    }
-```
-    
-绘制时使用 `DrawTextEx`（按 UTF-8 逐码点绘制），配合 `MeasureTextEx` 居中：
+加载像素字体的已知坑
+--------------------
 
-```c
-    const float fontSize = 36.0f;
-    const float spacing = 1.0f;
-    const Vector2 textSize = MeasureTextEx(QuoteFont, kQuote, fontSize, spacing);
-    const Vector2 textPos = {(GetScreenWidth() - textSize.x) / 2.0f,
-                             (GetScreenHeight() - fontSize) / 2.0f};
-    DrawTextEx(QuoteFont, kQuote, textPos, fontSize, spacing, WHITE);
-```
+以下与具体字体无关，换任何字体都适用。
 
-卸载场景时记得 `UnloadFont(QuoteFont)`。
+缺字会静默变成第一个字形
+    `LoadFontEx` 传入的 codepoints 决定了图集内容，漏掉的字符不进图集。
+    绘制时 `GetGlyphIndex` 查不到码点会返回索引 0，于是把图集第一个字形
+    画到每个缺字位置。一句中文可能整体显示成同一个字，且没有任何告警。
+    本项目为此保留了启动时的缺字扫描与 `TraceLog(LOG_WARNING)` 输出
+    （见 `src/font.c` 的 `CheckMissingGlyphs`），不要移除。
 
-如何选用字体
+不要用 `LoadFont` 或默认字体画中文
+    `LoadFont` 只生成 ASCII 32..126 的 95 个字形；raylib 默认字体同样
+    不含 CJK 字形。`DrawText()` 永远使用内置默认字体，画中文必定是方框。
+    raylib 6.0 没有 `SetFontDefault`，只能走 `DrawTextEx` /
+    `MeasureTextEx`。
 
-----
+正确加载方式
+    先用 `LoadCodepoints` 把 UTF-8 文本解成码点数组，再交给
+    `LoadFontEx`，保证实际用到的每个字符都进图集：
 
-1. 选尺寸：需要可靠覆盖常用中文时，**首选 12px**（完整字库）；10px 用于对文件
-   体积敏感、且文本字符都较常见的场景；**避免使用 16px 渲染中文**，除非确认
-   所有字符都在其 97 个 CJK 字形内。
-2. 选语言版本：简体中文用 zh_cn；繁体按地区选 zh_tw / zh_hk / zh_tr；纯西文用
-   latin。
-3. 选宽度模式：无特殊要求时用 **proportional（比例模式）**，官方说明其基线位置
-   合适、中西文混排观感更舒适；等宽模式用于需要严格对齐的场合。
+    ```c
+    int codepointCount = 0;
+    int *codepoints = LoadCodepoints(text, &codepointCount);
+    Font f = LoadFontEx(path, size, codepoints, codepointCount);
+    UnloadCodepoints(codepoints);
+    ```
 
-字号与整数倍缩放
+    不要把整个 CJK 区间（如 0x4E00-0x9FFF）传给 `LoadFontEx`，图集会
+    被撑大。只需传实际用到的码点。
 
-----
+整数倍缩放
+    点阵字体按固定像素网格绘制，渲染字号应为原生尺寸的整数倍，否则各字符
+    的像素网格不一致，观感变差。12px 字体对应 12 / 24 / 36 / 48 / 60。
+    `LoadFontEx` 的 fontSize 即最终渲染字号，直接传整数倍值，不需要传原生
+    尺寸。贴图过滤保持 `TEXTURE_FILTER_POINT`，改线性会失去锐利度。
 
-方舟像素字体是点阵风格字体，字形按固定像素网格绘制。为了保持像素边缘锐利、
-避免出现粗细不均的毛边，**渲染字号应为原生尺寸的整数倍**：
+图集体积
+    与传入的码点数量成正比。图集在显存中只应有一份，因此本项目按尺寸懒
+    加载并缓存，切换场景时不重载。
 
-| 原生尺寸 | 推荐渲染字号（整数倍） |
-|---------|----------------------|
-| 10px    | 20（×2）、30（×3）、40（×4）、50（×5） |
-| 12px    | 24（×2）、36（×3）、48（×4）、60（×5） |
-| 16px    | 32（×2）、48（×3）、64（×4）          |
+覆盖度自查
+    换字体后必须重新核对字形覆盖，不同字体的差异可能极大——本次换字体
+    就是因为 Ark Pixel 缺了 7 个在用字才改用 Fusion Pixel，两者覆盖度差
+    别很大，不能想当然认为同族字体覆盖一致。用 fontTools 读 cmap 与实际
+    文本比对：
 
-- `LoadFontEx` 的 fontSize 参数即最终渲染字号（stb_truetype 直接按该尺寸栅格化
-  字形），直接传上面的推荐值，不需要传原生尺寸。
-- 使用非整数倍（例如 12px 字体配 32px）会导致不同字符的像素网格不一致，画面
-  观感变差。
-- 当前 settings_scene.c 使用 12px 字体、36px（12×3）渲染，字号接近默认示例的
-  32px 且缩放干净。
-- 图集体积与传入的码点数量成正比：只需把**实际用到的文本**的码点传给
-  `LoadFontEx`，不要传入整个 CJK 区间（如 0x4E00-0x9FFF），否则图集会被撑大，
-  尤其 12px 完整字库有 18299 个 CJK 字形。
+    ```python
+    from fontTools.ttLib import TTFont
+    cmap = TTFont(path).getBestCmap()
+    missing = [c for c in text if ord(c) not in cmap]
+    print('missing:', ''.join(missing) if missing else '无')
+    ```
 
-验证方法
-----
-1. 检查字体覆盖（需要 python3 + fontTools）：
-
-```python3
-       python3 -m pip install --user fonttools
-       python3 - <<'EOF'
-       from fontTools.ttLib import TTFont
-       cmap = TTFont('assets/fonts/ttf/ark_pixel/12px-proportional/'
-                     'ark-pixel-12px-proportional-zh_cn.ttf').getBestCmap()
-       text = '我们度过的每个平凡的日常，也许就是连续发生的奇迹。'
-       missing = [c for c in text if ord(c) not in cmap]
-       print('missing:', ''.join(missing) if missing else '无')
-       EOF
-```
-       
-2. 运行时检查：加载字体后打印 `glyphCount`，并对每个码点调用 `GetGlyphIndex`，
-   确认全部落在有效索引上（索引 0 属于第一个字形，注意与"缺字兜底"区分——
-   兜底的表现是多个不同码点都返回同一个索引 0）。
-
-3. 离屏渲染检查：用 `BeginTextureMode` 渲染到 `RenderTexture2D` 再导出 PNG，可
-   避免 macOS 上截图时机导致的黑屏问题，配合系统 OCR 或人工查看确认字形正确。
-
-速查表
-
-----
-
-- 渲染中文 → 用 12px-proportional-zh_cn，字号取 24/36/48（12 的整数倍）。
-- 加载方式 → `LoadCodepoints` + `LoadFontEx(..., 36, codepoints, count)`。
-- 绘制方式 → `DrawTextEx` / `MeasureTextEx`。
-- 千万不要 → 用 `LoadFont` 或默认字体画中文；用 16px 字体画中文；非整数倍缩放。
+    换字体后跑一次游戏，确认启动日志出现「缺字检查通过」，这比任何静态
+    检查都可靠。
