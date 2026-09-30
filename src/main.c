@@ -9,12 +9,6 @@
 #include "theme.h"
 #include "utils.h"
 
-// 注意：此定义只需要进行一次，用于启用 Raygui
-// 其它位置无需再定义，直接头文件即可
-// raygui.h 在 main.c 中未必会用到，但是必须接在 define 语句后面
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
-
 int main(void) {
   // === 初始化 ===
 
@@ -36,7 +30,7 @@ int main(void) {
   // 用于切换开发和发行的 assets 位置。优先检查身边，其次根据项目结构来寻找。
   InitAssetsDirectory();
 
-  // 加载中文字体图集，收集 codepoint 并同步 raygui
+  // 加载中文字体图集，收集 codepoint
   InitGameFont();
 
   // 字体度量就绪后再套配色，主题只允许改动颜色
@@ -47,7 +41,7 @@ int main(void) {
     SceneManager_UpdateCurrentScene();
 
     BeginDrawing();
-    ClearBackground(BLUE);
+    ClearBackground(YELLOW);
     SceneManager_DrawCurrentScene();
     EndDrawing();
   }

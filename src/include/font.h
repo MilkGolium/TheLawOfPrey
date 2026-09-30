@@ -5,8 +5,7 @@
 #include <stdbool.h>
 
 // 初始化游戏字体：扫描数据文件收集 codepoint，加载图集，
-// 同步 raygui，并执行缺字检查。
-// 必须在 InitAssetsDirectory 之后、主循环之前调用。
+// 并执行缺字检查。必须在 InitAssetsDirectory 之后、主循环之前调用。
 void InitGameFont(void);
 
 // 卸载所有字体资源。必须在 CloseWindow 之前调用。

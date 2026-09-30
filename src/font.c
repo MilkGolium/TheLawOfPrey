@@ -2,12 +2,9 @@
 
 #include <string.h>
 
-#include "raygui.h"
-
 // === 配置 ===
 
-#define FONT_PATH \
-  "assets/fonts/ttf/fusion-pixel-12px-proportional-zh_hans.ttf"
+#define FONT_PATH "assets/fonts/ttf/fusion-pixel-12px-proportional-zh_hans.ttf"
 #define CSV_DIR "assets/database"
 #define DEFAULT_FONT_SIZE 24
 #define BMP_RANGE 0x10000
@@ -325,17 +322,10 @@ void InitGameFont(void) {
 
   TraceLog(LOG_INFO, "Font: 收集到 %d 个唯一 codepoint", collectedCount);
 
-  // 3. 加载默认尺寸（24px）
-  Font f = GetUIFont(DEFAULT_FONT_SIZE);
+  // 3. 加载默认尺寸（24px），触发图集加载
+  GetUIFont(DEFAULT_FONT_SIZE);
 
-  // 4. 同步给 raygui
-  if (f.texture.id > 0) {
-    GuiSetFont(f);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, DEFAULT_FONT_SIZE);
-    GuiSetStyle(DEFAULT, TEXT_SPACING, 1);
-  }
-
-  // 5. 缺字检查
+  // 4. 缺字检查
   int missing = 0;
   CheckMissingGlyphs(&missing);
   if (missing == 0) {

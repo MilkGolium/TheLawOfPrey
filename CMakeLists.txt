@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME}
   src/graphsettings.c
   src/scene_manager.c
   src/theme.c
+  src/ui.c
   src/utils.c
   # Scenes
   src/scenes/main_scene.c
@@ -30,7 +31,6 @@ add_executable(${PROJECT_NAME}
 # Headers
 target_include_directories(${PROJECT_NAME} PRIVATE
   src/include
-  src/raygui/src
 )
 
 # Use CMake to automatically escape string literals
@@ -71,12 +71,6 @@ else()
   else()
     message(FATAL_ERROR "Could not find raylib.\n\nPlease install raylib or point CMake to it.\n\nOptions:\n - Install via package manager:\n   macOS (Homebrew):    brew install raylib\n   Ubuntu/Debian:       sudo apt install libraylib-dev  # package name may vary\n - Build from source:   https://github.com/raysan5/raylib\n - Or set environment variable RAYLIB_DIR or pass -DRAYLIB_DIR=/path/to/raylib when calling cmake.\n\nExamples:\n cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release -DRAYLIB_DIR=/usr/local\n")
   endif()
-endif()
-
-# libm: raygui's implementation (RAYGUI_IMPLEMENTATION in src/main.c) uses
-# floorf()/roundf() from <math.h>; must be linked explicitly on Linux/glibc.
-if(NOT MSVC)
-  target_link_libraries(${PROJECT_NAME} PRIVATE m)
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
