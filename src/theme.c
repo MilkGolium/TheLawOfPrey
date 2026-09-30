@@ -1,9 +1,11 @@
 #include "theme.h"
 
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "raygui.h"
+#include "ui.h"
 
 // === 配置 ===
 
@@ -12,85 +14,44 @@
 #define THEME_LINE_MAX 512
 #define THEME_NAME_MAX 64
 #define THEME_MAX_COUNT 64
-#define THEME_MAX_ENTRIES 256
 
 // === 键表 ===
 
+// 配色键映射到 UiStyle 的字段偏移，以 offsetof 代替 raygui 的
+// GuiControlProperty 枚举，UiStyle 增加字段时无需改键表实现。
+// 键名在匹配前归一为小写并剥掉全部分隔符（NormalizeKey），
+// 因此这里一律写扁平小写：配置里 textDim、text-dim、text_dim
+// 三种写法等价，都能命中 textdim 这一项。
 typedef struct {
   const char* key;
-  int property;
+  size_t offset;
 } ThemeColorKey;
 
-// 全局配色键，映射到 GuiControlProperty。顺序与 raygui 的
-// GuiLoadStyleDefault() 保持一致，便于逐项核对。
 static const ThemeColorKey kColorKeys[] = {
-    {"border_normal", BORDER_COLOR_NORMAL},
-    {"base_normal", BASE_COLOR_NORMAL},
-    {"text_normal", TEXT_COLOR_NORMAL},
-    {"border_focused", BORDER_COLOR_FOCUSED},
-    {"base_focused", BASE_COLOR_FOCUSED},
-    {"text_focused", TEXT_COLOR_FOCUSED},
-    {"border_pressed", BORDER_COLOR_PRESSED},
-    {"base_pressed", BASE_COLOR_PRESSED},
-    {"text_pressed", TEXT_COLOR_PRESSED},
-    {"border_disabled", BORDER_COLOR_DISABLED},
-    {"base_disabled", BASE_COLOR_DISABLED},
-    {"text_disabled", TEXT_COLOR_DISABLED},
-    {"line", LINE_COLOR},
-    {"background", BACKGROUND_COLOR},
+    {"background", offsetof(UiStyle, background)},
+    {"line", offsetof(UiStyle, line)},
+    {"text", offsetof(UiStyle, text)},
+    {"textdim", offsetof(UiStyle, textDim)},
+    {"button", offsetof(UiStyle, button)},
+    {"buttontext", offsetof(UiStyle, buttonText)},
+    {"titlebar", offsetof(UiStyle, titleBar)},
+    {"titletext", offsetof(UiStyle, titleText)},
 };
 
 // 字体度量与边框宽度由程序独占。社区主题若能改动它们，
 // 就能把 24px 像素格对齐与中文渲染悄悄改坏，因此只告警不生效。
+// 键名经 NormalizeKey 归一（剥分隔符），这里存扁平小写形式。
 static const char* kForbiddenKeys[] = {
-    "text_size",
-    "text_spacing",
-    "text_line_spacing",
-    "text_alignment",
-    "text_alignment_vertical",
-    "text_padding",
-    "border_width",
-};
-
-typedef struct {
-  const char* name;
-  int control;
-} ThemeControlName;
-
-// 节区名到 raygui 控件类型的映射。匹配时忽略大小写与分隔符，
-// 因此 textbox、text-box、text_box 等价。
-static const ThemeControlName kControlNames[] = {
-    {"label", LABEL},
-    {"button", BUTTON},
-    {"toggle", TOGGLE},
-    {"slider", SLIDER},
-    {"progressbar", PROGRESSBAR},
-    {"checkbox", CHECKBOX},
-    {"combo", COMBOBOX},
-    {"dropdown", DROPDOWNBOX},
-    {"textbox", TEXTBOX},
-    {"valuebox", VALUEBOX},
-    {"tabbar", TABBAR},
-    {"listview", LISTVIEW},
-    {"colorpicker", COLORPICKER},
-    {"scrollbar", SCROLLBAR},
-    {"statusbar", STATUSBAR},
+    "textsize",      "textspacing",           "textlinespacing",
+    "textalignment", "textalignmentvertical", "textpadding",
+    "borderwidth",
 };
 
 // === 状态 ===
 
-typedef struct {
-  int control;
-  int property;
-  int value;
-} ThemeEntry;
-
 static char themeNames[THEME_MAX_COUNT][THEME_NAME_MAX];
 static int themeCount = 0;
 static char currentTheme[THEME_NAME_MAX] = "";
-
-static ThemeEntry staged[THEME_MAX_ENTRIES];
-static int stagedCount = 0;
 
 // === 文本工具 ===
 
@@ -101,40 +62,22 @@ static char* Trim(char* s) {
   return s;
 }
 
-// 键名统一为小写并把连字符换成下划线，使 border-normal 等价于
-// border_normal。调用方保证 s 可写。
+// 键名统一为小写并剥掉连字符与下划线，使 text-dim、text_dim、
+// textDim 全部收敛为 textdim，等价匹配。调用方保证 s 可写。
 static void NormalizeKey(char* s) {
-  for (char* p = s; *p != '\0'; p++) {
-    if (*p == '-') {
-      *p = '_';
-    } else if (*p >= 'A' && *p <= 'Z') {
-      *p = (char)(*p - 'A' + 'a');
-    }
+  char* out = s;
+  for (const char* p = s; *p != '\0'; p++) {
+    char c = *p;
+    if (c == '-' || c == '_') continue;
+    if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
+    *out++ = c;
   }
-}
-
-// 忽略大小写与所有分隔符的宽松比较，专用于节区名匹配。
-static bool LooseEquals(const char* a, const char* b) {
-  while (*a != '\0' && *b != '\0') {
-    while (*a == '-' || *a == '_' || *a == ' ') a++;
-    while (*b == '-' || *b == '_' || *b == ' ') b++;
-    if (*a == '\0' || *b == '\0') break;
-    char ca = *a;
-    char cb = *b;
-    if (ca >= 'A' && ca <= 'Z') ca = (char)(ca - 'A' + 'a');
-    if (cb >= 'A' && cb <= 'Z') cb = (char)(cb - 'A' + 'a');
-    if (ca != cb) return false;
-    a++;
-    b++;
-  }
-  while (*a == '-' || *a == '_' || *a == ' ') a++;
-  while (*b == '-' || *b == '_' || *b == ' ') b++;
-  return *a == '\0' && *b == '\0';
+  *out = '\0';
 }
 
 // 只接受 6 位或 8 位十六进制，写作 0x 前缀亦可。6 位按不透明处理。
 // 少于 6 位或介于两者之间的位数一律判为非法，避免静默产生错误配色。
-static bool ParseColor(const char* text, int* out) {
+static bool ParseColor(const char* text, Color* out) {
   const char* p = text;
   if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) p += 2;
 
@@ -146,23 +89,25 @@ static bool ParseColor(const char* text, int* out) {
   if (digits != 6 && digits != 8) return false;
   if (*end != '\0') return false;
 
-  // 不补高位的话 6 位会写成 0x00RRGGBB，raygui 按 0xRRGGBBAA 解包后
-  // 变成 r=0x00、g 与 b 各偏移一字节、a 拿到蓝色分量，四个通道全错。
+  // 不补高位的话 6 位会解出 0x00RRGGBB，四个通道全部错位。
   if (digits == 6) value = (value << 8) | 0xFF;
 
-  *out = (int)value;
+  out->r = (unsigned char)((value >> 24) & 0xFF);
+  out->g = (unsigned char)((value >> 16) & 0xFF);
+  out->b = (unsigned char)((value >> 8) & 0xFF);
+  out->a = (unsigned char)(value & 0xFF);
   return true;
 }
 
 // === 查表 ===
 
-static int FindColorProperty(const char* normalizedKey) {
+static size_t FindColorOffset(const char* normalizedKey) {
   int count = (int)(sizeof(kColorKeys) / sizeof(kColorKeys[0]));
   for (int i = 0; i < count; i++) {
     if (strcmp(normalizedKey, kColorKeys[i].key) == 0)
-      return kColorKeys[i].property;
+      return kColorKeys[i].offset;
   }
-  return -1;
+  return SIZE_MAX;
 }
 
 static bool IsForbiddenKey(const char* normalizedKey) {
@@ -173,18 +118,12 @@ static bool IsForbiddenKey(const char* normalizedKey) {
   return false;
 }
 
-static int FindControl(const char* section) {
-  int count = (int)(sizeof(kControlNames) / sizeof(kControlNames[0]));
-  for (int i = 0; i < count; i++) {
-    if (LooseEquals(section, kControlNames[i].name)) return kControlNames[i].control;
-  }
-  return -1;
-}
-
 // === 解析 ===
 
-static void ProcessLine(const char* fileName, const char* raw, int length,
-                        int* control) {
+// 解析一行 key = value 写入 style，成功写进一个配色返回 true。
+// 调用方保证 style 以默认值起步：这里只覆盖文件里出现的键。
+static bool ProcessLine(const char* fileName, const char* raw, int length,
+                        UiStyle* style) {
   char line[THEME_LINE_MAX];
   if (length >= THEME_LINE_MAX) {
     TraceLog(LOG_WARNING, "Theme: %s 存在超长行（%d 字符），已截断", fileName,
@@ -195,30 +134,12 @@ static void ProcessLine(const char* fileName, const char* raw, int length,
   line[length] = '\0';
 
   char* s = Trim(line);
-  if (s[0] == '\0' || s[0] == '#' || s[0] == ';') return;
-
-  if (s[0] == '[') {
-    size_t len = strlen(s);
-    if (s[len - 1] != ']') {
-      TraceLog(LOG_WARNING, "Theme: %s 节区头缺少右括号：%s", fileName, s);
-      return;
-    }
-    s[len - 1] = '\0';
-    char* section = Trim(s + 1);
-    int found = FindControl(section);
-    if (found < 0) {
-      TraceLog(LOG_WARNING, "Theme: %s 未知控件节区 [%s]，已忽略", fileName,
-               section);
-      return;
-    }
-    *control = found;
-    return;
-  }
+  if (s[0] == '\0' || s[0] == '#' || s[0] == ';') return false;
 
   char* eq = strchr(s, '=');
   if (eq == NULL) {
     TraceLog(LOG_WARNING, "Theme: %s 无法解析的行：%s", fileName, s);
-    return;
+    return false;
   }
   *eq = '\0';
   char* key = Trim(s);
@@ -227,57 +148,33 @@ static void ProcessLine(const char* fileName, const char* raw, int length,
   NormalizeKey(key);
 
   if (IsForbiddenKey(key)) {
-    TraceLog(LOG_WARNING,
-             "Theme: %s 的 %s 由程序独占，主题无权设置，已忽略", fileName, key);
-    return;
+    TraceLog(LOG_WARNING, "Theme: %s 的 %s 由程序独占，主题无权设置，已忽略",
+             fileName, key);
+    return false;
   }
 
-  int property = FindColorProperty(key);
-  if (property < 0) {
+  size_t offset = FindColorOffset(key);
+  if (offset == SIZE_MAX) {
     TraceLog(LOG_WARNING, "Theme: %s 未知配色键 %s，已忽略", fileName, key);
-    return;
+    return false;
   }
 
-  int color = 0;
+  Color color;
   if (!ParseColor(value, &color)) {
     TraceLog(LOG_WARNING, "Theme: %s 的 %s 取值非法：%s", fileName, key, value);
-    return;
+    return false;
   }
 
-  if (stagedCount >= THEME_MAX_ENTRIES) {
-    TraceLog(LOG_WARNING, "Theme: %s 配色项超过上限 %d，多余部分已忽略",
-             fileName, THEME_MAX_ENTRIES);
-    return;
-  }
-
-  staged[stagedCount].control = *control;
-  staged[stagedCount].property = property;
-  staged[stagedCount].value = color;
-  stagedCount++;
+  *(Color*)((char*)style + offset) = color;
+  return true;
 }
 
 // === 应用 ===
 
-static void ApplyStaged(const char* fileName) {
-  // 守住字体度量不变量。主题按构造只应触碰配色属性，
-  // 一旦将来有人把禁用键误写进颜色表，这里会立刻暴露，
-  // 而不是让界面在无人察觉时错位。
-  int sizeBefore = GuiGetStyle(DEFAULT, TEXT_SIZE);
-  int spacingBefore = GuiGetStyle(DEFAULT, TEXT_SPACING);
-  int lineBefore = GuiGetStyle(DEFAULT, TEXT_LINE_SPACING);
-
-  for (int i = 0; i < stagedCount; i++) {
-    GuiSetStyle(staged[i].control, staged[i].property, staged[i].value);
-  }
-
-  if (GuiGetStyle(DEFAULT, TEXT_SIZE) != sizeBefore ||
-      GuiGetStyle(DEFAULT, TEXT_SPACING) != spacingBefore ||
-      GuiGetStyle(DEFAULT, TEXT_LINE_SPACING) != lineBefore) {
-    TraceLog(LOG_ERROR, "Theme: %s 改动了字体度量，界面排版可能已损坏",
-             fileName);
-  }
-}
-
+// 从内置默认配色出发解析整个文件，只覆盖文件写到且解析成功的键：
+// 缺键即默认色，坏键逐条告警且不影响其他行。解析结果先放在局部
+// 副本，没有任何一行成功时才整体放弃（保持当前样式不变），避免
+// 坏文件留下半套配色。
 static bool ApplyThemeFile(const char* path, const char* fileName) {
   int size = 0;
   unsigned char* data = LoadFileData(path, &size);
@@ -293,28 +190,26 @@ static bool ApplyThemeFile(const char* path, const char* fileName) {
     p += 3;
   }
 
-  stagedCount = 0;
-  int control = DEFAULT;
+  UiStyle style = kDefaultUiStyle;
+  int applied = 0;
 
   while (p < end) {
     const char* lineEnd = p;
     while (lineEnd < end && *lineEnd != '\n' && *lineEnd != '\r') lineEnd++;
-    ProcessLine(fileName, p, (int)(lineEnd - p), &control);
+    if (ProcessLine(fileName, p, (int)(lineEnd - p), &style)) applied++;
     p = lineEnd;
     while (p < end && (*p == '\n' || *p == '\r')) p++;
   }
 
   UnloadFileData(data);
 
-  if (stagedCount == 0) {
+  if (applied == 0) {
     TraceLog(LOG_WARNING, "Theme: %s 未包含任何有效配色，保持当前样式",
              fileName);
-    stagedCount = 0;
     return false;
   }
 
-  ApplyStaged(fileName);
-  stagedCount = 0;
+  gUiStyle = style;
   return true;
 }
 
@@ -329,7 +224,7 @@ static void ScanThemes(void) {
 
   FilePathList files = LoadDirectoryFiles(THEME_DIR);
   if (files.count == 0) {
-    TraceLog(LOG_WARNING, "Theme: %s 下没有找到主题文件，使用 raygui 默认配色",
+    TraceLog(LOG_WARNING, "Theme: %s 下没有找到主题文件，使用内置默认配色",
              THEME_DIR);
     UnloadDirectoryFiles(files);
     return;
@@ -339,8 +234,8 @@ static void ScanThemes(void) {
   for (unsigned int i = 0; i < files.count; i++) {
     if (!IsFileExtension(files.paths[i], ".cfg")) continue;
     if (found >= THEME_MAX_COUNT) {
-      TraceLog(LOG_WARNING, "Theme: 主题数量超过上限 %d，忽略 %s", THEME_MAX_COUNT,
-               files.paths[i]);
+      TraceLog(LOG_WARNING, "Theme: 主题数量超过上限 %d，忽略 %s",
+               THEME_MAX_COUNT, files.paths[i]);
       continue;
     }
 
