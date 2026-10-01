@@ -7,6 +7,7 @@
 #include "scene_list.h"
 #include "scene_manager.h"
 #include "theme.h"
+#include "ui.h"
 #include "utils.h"
 
 int main(void) {
@@ -35,7 +36,7 @@ int main(void) {
   // 加载中文字体图集，收集 codepoint
   InitGameFont();
 
-  // 字体度量就绪后再套配色，主题只允许改动颜色
+  // 字体度量就绪后再套主题，主题只允许改动配色与装饰形态
   InitTheme();
 
   // 设计画布：场景画在 640*480 的纹理里，再整数倍放大到窗口
@@ -47,7 +48,7 @@ int main(void) {
 
     // 场景一律画在设计画布内，坐标即设计分辨率坐标
     BeginCanvas();
-    ClearBackground(YELLOW);
+    ClearBackground(gUiStyle.desktop);
     SceneManager_DrawCurrentScene();
     EndCanvas();
 
@@ -64,6 +65,8 @@ int main(void) {
   SceneManager_UnloadCurrentScene();
   // 释放字体图集（必须在 CloseWindow 之前，此时 GL 上下文尚在）
   UnloadGameFont();
+  // 释放抖动阴影贴图，同样必须在 CloseWindow 之前
+  UiUnloadStyle();
   // 释放设计画布，同样必须在 CloseWindow 之前
   UnloadCanvas();
   CloseWindow();
