@@ -28,15 +28,43 @@ typedef struct {
 } ThemeColorKey;
 
 static const ThemeColorKey kColorKeys[] = {
+    {"desktop", offsetof(UiStyle, desktop)},
     {"background", offsetof(UiStyle, background)},
     {"line", offsetof(UiStyle, line)},
+    {"linedim", offsetof(UiStyle, lineDim)},
     {"text", offsetof(UiStyle, text)},
     {"textdim", offsetof(UiStyle, textDim)},
     {"button", offsetof(UiStyle, button)},
     {"buttontext", offsetof(UiStyle, buttonText)},
     {"titlebar", offsetof(UiStyle, titleBar)},
     {"titletext", offsetof(UiStyle, titleText)},
+    {"shadow", offsetof(UiStyle, shadow)},
 };
+
+// 枚举键。取值是标识符而非十六进制，标识表同样按归一后的
+// 小写存：border_style、border-style、borderStyle 都收敛到 borderstyle。
+// 值列的顺序必须与 ui.h 里枚举的声明顺序一致，下标直接当枚举值用。
+typedef struct {
+  const char* key;
+  size_t offset;
+  const char* const* names;
+  int nameCount;
+} ThemeEnumKey;
+
+static const char* const kBorderStyleNames[] = {"none", "single", "triple"};
+static const char* const kShadowStyleNames[] = {"auto", "solid", "dither"};
+
+static const ThemeEnumKey kEnumKeys[] = {
+    {"borderstyle", offsetof(UiStyle, borderStyle), kBorderStyleNames, 3},
+    {"shadowstyle", offsetof(UiStyle, shadowStyle), kShadowStyleNames, 3},
+};
+
+// auto 的分界：桌面色亮度低于一半就判暗。整数近似即可，
+// 目的是决定实心还是抖动，不需要感知精确。
+// 判暗用实心实色阴影，判亮用抖动，否则黑实心会糊成一片脏。
+static const int kShadowLumaThreshold = 128;
+
+static int Luminance(Color c) { return (c.r * 30 + c.g * 59 + c.b * 11) / 100; }
 
 // 字体度量与边框宽度由程序独占。社区主题若能改动它们，
 // 就能把 24px 像素格对齐与中文渲染悄悄改坏，因此只告警不生效。
@@ -110,6 +138,14 @@ static size_t FindColorOffset(const char* normalizedKey) {
   return SIZE_MAX;
 }
 
+static const ThemeEnumKey* FindEnumKey(const char* normalizedKey) {
+  int count = (int)(sizeof(kEnumKeys) / sizeof(kEnumKeys[0]));
+  for (int i = 0; i < count; i++) {
+    if (strcmp(normalizedKey, kEnumKeys[i].key) == 0) return &kEnumKeys[i];
+  }
+  return NULL;
+}
+
 static bool IsForbiddenKey(const char* normalizedKey) {
   int count = (int)(sizeof(kForbiddenKeys) / sizeof(kForbiddenKeys[0]));
   for (int i = 0; i < count; i++) {
@@ -120,7 +156,7 @@ static bool IsForbiddenKey(const char* normalizedKey) {
 
 // === 解析 ===
 
-// 解析一行 key = value 写入 style，成功写进一个配色返回 true。
+// 解析一行 key = value 写入 style，成功写进一个配色或装饰枚举返回 true。
 // 调用方保证 style 以默认值起步：这里只覆盖文件里出现的键。
 static bool ProcessLine(const char* fileName, const char* raw, int length,
                         UiStyle* style) {
@@ -154,19 +190,34 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
   }
 
   size_t offset = FindColorOffset(key);
-  if (offset == SIZE_MAX) {
-    TraceLog(LOG_WARNING, "Theme: %s 未知配色键 %s，已忽略", fileName, key);
+  if (offset != SIZE_MAX) {
+    Color color;
+    if (!ParseColor(value, &color)) {
+      TraceLog(LOG_WARNING, "Theme: %s 的 %s 取值非法：%s", fileName, key,
+               value);
+      return false;
+    }
+    *(Color*)((char*)style + offset) = color;
+    return true;
+  }
+
+  const ThemeEnumKey* enumKey = FindEnumKey(key);
+  if (enumKey == NULL) {
+    TraceLog(LOG_WARNING, "Theme: %s 未知主题键 %s，已忽略", fileName, key);
     return false;
   }
 
-  Color color;
-  if (!ParseColor(value, &color)) {
-    TraceLog(LOG_WARNING, "Theme: %s 的 %s 取值非法：%s", fileName, key, value);
-    return false;
+  // 枚举取值不归一：标识符按原样比对，未知值只告警并跳过该行，
+  // 与坏十六进制的处理一致，不牵连同一文件里的其他键。
+  for (int i = 0; i < enumKey->nameCount; i++) {
+    if (strcmp(value, enumKey->names[i]) == 0) {
+      *(int*)((char*)style + enumKey->offset) = i;
+      return true;
+    }
   }
 
-  *(Color*)((char*)style + offset) = color;
-  return true;
+  TraceLog(LOG_WARNING, "Theme: %s 的 %s 取值非法：%s", fileName, key, value);
+  return false;
 }
 
 // === 应用 ===
@@ -204,9 +255,16 @@ static bool ApplyThemeFile(const char* path, const char* fileName) {
   UnloadFileData(data);
 
   if (applied == 0) {
-    TraceLog(LOG_WARNING, "Theme: %s 未包含任何有效配色，保持当前样式",
-             fileName);
+    TraceLog(LOG_WARNING,
+             "Theme: %s 未包含任何有效配色或装饰设置，保持当前样式", fileName);
     return false;
+  }
+
+  // auto 在这里定死：渲染层只做 switch，不再判断桌面亮度。
+  if (style.shadowStyle == UI_SHADOW_AUTO) {
+    style.shadowStyle = Luminance(style.desktop) < kShadowLumaThreshold
+                            ? UI_SHADOW_SOLID
+                            : UI_SHADOW_DITHER;
   }
 
   gUiStyle = style;

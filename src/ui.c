@@ -11,22 +11,130 @@
 
 // 内置默认配色。主题文件（assets/themes/*.cfg）的缺键用这些值兜底；
 // 修改时须同步更新 default.cfg 的对应键，两者互为权威副本。
-// 色值迁移自原 raygui 默认主题：
-//   background=background, button=base_normal, text=text_normal,
-//   textDim=text_disabled, line=line, titleBar=border_focused,
-//   titleText=白（反白标题栏）。
+// 取 VGA 16 色的 Turbo C 配色：蓝面板、青框、黑底黄字标题栏。
 const UiStyle kDefaultUiStyle = {
-    .background = {0xf5, 0xf5, 0xf5, 0xff},
-    .line = {0x90, 0xab, 0xb5, 0xff},
-    .text = {0x68, 0x68, 0x68, 0xff},
-    .textDim = {0xae, 0xb7, 0xb8, 0xff},
-    .button = {0xc9, 0xc9, 0xc9, 0xff},
-    .buttonText = {0x1a, 0x1a, 0x1a, 0xff},
-    .titleBar = {0x5b, 0xb2, 0xd9, 0xff},
-    .titleText = {0xff, 0xff, 0xff, 0xff},
+    .desktop = {0x00, 0x00, 0x8b, 0xff},
+    .background = {0x00, 0x00, 0xaa, 0xff},
+    .line = {0x00, 0xaa, 0xaa, 0xff},
+    .lineDim = {0x00, 0x00, 0x55, 0xff},
+    .text = {0xaa, 0xaa, 0xaa, 0xff},
+    .textDim = {0x55, 0x55, 0xff, 0xff},
+    .button = {0x00, 0xaa, 0xaa, 0xff},
+    .buttonText = {0x00, 0x00, 0x00, 0xff},
+    .titleBar = {0x00, 0x00, 0x00, 0xff},
+    .titleText = {0xff, 0xff, 0x55, 0xff},
+    .shadow = {0x00, 0x00, 0x00, 0xff},
+    .borderStyle = UI_BORDER_NONE,
+    .shadowStyle = UI_SHADOW_AUTO,
 };
 
 UiStyle gUiStyle = kDefaultUiStyle;
+
+// 消息框尺寸上限。居中公式 x = (GRAPH_DESIGN_WIDTH - boxWidth) / 2 要让
+// 阴影完整落在画布内，即 x + boxWidth + UI_SHADOW_OFFSET <= 640，代回解得
+// boxWidth <= 624；高度同理得 456。两者都是 UI_PADDING 的整数倍，
+// 裁剪后仍落在像素格上。
+static const int kMaxBoxWidth = 624;
+static const int kMaxBoxHeight = 456;
+
+// === 阴影与边框 ===
+//
+// 两种阴影各只需一次绘制：实心是一个矩形，抖动是一张 2×2 平铺贴图。
+// 贴图的懒加载与可重入卸载照 font.c 的 fontsLoaded[] 模式。
+
+static Texture2D ditherTile;
+static bool ditherTileLoaded;
+
+// 2×2 棋盘，其中两个像素不透明。颜色不进贴图，绘制时由 tint 给出，
+// 这样主题换色不必重建贴图。
+static Texture2D LoadDitherTile(void) {
+  if (ditherTileLoaded) return ditherTile;
+
+  Image tile = GenImageColor(2, 2, BLANK);
+  ImageDrawPixel(&tile, 0, 0, WHITE);
+  ImageDrawPixel(&tile, 1, 1, WHITE);
+  ditherTile = LoadTextureFromImage(tile);
+  UnloadImage(tile);
+
+  // SetTextureWrap 会把过滤重置成 LINEAR，顺序反了抖动会被重采样糊掉。
+  SetTextureWrap(ditherTile, TEXTURE_WRAP_REPEAT);
+  SetTextureFilter(ditherTile, TEXTURE_FILTER_POINT);
+
+  ditherTileLoaded = true;
+  return ditherTile;
+}
+
+void UiUnloadStyle(void) {
+  if (!ditherTileLoaded) return;
+  UnloadTexture(ditherTile);
+  ditherTile = (Texture2D){0};
+  ditherTileLoaded = false;
+}
+
+static void DrawShadow(int x, int y, int width, int height) {
+  switch (gUiStyle.shadowStyle) {
+    case UI_SHADOW_SOLID:
+      DrawRectangle(x + UI_SHADOW_OFFSET, y + UI_SHADOW_OFFSET, width, height,
+                    gUiStyle.shadow);
+      break;
+    case UI_SHADOW_DITHER: {
+      Texture2D tile = LoadDitherTile();
+      // 源矩形比贴图大，repeat 采样即得平铺的棋盘。
+      Rectangle source = {0.0f, 0.0f, (float)width, (float)height};
+      Rectangle dest = {(float)(x + UI_SHADOW_OFFSET),
+                        (float)(y + UI_SHADOW_OFFSET), (float)width,
+                        (float)height};
+      DrawTexturePro(tile, source, dest, (Vector2){0.0f, 0.0f}, 0.0f,
+                     gUiStyle.shadow);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+// 圈数同时就是文字要避让的内缩量：ring0 就画在 y 行起，文字若按整块
+// 高度居中，墨迹上缘会落进边框里，而标题文字画在边框之后还会反过来
+// 把边框啃出缺口。
+static int BorderRingCount(void) {
+  if (gUiStyle.borderStyle == UI_BORDER_SINGLE) return 1;
+  if (gUiStyle.borderStyle == UI_BORDER_TRIPLE) return 3;
+  return 0;
+}
+
+// 每圈用四个填充矩形而非 DrawRectangleLinesEx：后者走 rlBegin(RL_LINES)
+// 立即模式会打断 raylib 的批次，填充矩形则全部留在同一批里。
+static void DrawBorderRings(int x, int y, int width, int height) {
+  Color rings[3] = {gUiStyle.line, gUiStyle.lineDim, gUiStyle.line};
+  int ringCount = BorderRingCount();
+
+  for (int i = 0; i < ringCount; i++) {
+    Color ring = rings[i];
+    int rx = x + i;
+    int ry = y + i;
+    int rw = width - 2 * i;
+    int rh = height - 2 * i;
+    if (rw <= 0 || rh <= 0) break;
+    DrawRectangle(rx, ry, rw, 1, ring);
+    DrawRectangle(rx, ry + rh - 1, rw, 1, ring);
+    DrawRectangle(rx, ry + 1, 1, rh - 2, ring);
+    DrawRectangle(rx + rw - 1, ry + 1, 1, rh - 2, ring);
+  }
+}
+
+// 阴影、边框的唯一入口。fillColor 由调用方给出：按钮要画 button 色、
+// 焦点时还要与 buttonText 互换，而 rect 与 box 用 background。
+// titleBarHeight 为 0 时不画标题栏（rect / button）。
+// 顺序固定：阴影先画，填充盖住它偏移之后的部分，露出的右下 L 形才是
+// 阴影；标题栏在填充之上、边框之下，否则边框会被标题栏色块切掉。
+static void UiDrawFrame(int x, int y, int width, int height, int titleBarHeight,
+                        Color fillColor) {
+  DrawShadow(x, y, width, height);
+  DrawRectangle(x, y, width, height, fillColor);
+  if (titleBarHeight > 0)
+    DrawRectangle(x, y, width, titleBarHeight, gUiStyle.titleBar);
+  DrawBorderRings(x, y, width, height);
+}
 
 // === 行数 ===
 // 每个 '\n' 若其后还有内容，就算新的一行；末尾的 '\n' 之后无内容，
@@ -91,8 +199,7 @@ void UiDrawText(int posX, int posY, const char* text, int size, Color tint) {
 // === 原语 ===
 
 void UiDrawRect(int x, int y, int width, int height) {
-  DrawRectangle(x, y, width, height, gUiStyle.background);
-  DrawRectangleLines(x, y, width, height, gUiStyle.line);
+  UiDrawFrame(x, y, width, height, 0, gUiStyle.background);
 }
 
 void UiDrawLabel(int x, int y, const char* text, int size) {
@@ -138,17 +245,18 @@ bool UiButton(int x, int y, int width, int height, const char* label, int size,
   // buttonText、文字取 button），鼠标悬停与按下不产生任何视觉变化。
   Color bg = focused ? gUiStyle.buttonText : gUiStyle.button;
   Color fg = focused ? gUiStyle.button : gUiStyle.buttonText;
-  DrawRectangle(x, y, width, height, bg);
-  DrawRectangleLines(x, y, width, height, gUiStyle.line);
+  UiDrawFrame(x, y, width, height, 0, bg);
 
-  // 水平居中按度量宽；垂直居中按墨迹边界，使墨迹中线落在按钮高度中点。
+  // 水平居中按度量宽；垂直居中按墨迹边界，使墨迹中线落在按钮高度中点，
+  // 并从边框内缩之后开始算，避免墨迹上缘压到 ring0。
   UiSize textSize = UiMeasureText(label, size);
   int textX = x + (width - textSize.width) / 2;
+  int inset = BorderRingCount();
   int inkTop = 0;
   int inkHeight = 0;
   int textY = y + (height - size) / 2;
   if (TextInkBounds(label, size, &inkTop, &inkHeight))
-    textY = y + (height - inkHeight) / 2 - inkTop;
+    textY = y + inset + (height - inset - inkHeight) / 2 - inkTop;
   UiDrawText(textX, textY, label, size, fg);
 
   // 激活：焦点按钮回车按下即激活；鼠标松开时若光标仍在按钮内才激活，
@@ -162,16 +270,15 @@ bool UiButton(int x, int y, int width, int height, const char* label, int size,
 void UiDrawBox(int x, int y, int width, int height, const char* title,
                int size) {
   int titleBarHeight = UI_TITLEBAR_HEIGHT(size);
-  DrawRectangle(x, y, width, titleBarHeight, gUiStyle.titleBar);
-  DrawRectangle(x, y + titleBarHeight, width, height - titleBarHeight,
-                gUiStyle.background);
-  DrawRectangleLines(x, y, width, height, gUiStyle.line);
-  // 墨迹下缘会伸到 offsetY + 高度，按栏高居中，使标题上下各留出内边距。
+  UiDrawFrame(x, y, width, height, titleBarHeight, gUiStyle.background);
+  // 墨迹下缘会伸到 offsetY + 高度，按栏高居中，使标题上下各留出内边距；
+  // 起点还要跳过边框圈数，否则上缘落进 ring0。
+  int inset = BorderRingCount();
   int inkTop = 0;
   int inkHeight = 0;
-  int titleY = y;
+  int titleY = y + inset;
   if (TextInkBounds(title, size, &inkTop, &inkHeight))
-    titleY = y + (titleBarHeight - inkHeight) / 2 - inkTop;
+    titleY = y + inset + (titleBarHeight - inset - inkHeight) / 2 - inkTop;
   UiDrawText(x + UI_PADDING, titleY, title, size, gUiStyle.titleText);
 }
 
@@ -211,6 +318,8 @@ int UiMessageBox(const char* title, const char* message, const char* buttons[],
 
   int boxWidth = UI_ALIGN12(maxWidth + 2 * UI_PADDING);
   int boxHeight = UI_ALIGN12(height);
+  if (boxWidth > kMaxBoxWidth) boxWidth = kMaxBoxWidth;
+  if (boxHeight > kMaxBoxHeight) boxHeight = kMaxBoxHeight;
   // 在设计分辨率内居中。不能用 GetScreenWidth，那是窗口尺寸而非画布尺寸。
   int x = (GRAPH_DESIGN_WIDTH - boxWidth) / 2;
   int y = (GRAPH_DESIGN_HEIGHT - boxHeight) / 2;

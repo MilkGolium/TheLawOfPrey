@@ -27,15 +27,15 @@
 - 界面文本改为从 CSV 按 key 加载：`main_scene.c` 目前把「显示消息」「消息框」等展示文本写死在 C 字面量里，违反「字符串放数据文件」的约束。
 - 收集阶段缓存文本引用，缺字检查复用，去掉对 `assets/database/*.csv` 的重复磁盘读取；同时让「字段被截断」变成可观测。
 - 补 `font.c` 健壮性：`MemAlloc` 返回值判空；引号字段内遇到 `\r\n` 的处理与普通行保持一致。
-- 为 `src/ui.c` 的文本居中与行距公式补断言或测试：文字墨迹框必须落在控件内区。当前只靠人工看截图，改动度量后没有回归保护。
+- ~~为 `src/ui.c` 的文本居中与行距公式补断言或测试~~：标题与按钮文字的内缩居中已由临时回读程序覆盖（`triple` 边框下 `ring0` 三行内无标题色/按钮色像素，且墨迹像素数与 `none` 边框逐档相等，12/24/36 三档字号各测一遍）。该程序按约定不入库，行距公式仍缺回归保护。
 - 验收：启动时无缺字告警；除 `src/font.c` 的封装内部外，代码中不直接调用 raylib 的 `DrawText` 、 `DrawTextEx` 、 `MeasureText` 、 `MeasureTextEx` ，一律走 `DrawUIText` 与 `MeasureUIText` ；显存中每个字体尺寸只有一张图集；Release 与 Debug 两个配置均构建并启动正常。
 
 ### 主题
 
-配色系统已实现并接入 `InitGameFont()` 之后的启动流程，公开接口为 `InitTheme()` 、 `GetThemeCount()` 、 `GetThemeName()` 、 `LoadTheme()` 、 `GetCurrentThemeName()` ；当前 8 个配色键，格式说明见 `assets/themes/default.cfg` 。以下为待处理项。
+配色系统已实现并接入 `InitGameFont()` 之后的启动流程，公开接口为 `InitTheme()` 、 `GetThemeCount()` 、 `GetThemeName()` 、 `LoadTheme()` 、 `GetCurrentThemeName()` ；当前 11 个配色键与 2 个枚举键（`border_style` 、 `shadow_style` ），格式说明见 `assets/themes/default.cfg` 。以下为待处理项。
 
 - 主题选择：`InitTheme()` 启动时载入的始终是 `default.cfg` ，其余 `.cfg` 只被扫描枚举（`GetThemeCount` / `GetThemeName` ），也可由 `LoadTheme` 按名加载。**留到设置界面再做**：确定玩家侧的主题切换方式，并在做设置界面的同一批改动里落地。在此之前不要另加命令行参数、环境变量或 `active.cfg` 标记文件，以免多出一条会与界面互相打架的选择通路。
-- 主题解析器的回归测试：BOM 、 CRLF 、 `""` 转义、缺 `default.cfg` 时的确定性回退、坏十六进制、未知键、禁用键告警，这些路径目前只靠人工验证。
+- 主题解析器的回归测试：BOM 、 CRLF 、 `""` 转义、缺 `default.cfg` 时的确定性回退、坏十六进制、未知键、禁用键告警，这些路径目前只靠人工验证。枚举键同样待覆盖：合法标识符、未知标识符、以及只含枚举键的 `.cfg` 是否也能生效（`applied` 计数必须把枚举键算进去，否则整份文件会被判为无效）。
 
 ### 游玩闭环
 
@@ -72,7 +72,11 @@
 - 界面尺寸只取 12 的倍数。非网格尺寸一律用 `UI_ALIGN12()` 向上取整，内部留白统一取 `UI_PADDING` ，按钮高度取 `UI_BUTTON_HEIGHT()` ，度量不写死数值。
 - 多行文本由 `src/ui.c` 逐行绘制，行距为 `UI_LINE_STEP(size)` （等于字号）。raylib 的 `MeasureTextEx` 行间步进是「字号 + 2」（本封装传入的 raylib 字号为 16/32/48，对应 18/34/50），既不是字号也不对齐像素格，且 `spacing` 参数只管行内字符的水平间隔，调不动它。换行只认显式 `'\n'` ，不做自动折行，也不做宽度上限截断。
 - 按钮的焦点是唯一的变色来源：持有焦点时前景与背景互换，鼠标悬停与按下不产生任何视觉变化。焦点归属由调用方管理，原语本身不保存跨帧状态。
-- 主题只管配色，不管字体度量。`assets/themes/*.cfg` 中的 `text_size` 、 `text_spacing` 、 `text_line_spacing` 、 `text_alignment` 、 `text_alignment_vertical` 、 `text_padding` 、 `border_width` 由程序独占，写了会被忽略并告警；配色统一从 `src/ui.c` 的 `gUiStyle` 取。
+- 主题只管配色与装饰形态，不管字体度量。`assets/themes/*.cfg` 中的 `text_size` 、 `text_spacing` 、 `text_line_spacing` 、 `text_alignment` 、 `text_alignment_vertical` 、 `text_padding` 、 `border_width` 由程序独占，写了会被忽略并告警；配色统一从 `src/ui.c` 的 `gUiStyle` 取。`border_style` 是装饰，不触碰度量，因此允许主题设置，这与 `border_width` 被禁的理由不同。
+- 边框圈数由 `border_style` 决定（`none` / `single` / `triple`），三色固定为 `line` / `lineDim` / `line` 的浅-深-浅，不支持反向的深-浅-深。**圈数同时是文字要避让的垂直内缩量**：标题栏只占框顶 `UI_TITLEBAR_HEIGHT(size)` 行，框底三圈与它不相交，只有顶部的 ring0 会压到标题，因此内区是 `标题栏高 - 圈数` 而不是 `- 2 * 圈数`；`BorderRingCount()` 由画边框与两处文字居中公式共用。居中若按整块高度算（`y + (h - inkHeight) / 2`），墨迹上缘必然落进 ring0，且标题文字画在边框之后，会反过来把 ring0 啃出缺口。按渲染回读实测，「标题测试」四字的墨迹并集高在 12/24/36 号下为 11/22/33，三色边框后余量为 0/1/2px：12 号零余量、字顶字底都贴边，故 `triple` 建议只在 24 号及以上使用（放得下，只是没有呼吸空间）。墨迹高随标题用字而变，换更密的字可能更高，所以内缩量不能写死成常量。不要为此调大 `UI_TITLEBAR_HEIGHT`，否则 1px 与 none 两种边框会平白多出留白。
+- 阴影形态由 `shadow_style` 决定（`auto` / `solid` / `dither`），偏移固定为 `UI_SHADOW_OFFSET`（8 设计像素），作用范围是 rect、button、box 三类原语。`auto` 在 `ApplyThemeFile` 写回 `gUiStyle` 之前按 `desktop` 亮度定死成 `solid` 或 `dither`（阈值 128，`Luminance` 取整数近似），渲染层只做 `switch` 不再判断。抖动阴影是一张 2×2 棋盘贴图配 `TEXTURE_WRAP_REPEAT`，颜色由 `tint` 给出而不烘进贴图，因此主题换色不必重建贴图；`SetTextureWrap` 必须先于 `SetTextureFilter(POINT)`，否则过滤被重置为线性而抖动被重采样糊掉。贴图懒加载，`UiUnloadStyle()` 幂等可重入，须在 `CloseWindow` 之前调用。
+- 阴影偏移 8 不需要满足任何整除约束：它既不移动字形也不改控件尺寸，而整数倍缩放配 `TEXTURE_FILTER_POINT` 下每个设计像素都映射成干净的 N×N 块，实测偏移 1 至 12 均产生 0 个混合像素。上限是 `UI_PADDING`（12）而非审美偏好——超过它会让阴影越出消息框边框并压到相邻控件上。
+- 阴影会被画布裁掉，而 `UiMessageBox` 原先没有任何尺寸上限。居中公式 `x = (640 - boxWidth) / 2` 要求 `x + boxWidth + 8 <= 640` 解得 `boxWidth <= 624`，高度同理得 456，两者都是 12 的整数倍（`kMaxBoxWidth` / `kMaxBoxHeight`）。clamp 只保证阴影不被裁掉，不截断正文：按上条「不做宽度上限截断」的约定，超长文本由调用方负责分行。
 - 以下为有意设计，不要改回朴素实现：codepoint 用位图去重 + 升序数组 + 二分查询；按尺寸懒加载 + `initialized` 幂等 + `UnloadGameFont` 可重入；`GetCodepointNext` 返回 0 时的防死循环保护。
 - 明确不做：不使用 SDF 字体（需要自定义 shader，且会让像素字失去锐利度，本方案只做整数倍缩放，用不到它的平滑缩放优势）；不预载常用 3500 字（精确收集已足够，除非真的出现无法预先收集的动态文字如玩家输入或随机文本，届时再加入，成本约 13MB）；暂不做分页字体（按 codepoint 区间切分的 `Font` 数组，触发条件明确，等真的出现动态文字再补，不影响现有架构）。
 
@@ -85,6 +89,23 @@
 - 画布贴图保持 `TEXTURE_FILTER_POINT` 。实测同一份字体图集在 2 倍放大下，点采样与线性插值的中间灰度占比为 52% 对 80% ，线性会直接糊掉像素字。
 - 窗口默认无边框窗口全屏（`ToggleBorderlessWindowed` ）。16:9 屏上 4:3 内容两侧留黑边，这是已接受的取舍。
 - 界面层鼠标命中测试必须走 `GetCanvasMouse()` ，不能用 `GetMousePosition()` ：后者是窗口坐标，画布放大居中后偏置与倍数都不对。同理 `UiMessageBox` 居中用设计分辨率，不能用 `GetScreenWidth()` ，后者返回窗口尺寸而非画布尺寸。
+
+### 目标显示设备与老显卡底线
+
+以下同为已定结论，实现时不要反向引入。原始决策记录见 `~/Downloads/RENDER.md` 。
+
+- **素材面向液晶创作，CRT 交给显示层。** CRT 没有像素网格，它是连续的模拟面，分子就是光点尺寸，天生是模拟缩放器；整数缩放纪律是液晶专属概念。历史上「为 CRT 作画」唯一真实存在的技术是有限调色板下的抖动混色，本项目 24 位全色 + 干净像素画，没有调色板约束，该需求不存在。因此素材与 UI 一律按干净整数像素网格创作，CRT 观感（扫描线、辉光、弧面、三色栅）全部由显示层后处理提供。
+- **CRT 实机以原生 640×480 输出**，由管子自己放大，是最原汁原味的 DOS 呈现；也可以让 GPU 先算 1.6× 再输出，模拟滤波会抹平瑕疵。「支持 1024×768」只需显示链路不崩溃——那是显示模式而非画布，游戏仍以 640×480 运行。
+- **不做 CRT 滤镜**（2026-10-01 拍板）。液晶上本来就正常、不会露馅，CRT 原生输出本来就完美，没有玩家提出诉求则不立项。若日后改变主意再做：mask 分型是着色器的一个 uniform 参数而非两份 shader，用 `CrtMaskType { MASK_APERTURE_GRILLE, MASK_SLOT, MASK_SHADOW }` 枚举出预设即可（RetroArch 系 crt-royale / crt-guest 即此做法）。
+- **显示模式必保 640×480 、 800×600 、 1024×768**。1024×768 不能砍，它是许多家庭普通 CRT 普遍支持的分辨率。高于 1024×768 的档位（1280×960 、 1280×1024 、 1600×1200 、 1856×1392 、 1920×1440 、 2048×1536）大多冷门，且非整数缩放问题会随倍数放大而更明显，嫌麻烦可砍。
+- **老显卡底线**：目标老显卡为 PCIe 的 GT620 （Fermi，GL 4.2）与 GT730 （Kepler，GL 4.5），均高于 raylib 的 OpenGL 3.3 底线，**无需 NGGL 分支**。nearest 过滤 + 像素贴图是显卡最原始的能力，素材为小尺寸像素图，无压力。
+- **禁忌：不开 MSAA 、不用 mipmap。** 两者都会模糊像素边缘，与像素画哲学直接冲突。
+
+### 两个坐标系陷阱（改渲染代码前必读）
+
+- `GetRenderWidth()` / `GetRenderHeight()` 返回**当前 render target** 的尺寸，不是恒定的物理尺寸：`BeginDrawing` 下是 backbuffer 物理尺寸，`BeginTextureMode` 下是 RT 自身尺寸（本项目为 640×480 逻辑像素）。**整数倍缩放必须用逻辑的 `GetScreenWidth()` / `GetScreenHeight()` 计算**——误用 `GetRenderWidth()` 会把 scale 多算一个 renderScale 倍，dest 矩形画出一倍并溢出画面。
+- `BeginTextureMode` **不改变** `GetScreenWidth()` / `GetScreenHeight()` ，只让 `GetRenderWidth()` / `GetRenderHeight()` 变成 RT 尺寸。RT 上下颠倒，`DrawTexturePro` 的 source 矩形高度须取负值翻正。
+- 几何探针不能代表文字：矩形与字形走的是两条不同的光栅化路径。Retina 糊字曾有两个互相独立的根因，只修一个仍会看到糊。
 
 ## 平台支持
 确保支持 FreeBSD 、 Linux ，尽量支持 OpenBSD 、 macOS 、 Windows 。  
@@ -182,6 +203,15 @@ Oct-01-2026 原有 20 个 64*64 物品图标因不符合 48*48 规范清空，�
 Oct-01-2026 修复 Retina 屏文字模糊：开启 `FLAG_WINDOW_HIGHDPI` ，渲染改为
 固定 `640*480` 设计画布加整数倍放大（`src/graphsettings.c` ）。此前帧缓冲
 小于物理像素，被系统平滑放大，文字在应用之外就已经糊了。
+
+Oct-01-2026 界面加入阴影与边框：`UiStyle` 增加 `desktop` 、 `lineDim` 、
+`shadow` 三个配色键与 `border_style` 、 `shadow_style` 两个枚举键，默认配色
+换成 VGA 16 色的 Turbo C 方案（深蓝桌面、蓝面板、青框、黑底黄字标题栏）。
+边框支持 none / single / triple 三色（浅-深-浅），阴影支持 auto / solid /
+dither，偏移 8 设计像素。`border_style` 属装饰故允许主题设置，而
+`border_width` 仍由程序独占。配色从 8 键扩到 11 键，键说明见
+`assets/themes/default.cfg` 。原语侧三处硬编码的 `DrawRectangleLines`
+收口到 `UiDrawFrame()` ，顺序固定为阴影、填充、边框、内容。
 
 Oct-01-2026 修复像素字仍带灰边：`LoadFontEx` 按 hhea 行高（本字体
 `asc-desc = 1600`）而非 `upem = 1200` 缩放，此前直接传对外字号 12/24/36 ，

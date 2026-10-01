@@ -12,18 +12,42 @@
 //     锚点放在屏幕外时控件同样会跑到屏幕外，这是预期行为。
 //   - 换行只认显式的 '\n'，由调用方决定。文本度量与绘制都不猜测宽度。
 
+// 边框圈数。0 为无边框，1 为单线，3 为浅-深-浅三色（外圈 line、
+// 中间 lineDim、内圈 line）。反向的深-浅-深暂不支持。
+// 圈数同时是标题与按钮文字的垂直内缩量：渲染层居中墨迹时会自动让开，
+// 不必由调用方手工留白。12 号下三色边框的余量为 0、字顶字底贴边，
+// 观感上没有呼吸空间，故建议只在 24 号及以上使用，见 Plan.md 坑点 13。
+typedef enum UiBorderStyle {
+  UI_BORDER_NONE = 0,
+  UI_BORDER_SINGLE,
+  UI_BORDER_TRIPLE,
+} UiBorderStyle;
+
+// 阴影形态。AUTO 在加载主题时按桌面色亮度解析成 SOLID 或 DITHER，
+// 之后渲染只做 switch，不再判断。
+typedef enum UiShadowStyle {
+  UI_SHADOW_AUTO = 0,
+  UI_SHADOW_SOLID,
+  UI_SHADOW_DITHER,
+} UiShadowStyle;
+
 // 界面层全局配色。主题文件（assets/themes/*.cfg）只能改这些字段；
 // 字体度量由字体模块独占，不在主题可配置范围内，见 theme.c 的
 // kForbiddenKeys。
 typedef struct UiStyle {
+  Color desktop;     // 桌面底色，阴影多数落在它上面
   Color background;  // 控件背景色
-  Color line;        // 边框、分隔线
+  Color line;        // 单线边框、分隔线
+  Color lineDim;     // 三色边框中间圈
   Color text;        // 正文文字
   Color textDim;     // 次要文字（禁用、弱化）
   Color button;      // 按钮底色
   Color buttonText;  // 按钮文字色
   Color titleBar;    // box 标题栏底色
   Color titleText;   // box 标题栏文字色
+  Color shadow;      // 阴影色
+  UiBorderStyle borderStyle;
+  UiShadowStyle shadowStyle;
 } UiStyle;
 
 // 内置默认配色，也是 gUiStyle 的初始值。
@@ -78,7 +102,19 @@ void UiDrawText(int posX, int posY, const char* text, int size, Color tint);
 // 标题栏高度：字号 + 2，即在「字号」高的基础上给标题上下各加 1px 内边距。
 #define UI_TITLEBAR_HEIGHT(size) ((size) + 2)
 
-// 绘制矩形：以 gUiStyle.background 填充，gUiStyle.line 画 1px 边框。
+// 阴影向右下偏移的设计像素。8 是观感取舍，硬上限是 UI_PADDING：超过 12
+// 时消息框内按钮的阴影会越出框边，贴到相邻控件上。
+// 该偏移不需要满足任何整除约束——它既不移动字形也不改控件尺寸，而整数
+// 倍缩放配 TEXTURE_FILTER_POINT 下每个设计像素都映射成干净的 N×N 块。
+// 实测偏移 1 至 12 均产生 0 个混合像素、边缘硬边。
+#define UI_SHADOW_OFFSET 8
+
+// 释放主题切换时重建的图形资源。当前只有抖动阴影用的 2×2 平铺贴图，
+// 必须在 CloseWindow 之前调用。重复调用安全。
+void UiUnloadStyle(void);
+
+// 绘制矩形：以 gUiStyle.background 填充，按 gUiStyle.borderStyle 画边框，
+// 并按 gUiStyle.shadowStyle 画右下阴影。
 void UiDrawRect(int x, int y, int width, int height);
 
 // 绘制 label：以 gUiStyle.text 颜色逐行绘制。
@@ -89,14 +125,14 @@ void UiDrawLabel(int x, int y, const char* text, int size);
 // focused 为 true 时本按钮持有键盘焦点：焦点是按钮唯一的变色来源，
 // 前景/背景互换（底色取 buttonText、文字取 button）；mouse 悬停与
 // 按下不产生任何视觉变化。回车激活焦点按钮；鼠标按住并在按钮内
-// 松开也激活（可选便利，不作唯一入口）。边框一律 line 色。
+// 松开也激活（可选便利，不作唯一入口）。边框按 gUiStyle.borderStyle。
 // 焦点归属由调用方管理，本函数不保存任何状态。
 bool UiButton(int x, int y, int width, int height, const char* label, int size,
               bool focused);
 
 // 绘制带标题栏的容器：标题栏高为 UI_TITLEBAR_HEIGHT(size)，底色 titleBar、
 // 文字 titleText；
-// 内容区底色 background，外框 line 色。
+// 内容区底色 background，外框按 gUiStyle.borderStyle。
 void UiDrawBox(int x, int y, int width, int height, const char* title,
                int size);
 
