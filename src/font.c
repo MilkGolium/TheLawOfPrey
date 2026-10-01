@@ -11,7 +11,14 @@
 #define CSV_FIELD_MAX 1024
 #define FONT_SIZE_COUNT 3
 
+// 对外字号，单位为 em 像素，必须是 12 的倍数。
 static const int kFontSizes[FONT_SIZE_COUNT] = {12, 24, 36};
+
+// 传给 raylib LoadFontEx 的值。raylib 按 hhea 行高（本字体 asc-desc=1600）
+// 而非 upem（1200）缩放字形，故 raylib 字号 = 对外字号 * 4/3。直接传
+// 12/24/36 会得到每设计像素 0.75/1.5/2.25 个像素，栅格化落在半像素上，
+// 图集带灰边；传 16/32/48 才是每设计像素 1/2/3 个像素，得到纯二值图集。
+static const int kFontLoadSizes[FONT_SIZE_COUNT] = {16, 32, 48};
 
 // BMP 范围内的 codepoint 去重位图（覆盖 CJK 基本区与 ASCII）
 static unsigned char cpBitmap[BMP_RANGE / 8];
@@ -271,10 +278,11 @@ Font GetUIFont(int size) {
   if (idx < 0) idx = 0;  // 最终回退
 
   if (!fontsLoaded[idx]) {
-    fonts[idx] =
-        LoadFontEx(FONT_PATH, kFontSizes[idx], collectedCps, collectedCount);
+    fonts[idx] = LoadFontEx(FONT_PATH, kFontLoadSizes[idx], collectedCps,
+                            collectedCount);
     if (fonts[idx].texture.id == 0) {
-      TraceLog(LOG_ERROR, "Font: 加载失败 %s@%d", FONT_PATH, kFontSizes[idx]);
+      TraceLog(LOG_ERROR, "Font: 加载失败 %s@%d", FONT_PATH,
+               kFontLoadSizes[idx]);
     } else {
       SetTextureFilter(fonts[idx].texture, TEXTURE_FILTER_POINT);
     }
@@ -301,13 +309,14 @@ bool FontHasGlyph(int codepoint) {
 
 void DrawUIText(int posX, int posY, const char* text, int size, Color tint) {
   Font f = GetUIFont(size);
-  DrawTextEx(f, text, (Vector2){(float)posX, (float)posY}, (float)size, 1.0f,
-             tint);
+  // 按图集分辨率（baseSize）绘制，scaleFactor 才是 1，字形原样落到像素格。
+  DrawTextEx(f, text, (Vector2){(float)posX, (float)posY}, (float)f.baseSize,
+             1.0f, tint);
 }
 
 Vector2 MeasureUIText(const char* text, int size) {
   Font f = GetUIFont(size);
-  return MeasureTextEx(f, text, (float)size, 1.0f);
+  return MeasureTextEx(f, text, (float)f.baseSize, 1.0f);
 }
 
 void InitGameFont(void) {

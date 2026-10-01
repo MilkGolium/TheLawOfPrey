@@ -42,8 +42,9 @@ typedef struct UiSize {
   int height;
 } UiSize;
 
-// 行距。raylib 的 MeasureTextEx 行间步进是「字号 + 2」（实测 12/24/36
-// 对应 14/26/38），既不是字号也不对齐 12 的像素格，且无法通过
+// 行距。raylib 的 MeasureTextEx 行间步进是「字号 + 2」（本封装传入的
+// raylib 字号为 16/32/48，对应 18/34/50），既不是字号也不对齐 12 的
+// 像素格，且无法通过
 // MeasureTextEx 的 spacing 参数调整（spacing 只管行内字符的水平间隔）。
 // 因此多行文本由本模块逐行绘制，y 步进取字号本身：等于 12 的整数倍，
 // 每行都落在像素格上，且与 DOS 时代终端行高即字高的排版一致。

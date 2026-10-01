@@ -62,7 +62,7 @@
 以下为已定结论，实现时不要反向引入。
 
 - 字体全域只有一份，`LoadFontEx` 只能在 `InitGameFont` 里调用，场景中禁止重复加载，场景切换也不重载。
-- 图集尺寸只能是 12 的倍数（12 、 24 、 36），像素格才对得齐。`upem = 1200` ，缩放 24px 图集会破坏像素格对齐；背包格子需要 12px 数字时另加载一张 12px 图集，而不是缩放。
+- 图集尺寸只能是 12 的倍数（12 、 24 、 36），像素格才对得齐。注意 raylib 的 `LoadFontEx` 按 hhea 行高（本字体 `asc-desc = 1600`）而非 `upem = 1200` 缩放字形，故传入值要乘 `4/3`：对外字号 12/24/36 对应传 16/32/48；直接传 12/24/36 会得到每设计像素 0.75/1.5/2.25 个像素，栅格化落在半像素上，图集带灰边。`src/font.c` 以 `kFontSizes`（对外）与 `kFontLoadSizes`（传 raylib）区分两套数值，绘制与度量一律用 `Font.baseSize` 使缩放系数保持 `1` 。缩放图集会破坏像素格对齐；背包格子需要 12px 数字时另加载一张 12px 图集，而不是缩放。
 - 文字一律走 `DrawUIText` 与 `MeasureUIText` ，两者内部封装 `DrawTextEx` 与 `MeasureTextEx` 。raylib 6.0 没有 `SetFontDefault` ，`DrawText()` 永远使用内置默认字体，画中文必定是方框，没有替代做法。
 - 图集贴图保持 `TEXTURE_FILTER_POINT` ，不要改成线性过滤。
 - 字符串放数据文件，不写死在 C 字面量里，否则精确收集会漏字，日后做多语言也无从下手。
@@ -70,7 +70,7 @@
 - `src/font.c` 对外只暴露 `InitGameFont()` 、 `UnloadGameFont()` 、 `GetUIFont(size)` 、 `DrawUIText()` 、 `MeasureUIText()` 、 `FontHasGlyph(cp)` ，接口名一律大驼峰。
 - 不引入任何第三方 GUI 库，`src/raygui/` 已整体删除。历史原因：raygui 的控件高度按默认 `TEXT_SIZE = 10` 硬编码，`InitGameFont` 把字号提到 24 之后这些常量没有跟着放大；叠加像素字在 24px 下 CJK 墨迹底部贴死行盒底边，控件内高不足时 `TEXT_ALIGNMENT_VERTICAL` 的居中计算会把文字推出边框。
 - 界面尺寸只取 12 的倍数。非网格尺寸一律用 `UI_ALIGN12()` 向上取整，内部留白统一取 `UI_PADDING` ，按钮高度取 `UI_BUTTON_HEIGHT()` ，度量不写死数值。
-- 多行文本由 `src/ui.c` 逐行绘制，行距为 `UI_LINE_STEP(size)` （等于字号）。raylib 的 `MeasureTextEx` 行间步进是「字号 + 2」（实测 12/24/36 对应 14/26/38），既不是字号也不对齐像素格，且 `spacing` 参数只管行内字符的水平间隔，调不动它。换行只认显式 `'\n'` ，不做自动折行，也不做宽度上限截断。
+- 多行文本由 `src/ui.c` 逐行绘制，行距为 `UI_LINE_STEP(size)` （等于字号）。raylib 的 `MeasureTextEx` 行间步进是「字号 + 2」（本封装传入的 raylib 字号为 16/32/48，对应 18/34/50），既不是字号也不对齐像素格，且 `spacing` 参数只管行内字符的水平间隔，调不动它。换行只认显式 `'\n'` ，不做自动折行，也不做宽度上限截断。
 - 按钮的焦点是唯一的变色来源：持有焦点时前景与背景互换，鼠标悬停与按下不产生任何视觉变化。焦点归属由调用方管理，原语本身不保存跨帧状态。
 - 主题只管配色，不管字体度量。`assets/themes/*.cfg` 中的 `text_size` 、 `text_spacing` 、 `text_line_spacing` 、 `text_alignment` 、 `text_alignment_vertical` 、 `text_padding` 、 `border_width` 由程序独占，写了会被忽略并告警；配色统一从 `src/ui.c` 的 `gUiStyle` 取。
 - 以下为有意设计，不要改回朴素实现：codepoint 用位图去重 + 升序数组 + 二分查询；按尺寸懒加载 + `initialized` 幂等 + `UnloadGameFont` 可重入；`GetCodepointNext` 返回 0 时的防死循环保护。
@@ -182,6 +182,12 @@ Oct-01-2026 原有 20 个 64*64 物品图标因不符合 48*48 规范清空，�
 Oct-01-2026 修复 Retina 屏文字模糊：开启 `FLAG_WINDOW_HIGHDPI` ，渲染改为
 固定 `640*480` 设计画布加整数倍放大（`src/graphsettings.c` ）。此前帧缓冲
 小于物理像素，被系统平滑放大，文字在应用之外就已经糊了。
+
+Oct-01-2026 修复像素字仍带灰边：`LoadFontEx` 按 hhea 行高（本字体
+`asc-desc = 1600`）而非 `upem = 1200` 缩放，此前直接传对外字号 12/24/36 ，
+实际每设计像素只有 0.75/1.5/2.25 个像素，栅格化落在半像素上。`src/font.c`
+改为对外字号 12/24/36 对应传入 16/32/48，绘制与度量改用 `Font.baseSize` ，
+图集恢复为纯二值。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) 辅助代码编写与文档整理。
