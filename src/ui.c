@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "font.h"
+#include "graphsettings.h"
 
 // === 原语 ===
 
@@ -100,7 +101,8 @@ void UiDrawLabel(int x, int y, const char* text, int size) {
 
 bool UiButton(int x, int y, int width, int height, const char* label, int size,
               bool focused) {
-  Vector2 mouse = GetMousePosition();
+  // 命中测试用画布坐标：GetMousePosition 给的是窗口坐标，画布放大后不通用。
+  Vector2 mouse = GetCanvasMouse();
   bool hovered = (mouse.x >= (float)x && mouse.x < (float)(x + width) &&
                   mouse.y >= (float)y && mouse.y < (float)(y + height));
 
@@ -168,8 +170,9 @@ int UiMessageBox(const char* title, const char* message, const char* buttons[],
 
   int boxWidth = UI_ALIGN12(maxWidth + 2 * UI_PADDING);
   int boxHeight = UI_ALIGN12(height);
-  int x = (GetScreenWidth() - boxWidth) / 2;
-  int y = (GetScreenHeight() - boxHeight) / 2;
+  // 在设计分辨率内居中。不能用 GetScreenWidth，那是窗口尺寸而非画布尺寸。
+  int x = (GRAPH_DESIGN_WIDTH - boxWidth) / 2;
+  int y = (GRAPH_DESIGN_HEIGHT - boxHeight) / 2;
 
   UiDrawBox(x, y, boxWidth, boxHeight, title, size);
 
