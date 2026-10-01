@@ -99,6 +99,34 @@ void UiDrawLabel(int x, int y, const char* text, int size) {
   UiDrawText(x, y, text, size, gUiStyle.text);
 }
 
+// raylib 把字形画在 posY + glyph.offsetY，墨迹的上下边界与字号并不相等。
+// 垂直居中必须按真实墨迹算：加载字号变大后 offsetY 同比增长，若仍按
+// 「高度 - 字号」摆放，文字会整体下坠。返回 false 表示串内没有可绘制字形。
+static bool TextInkBounds(const char* text, int size, int* outTop,
+                          int* outHeight) {
+  Font f = GetUIFont(size);
+  int top = 0;
+  int bottom = 0;
+  bool found = false;
+  for (const char* p = text; *p != '\0';) {
+    int charBytes = 0;
+    int codepoint = GetCodepointNext(p, &charBytes);
+    p += charBytes;
+    int index = GetGlyphIndex(f, codepoint);
+    if (index < 0 || f.recs[index].height <= 0.0f) continue;
+    int glyphTop = f.glyphs[index].offsetY;
+    int glyphBottom = glyphTop + (int)f.recs[index].height;
+    if (!found || glyphTop < top) top = glyphTop;
+    if (!found || glyphBottom > bottom) bottom = glyphBottom;
+    found = true;
+  }
+  if (found) {
+    *outTop = top;
+    *outHeight = bottom - top;
+  }
+  return found;
+}
+
 bool UiButton(int x, int y, int width, int height, const char* label, int size,
               bool focused) {
   // 命中测试用画布坐标：GetMousePosition 给的是窗口坐标，画布放大后不通用。
@@ -113,10 +141,14 @@ bool UiButton(int x, int y, int width, int height, const char* label, int size,
   DrawRectangle(x, y, width, height, bg);
   DrawRectangleLines(x, y, width, height, gUiStyle.line);
 
-  // 文字水平居中、垂直居中，垂直中线取按钮高度中点。
+  // 水平居中按度量宽；垂直居中按墨迹边界，使墨迹中线落在按钮高度中点。
   UiSize textSize = UiMeasureText(label, size);
   int textX = x + (width - textSize.width) / 2;
+  int inkTop = 0;
+  int inkHeight = 0;
   int textY = y + (height - size) / 2;
+  if (TextInkBounds(label, size, &inkTop, &inkHeight))
+    textY = y + (height - inkHeight) / 2 - inkTop;
   UiDrawText(textX, textY, label, size, fg);
 
   // 激活：焦点按钮回车按下即激活；鼠标松开时若光标仍在按钮内才激活，
@@ -129,10 +161,18 @@ bool UiButton(int x, int y, int width, int height, const char* label, int size,
 
 void UiDrawBox(int x, int y, int width, int height, const char* title,
                int size) {
-  DrawRectangle(x, y, width, size, gUiStyle.titleBar);
-  DrawRectangle(x, y + size, width, height - size, gUiStyle.background);
+  int titleBarHeight = UI_TITLEBAR_HEIGHT(size);
+  DrawRectangle(x, y, width, titleBarHeight, gUiStyle.titleBar);
+  DrawRectangle(x, y + titleBarHeight, width, height - titleBarHeight,
+                gUiStyle.background);
   DrawRectangleLines(x, y, width, height, gUiStyle.line);
-  UiDrawText(x + UI_PADDING, y, title, size, gUiStyle.titleText);
+  // 墨迹下缘会伸到 offsetY + 高度，按栏高居中，使标题上下各留出内边距。
+  int inkTop = 0;
+  int inkHeight = 0;
+  int titleY = y;
+  if (TextInkBounds(title, size, &inkTop, &inkHeight))
+    titleY = y + (titleBarHeight - inkHeight) / 2 - inkTop;
+  UiDrawText(x + UI_PADDING, titleY, title, size, gUiStyle.titleText);
 }
 
 int UiMessageBox(const char* title, const char* message, const char* buttons[],
@@ -164,9 +204,10 @@ int UiMessageBox(const char* title, const char* message, const char* buttons[],
   if (msgSize.width > maxWidth) maxWidth = msgSize.width;
   if (contentWidth > maxWidth) maxWidth = contentWidth;
 
-  // 标题栏（size）到正文（msgSize.height）到按钮行，每层间隔一个留白。
-  int height = size + UI_PADDING + msgSize.height + UI_PADDING + buttonHeight +
-               UI_PADDING;
+  // 标题栏到正文（msgSize.height）到按钮行，每层间隔一个留白。
+  int titleBarHeight = UI_TITLEBAR_HEIGHT(size);
+  int height = titleBarHeight + UI_PADDING + msgSize.height + UI_PADDING +
+               buttonHeight + UI_PADDING;
 
   int boxWidth = UI_ALIGN12(maxWidth + 2 * UI_PADDING);
   int boxHeight = UI_ALIGN12(height);
@@ -177,7 +218,7 @@ int UiMessageBox(const char* title, const char* message, const char* buttons[],
   UiDrawBox(x, y, boxWidth, boxHeight, title, size);
 
   // 正文紧贴标题栏下方，逐行绘制（行距为字号，12 的倍数）。
-  UiDrawText(x + UI_PADDING, y + size + UI_PADDING, message, size,
+  UiDrawText(x + UI_PADDING, y + titleBarHeight + UI_PADDING, message, size,
              gUiStyle.text);
 
   // 按钮行从框底向上摆放，等宽间距。

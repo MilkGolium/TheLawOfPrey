@@ -75,6 +75,9 @@ void UiDrawText(int posX, int posY, const char* text, int size, Color tint);
 // 按钮高度：字号 24 时得 36（24 + 12），也是 12 的倍数。
 #define UI_BUTTON_HEIGHT(size) ((size) + UI_PADDING)
 
+// 标题栏高度：字号 + 2，即在「字号」高的基础上给标题上下各加 1px 内边距。
+#define UI_TITLEBAR_HEIGHT(size) ((size) + 2)
+
 // 绘制矩形：以 gUiStyle.background 填充，gUiStyle.line 画 1px 边框。
 void UiDrawRect(int x, int y, int width, int height);
 
@@ -91,7 +94,8 @@ void UiDrawLabel(int x, int y, const char* text, int size);
 bool UiButton(int x, int y, int width, int height, const char* label, int size,
               bool focused);
 
-// 绘制带标题栏的容器：标题栏高为 size，底色 titleBar、文字 titleText；
+// 绘制带标题栏的容器：标题栏高为 UI_TITLEBAR_HEIGHT(size)，底色 titleBar、
+// 文字 titleText；
 // 内容区底色 background，外框 line 色。
 void UiDrawBox(int x, int y, int width, int height, const char* title,
                int size);
