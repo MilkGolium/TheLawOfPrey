@@ -44,19 +44,33 @@ static const ThemeColorKey kColorKeys[] = {
 // 枚举键。取值是标识符而非十六进制，标识表同样按归一后的
 // 小写存：border_style、border-style、borderStyle 都收敛到 borderstyle。
 // 值列的顺序必须与 ui.h 里枚举的声明顺序一致，下标直接当枚举值用。
+//
+// 赋值走 apply 回调而不是 offsetof + *(int*) 强转：枚举的兼容类型由实现
+// 决定（C11 6.7.2.2），gcc/clang 默认给全非负枚举选 unsigned int，经
+// int* 写是严格别名违规；-fshort-enums 下枚举只有 1~2 字节，4 字节的
+// int 写还会越过字段尾把相邻成员写坏。回调按真实类型赋值，两种编译
+// 选项下都安全。
 typedef struct {
   const char* key;
-  size_t offset;
   const char* const* names;
   int nameCount;
+  void (*apply)(UiStyle* style, int value);
 } ThemeEnumKey;
 
 static const char* const kBorderStyleNames[] = {"none", "single", "triple"};
 static const char* const kShadowStyleNames[] = {"auto", "solid", "dither"};
 
+static void ApplyBorderStyle(UiStyle* style, int value) {
+  style->borderStyle = (UiBorderStyle)value;
+}
+
+static void ApplyShadowStyle(UiStyle* style, int value) {
+  style->shadowStyle = (UiShadowStyle)value;
+}
+
 static const ThemeEnumKey kEnumKeys[] = {
-    {"borderstyle", offsetof(UiStyle, borderStyle), kBorderStyleNames, 3},
-    {"shadowstyle", offsetof(UiStyle, shadowStyle), kShadowStyleNames, 3},
+    {"borderstyle", kBorderStyleNames, 3, ApplyBorderStyle},
+    {"shadowstyle", kShadowStyleNames, 3, ApplyShadowStyle},
 };
 
 // auto 的分界：桌面色亮度低于一半就判暗。整数近似即可，
@@ -211,7 +225,7 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
   // 与坏十六进制的处理一致，不牵连同一文件里的其他键。
   for (int i = 0; i < enumKey->nameCount; i++) {
     if (strcmp(value, enumKey->names[i]) == 0) {
-      *(int*)((char*)style + enumKey->offset) = i;
+      enumKey->apply(style, i);
       return true;
     }
   }
