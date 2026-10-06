@@ -1,7 +1,3 @@
-#include <raylib.h>
-#include <stdbool.h>
-
-#include "scene_list.h"
 #include "scene_manager.h"
 #include "ui.h"
 
