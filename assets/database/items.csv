@@ -1,105 +1,105 @@
 id,name_id,display_name,category,stack_max,texture,description,inspect_text
-1,branch,树枝,"RESOURCE",60,res/textures/branch.png,一根普通的树枝。,干巴巴的，但能派上用场。
-2,plant fiber,植物纤维,"RESOURCE",60,res/textures/plant_fiber.png,一种常见的材料。,可以用来干点什么。
-3,stone,石头,"RESOURCE",60,res/textures/stone.png,一块普通的石头。,沉甸甸的。
-4,scrap,废料,"RESOURCE",60,res/textures/scrap.png,前人们的馈赠。,可以回收再利用。
-5,wood,木头,"RESOURCE",60,res/textures/wood.png,一块结实的木料。,好熟悉的感觉。
-6,pinecone,松塔 ,"RESOURCE",60,res/textures/pinecone.png,裸子植物的种子。,松鼠的最爱，富含大量油脂。
-7,ginkgo seed, 银杏种子,"RESOURCE",60,res/textures/ginkgo_seed.png,银杏树的种子。,额，这味道让我有点反胃。
-8,bone,兽骨,"RESOURCE",30,res/textures/bone.png,一块兽骨。,真硬啊。
-9,feather,羽毛,"RESOURCE",30,res/textures/feather.png,一根羽毛。,轻飘飘的。
-10,fiddlehead,蕨类嫩芽,"RESOURCE",60,res/textures/fiddlehead.png,蕨类植物的嫩芽。,之前我们都叫它应急食品。
-11,cycad seed,苏铁种子,"RESOURCE",60,res/textures/cycad_seed.png,苏铁的种子。,我可不敢尝试。
-12,taxus seed,红豆杉种子,"RESOURCE",60,res/textures/taxus_seed.png,红豆杉的种子。,诱人的外表也无法掩盖致命的内核。
-13,cycad frond,苏铁叶,"RESOURCE",60,res/textures/cycad_frond.png,苏铁的叶子。,我在我原来的公寓里也养了一盆。
-14,resin,树脂,"RESOURCE",60,res/textures/resin.png,树木分泌的树脂。,黏糊糊的昆虫地狱。
-15,araucaria seed,南洋杉种子,"RESOURCE",60,res/textures/araucaria_seed.png,从天而降的惊喜。,被它砸中也是一种幸运不是吗。
-16,araucaria nut,南洋杉坚果,"RESOURCE",60,res/textures/araucaria_nut.png,可食用的坚果。,烤熟了相当不错。
-17,Gigantoraptor egg,巨盗龙蛋,"RESOURCE",1,res/textures/Gigantoraptor_egg.png,巨盗龙的蛋。,孵化或者做成晚餐。
-18,mushroom,蘑菇,"RESOURCE",60,res/textures/mushroom.png,树荫下常见的真菌。,吃完后见到的是小人还是上帝？
-19,wood ear,木耳,"RESOURCE",60,res/textures/wood_ear.png,一种常见的食用菌。,口感不错。
-20,decay,腐烂物,"RESOURCE",60,res/textures/decay.png,腐烂的食物。,好恶心。
-21,dung,粪便,"RESOURCE",60,res/textures/dung.png,动物的排泄物。,我的农作物会很高兴的。
-22,Velociraptor claw,迅猛龙爪,"RESOURCE",30,res/textures/Velociraptor_claw.png,迅猛龙的爪子。,小巧而要命。
-23,pterosaur patagium,翼龙翼膜,"RESOURCE",30,res/textures/pterosaur_patagium.png,翼龙的翼膜。,轻薄而坚韧。
-24,Velociraptor egg,迅猛龙蛋,"RESOURCE",1,res/textures/Velociraptor_egg.png,迅猛龙的蛋。,烦人小家伙们的蛋。
-25,tar,焦油,"RESOURCE",60,res/textures/tar.png,来自地下的暗黑大手。,这个我熟，我在拉布雷亚看过。
-26,copper ore,铜矿石,"RESOURCE",60,res/textures/copper_ore.png,一种常见的金属矿石。,大有用处。
-27,electronic component,电子元件,"RESOURCE",60,res/textures/electronic_component.png,电子设备的核心。,能先进点了。
-28,Thunder Crown,雷鸣头冠,"RESOURCE",1,res/textures/Thunder_Crown.png,雷神翼龙的头冠。,蕴含着恐怖的力量。
-29,cooked Araucaria nut,烤南洋杉坚果,"CONSUMABLE",60,res/textures/Cooked_Araucaria_Nut.png,烤熟的南洋杉坚果。,香极了。
-30,fungal soup,菌菇汤,"CONSUMABLE",20,res/textures/fungal_soup.png,用蘑菇和木耳做成的汤。,堪比肉汤。
-31,grilled fern frond skewers,蕨类嫩芽烤串,"CONSUMABLE",20,res/textures/grilled_fern_frond_skewers.png,用蕨类嫩芽做成的烤串。,至少比生吃强。
-32,glass,玻璃,"RESOURCE",60,res/textures/glass.png,透明又坚硬的材料。,要把它做成刀吗？
-33,red bean pie,红豆派,"CONSUMABLE",20,res/textures/red_bean_pie.png,是不是看起来很诱人。,在这地狱中少数能让我感到欣慰的东西。
-34,starch chunk,淀粉块,"RESOURCE",60,res/textures/starch_chunk.png,来自于苏铁的宝贵淀粉。,哦，神圣的碳水。
-35,Spinosaurus tooth,棘龙牙齿,"RESOURCE",30,res/textures/Spinosaurus_tooth.png,棘龙的牙齿。,合格渔夫的证明。
-36,lungfish,肺鱼,"RESOURCE",30,res/textures/lungfish.png,一种古老的鱼类。,从海洋到陆地的证明！
-37,lamprey,七鳃鳗,"RESOURCE",30,res/textures/lamprey.png,令人惧怕的小东西。,我不想再看到它们了！
-38,lamprey pie,七鳃鳗派,"CONSUMABLE",20,res/textures/lamprey_pie.png,用七鳃鳗做成的美食。,吃它的时候我真希望我是盲人。
-39,cooked lamprey,烤七鳃鳗,"CONSUMABLE",30,res/textures/cooked_lamprey.png,烤熟的七鳃鳗。,啊哦。
-40,cooked lungfish,烤肺鱼,"CONSUMABLE",20,res/textures/cooked_lungfish.png,烤熟的肺鱼。,它看起来像在尖叫。
-41,roasted pine nuts,烤松子,"CONSUMABLE",60,res/textures/roasted_pine_nuts.png,烤熟的松子。,诱人的油脂香味配上松针香气，绝了。
-42,sago,西米,"CONSUMABLE",60,res/textures/sago_pudding.png,淀粉团子们。,好黏糊。
-43,sago pudding,西米露,"CONSUMABLE",20,res/textures/sago_pudding.png,用西米做成的布丁。,喝碗这个真是惬意。
-44,roasted ginkgo nuts,烤银杏果,"CONSUMABLE",60,res/textures/roasted_ginkgo_seeds.png,烤熟的银杏种子。,看起来很像开心果。
-45,ginkgo nut tofu,银杏豆腐,"CONSUMABLE",20,res/textures/ginkgo_nut_tofu.png,用银杏果仁做成的块状固体。,口感很奇怪。
-46,stuffed lungfish,填馅肺鱼,"CONSUMABLE",20,res/textures/stuffed_lungfish.png,用肺鱼做成的美食。,它不能呼吸了，但我可以。
-47,plank,木板,"RESOURCE",60,res/textures/plank.png,用木头加工而成的木板。,可以用来建造东西。
-48,stone brick,石砖,"RESOURCE",60,res/textures/stone_brick.png,用石头加工而成的砖块。,罗马不是一天建成的。
-49,raw meat,生兽肉,"RESOURCE",30,res/textures/raw_meat.png,新鲜的生肉。,杀死你，养活我。
-50,cooked meat,熟兽肉,"CONSUMABLE",30,res/textures/cooked_meat.png,烤熟的兽肉。,味道还可以。
-51,raw poultry,生禽肉,"RESOURCE",30,res/textures/raw_poultry.png,新鲜的生禽肉。,杀死你，养活我。
-52,ice,冰块,"RESOURCE",60,res/textures/ice.png,冰冻的水。,也许可以做成透镜生火。
-53,cooked poultry,熟禽肉,"CONSUMABLE",30,res/textures/cooked_poultry.png,烤熟的禽肉。,味道还可以。
-54,raw salmon,生鲑鱼肉,"RESOURCE",30,res/textures/raw_salmon.png,新鲜的生鲑鱼。,生鱼片！
-55,cooked salmon,熟鲑鱼肉,"CONSUMABLE",30,res/textures/cooked_salmon.png,烤熟的鲑鱼。,有点失望。
-56,smoked ham,烟熏火腿,"CONSUMABLE",20,res/textures/ham.png,熏制的大块兽肉。,让我想家了。
-57,plant sap,植物汁液,"RESOURCE",60,res/textures/plant_sap.png,带有甜味的植物精华。,虽然甜但是想到怎么来的就有点反胃。
-58,plant syrup,植物糖浆,"RESOURCE",60,res/textures/plant_syrup.png,由植物汁液熬制而成的糖浆。,太甜了。
-59,honey glazed ham,蜜汁火腿,"CONSUMABLE",20,res/textures/honey_glazed_ham.png,裹上糖浆的火腿。,太赞了！
-60,turkey feast,火鸡大餐,"CONSUMABLE",20,res/textures/turkey_feast.png,虽然这不是火鸡。,感恩节快乐。
-61,charcoal,木炭,"RESOURCE",60,res/textures/charcoal.png,由木头烧制而成的黑色物质。,可以用来生火。
-62,bone broth,骨头汤,"CONSUMABLE",20,res/textures/bone_broth.png,用兽骨熬制的汤。,也不是不可以。
-63,charging gel,充能凝胶,"RESOURCE",30,res/textures/charging_gel.png,恐怖力量的来源。,我感觉里面的能量随时会爆出来。
-64,Tyrannosaurus skin,霸王龙皮,"RESOURCE",30,res/textures/Tyrannosaurus_skin.png,恐怖暴君的的皮肤。,做成皮包带回去我就能发财了，哼。
-65,Tyrannosaurus tooth,霸王龙牙齿,"RESOURCE",30,res/textures/Tyrannosaurus_tooth.png,恐怖暴君的牙齿。,依然让我胆战心惊。
-66,Tyrannosaurus egg,霸王龙蛋,"RESOURCE",1,res/textures/Tyrannosaurus_egg.png,恐怖暴君的蛋。,我猜它的后代会吃空我的冰箱。
-67,bone knife,骨刀,"TOOL",1,res/textures/bone_knife.png,用兽骨制成的砍刀。,我要剥下你的皮。
-68,scrap axe,废料斧,"TOOL",1,res/textures/scrap_axe.png,用废料制成的斧头。,我可以砍树了。
-69,scrap pickaxe,废料镐,"TOOL",1,res/textures/scrap_pickaxe.png,用废料制成的镐。,我可以挖矿了。
-70,scrap launcher,废料发射器,"TOOL",1,res/textures/scrap_launcher.png,可以尝试发射乱七八糟的东西。,用这个东西把家里搞的乱七八糟。
-71,stone hammer,石锤,"TOOL",1,res/textures/stone_hammer.png,更高效的翻找前辈遗物。,土木老哥最爱。
-72,scrap helmet,废料头盔,"EQUIP",1,res/textures/scrap_helmet.png,用破烂拼凑的头盔。,看起来更像拾荒者了。
-73,scrap chestplate,废料胸甲,"EQUIP",1,res/textures/scrap_chestplate.png,用破烂拼凑的胸甲。,拾荒者皮肤。
-74,simple backpack,简易背包,"EQUIP",1,res/textures/simple_backpack.png,用木棍和草绳做成的小包。,可以装更多东西了。
-75,T-Rex backpack,霸王龙皮包,"EQUIP",1,res/textures/T-Rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
-76,savage club,野蛮大棒,"TOOL",1,res/textures/savage_club.png,镶嵌着霸王龙牙齿的恐怖武器。,这一下会很疯狂。
-77,scrap spear,废料长矛,"TOOL",1,res/textures/scrap_spear.png,用废料制成的长矛。,我要刺穿你。
-78,Spinosaurus harpoon,棘龙鱼叉,"TOOL",1,res/textures/Spinosaurus_harpoon.png,用棘龙牙齿制成的鱼叉。,永不空军。
-79,thunder battleaxe,雷鸣战斧,"TOOL",1,res/textures/thunder_battleaxe.png,镶嵌着雷神翼龙头冠的战斧。,POWER!
-80,feather coat,羽毛大衣,"EQUIP",1,res/textures/feather_coat.png,用羽毛制成的保暖大衣。,温暖而又柔软。
-81,Mammoth hide hat,猛犸象皮帽,"EQUIP",1,res/textures/Mammoth_hide_hat.png,用猛犸象毛制成的帽子。,保暖又时尚。
-82,Mammoth hide coat,猛犸象皮大衣,"EQUIP",1,res/textures/Mammoth_hide_coat.png,用猛犸象毛制成的大衣。,保暖又时尚。
-83,generator upgrade kit,发电机升级套件,"RESOURCE",1,res/textures/generator_upgrade_kit.png,可以让发电机更高效。,老一辈电工的自信。
-84,building upgrade kit,建筑升级套件,"RESOURCE",1,res/textures/building_upgrade_kit.png,更大更坚固。,老一辈建筑师的自信。
-85,Mammoth meat,猛犸象肉,"RESOURCE",30,res/textures/Mammoth_meat.png,新鲜的猛犸象肉。,我该跳战舞庆祝吗？
-86,super Mammoth meatball,超级猛犸象肉丸,"CONSUMABLE",20,res/textures/super_Mammoth_meatball.png,用猛犸象肉做成的肉丸。,史前一万年的味道。
-87,large feather,大羽毛,"RESOURCE",30,res/textures/large_feather.png,一根巨大的羽毛。,我可以用它做成薄扇。
-88,dino saddle,恐龙鞍,"EQUIP",1,res/textures/dino_saddle.png,用骨头和金属制成的恐龙鞍。,蒙古人行为。
-89,charge spear,冲锋长矛,"TOOL",1,res/textures/charge_spear.png,冲刺冲刺冲刺！,战斗爽！
-90,alloy material blueprint,合金材料蓝图,"RESOURCE",1,res/textures/alloy_material_blueprint.png,如何制作合金材料。,可以做出更坚固的东西了。
-91,alloy ingot,合金锭,"RESOURCE",60,res/textures/alloy_ingot.png,由多种金属熔炼而成的合金锭。,瞧瞧这光泽。
-92,alloy axe,合金斧,"TOOL",1,res/textures/alloy_axe.png,由合金锭制成的斧头。,砍树更轻松了。
-93,alloy pickaxe,合金镐,"TOOL",1,res/textures/alloy_pickaxe.png,由合金锭制成的镐。,挖矿更轻松了。
-94,alloy shovel,合金铲,"TOOL",1,res/textures/alloy_shovel.png,由合金锭制成的铲子。,挖土更轻松了。
-95,scrap shovel,废料铲,"TOOL",1,res/textures/scrap_shovel.png,用废料制成的铲子。,挖呀挖呀挖。
-96,alloy machete,合金弯刀,"TOOL",1,res/textures/alloy_machete.png,由合金锭制成的弯刀。,生存战斗两不误。
-97,alloy crossbow,合金弩,"TOOL",1,res/textures/alloy_crossbow.png,由合金锭制成的弩。,终于不用徒手搏斗了。
-98,net launcher,网枪,"TOOL",1,res/textures/net_launcher.png,可以发射网子。,我要抓住你们。
-99,fishing rod,钓鱼竿,"TOOL",1,res/textures/fishing_rod.png,可以用来钓鱼。,子非鱼，安知鱼之乐。
-100,chromite ore,铬铁矿,"RESOURCE",60,res/textures/chromite_ore.png,一种常见的金属矿石。,可以用来制作合金。
-101,smoked fish,熏鱼,"CONSUMABLE",20,res/textures/smoked_fish.png,慢火熏制的鱼。,农家乐会有这种美味。
-102,sturgeon,鲟鱼,"CONSUMABLE",30,res/textures/sturgeon.png,新鲜的鲟鱼。,古老的鱼，在各个方面。
-103,sturgeon steak,鲟鱼排,"CONSUMABLE",20,res/textures/sturgeon_steak.png,用鲟鱼做成的美味鱼排。,现在变成古老的美味了。
-104,omelette,煎蛋卷,"CONSUMABLE",20,res/textures/omelette.png,用鸡蛋做成的美味煎蛋卷。,早餐的最佳选择。
+1,branch,树枝,"RESOURCE",60,assets/sprites/item_icons/branch.png,一根普通的树枝。,干巴巴的，但能派上用场。
+2,plant fiber,植物纤维,"RESOURCE",60,assets/sprites/item_icons/plant_fiber.png,一种常见的材料。,可以用来干点什么。
+3,stone,石头,"RESOURCE",60,assets/sprites/item_icons/stone.png,一块普通的石头。,沉甸甸的。
+4,scrap,废料,"RESOURCE",60,assets/sprites/item_icons/scrap.png,前人们的馈赠。,可以回收再利用。
+5,wood,木头,"RESOURCE",60,assets/sprites/item_icons/wood.png,一块结实的木料。,好熟悉的感觉。
+6,pinecone,松塔 ,"RESOURCE",60,assets/sprites/item_icons/pinecone.png,裸子植物的种子。,松鼠的最爱，富含大量油脂。
+7,ginkgo seed, 银杏种子,"RESOURCE",60,assets/sprites/item_icons/ginkgo_seed.png,银杏树的种子。,额，这味道让我有点反胃。
+8,bone,兽骨,"RESOURCE",30,assets/sprites/item_icons/bone.png,一块兽骨。,真硬啊。
+9,feather,羽毛,"RESOURCE",30,assets/sprites/item_icons/feather.png,一根羽毛。,轻飘飘的。
+10,fiddlehead,蕨类嫩芽,"RESOURCE",60,assets/sprites/item_icons/fiddlehead.png,蕨类植物的嫩芽。,之前我们都叫它应急食品。
+11,cycad seed,苏铁种子,"RESOURCE",60,assets/sprites/item_icons/cycad_seed.png,苏铁的种子。,我可不敢尝试。
+12,taxus seed,红豆杉种子,"RESOURCE",60,assets/sprites/item_icons/taxus_seed.png,红豆杉的种子。,诱人的外表也无法掩盖致命的内核。
+13,cycad frond,苏铁叶,"RESOURCE",60,assets/sprites/item_icons/cycad_frond.png,苏铁的叶子。,我在我原来的公寓里也养了一盆。
+14,resin,树脂,"RESOURCE",60,assets/sprites/item_icons/resin.png,树木分泌的树脂。,黏糊糊的昆虫地狱。
+15,araucaria seed,南洋杉种子,"RESOURCE",60,assets/sprites/item_icons/araucaria_seed.png,从天而降的惊喜。,被它砸中也是一种幸运不是吗。
+16,araucaria nut,南洋杉坚果,"RESOURCE",60,assets/sprites/item_icons/araucaria_nut.png,可食用的坚果。,烤熟了相当不错。
+17,Gigantoraptor egg,巨盗龙蛋,"RESOURCE",1,assets/sprites/item_icons/Gigantoraptor_egg.png,巨盗龙的蛋。,孵化或者做成晚餐。
+18,mushroom,蘑菇,"RESOURCE",60,assets/sprites/item_icons/mushroom.png,树荫下常见的真菌。,吃完后见到的是小人还是上帝？
+19,wood ear,木耳,"RESOURCE",60,assets/sprites/item_icons/wood_ear.png,一种常见的食用菌。,口感不错。
+20,decay,腐烂物,"RESOURCE",60,assets/sprites/item_icons/decay.png,腐烂的食物。,好恶心。
+21,dung,粪便,"RESOURCE",60,assets/sprites/item_icons/dung.png,动物的排泄物。,我的农作物会很高兴的。
+22,Velociraptor claw,迅猛龙爪,"RESOURCE",30,assets/sprites/item_icons/Velociraptor_claw.png,迅猛龙的爪子。,小巧而要命。
+23,pterosaur patagium,翼龙翼膜,"RESOURCE",30,assets/sprites/item_icons/pterosaur_patagium.png,翼龙的翼膜。,轻薄而坚韧。
+24,Velociraptor egg,迅猛龙蛋,"RESOURCE",1,assets/sprites/item_icons/Velociraptor_egg.png,迅猛龙的蛋。,烦人小家伙们的蛋。
+25,tar,焦油,"RESOURCE",60,assets/sprites/item_icons/tar.png,来自地下的暗黑大手。,这个我熟，我在拉布雷亚看过。
+26,copper ore,铜矿石,"RESOURCE",60,assets/sprites/item_icons/copper_ore.png,一种常见的金属矿石。,大有用处。
+27,electronic component,电子元件,"RESOURCE",60,assets/sprites/item_icons/electronic_component.png,电子设备的核心。,能先进点了。
+28,Thunder Crown,雷鸣头冠,"RESOURCE",1,assets/sprites/item_icons/Thunder_Crown.png,雷神翼龙的头冠。,蕴含着恐怖的力量。
+29,cooked Araucaria nut,烤南洋杉坚果,"CONSUMABLE",60,assets/sprites/item_icons/Cooked_Araucaria_Nut.png,烤熟的南洋杉坚果。,香极了。
+30,fungal soup,菌菇汤,"CONSUMABLE",20,assets/sprites/item_icons/fungal_soup.png,用蘑菇和木耳做成的汤。,堪比肉汤。
+31,grilled fern frond skewers,蕨类嫩芽烤串,"CONSUMABLE",20,assets/sprites/item_icons/grilled_fern_frond_skewers.png,用蕨类嫩芽做成的烤串。,至少比生吃强。
+32,glass,玻璃,"RESOURCE",60,assets/sprites/item_icons/glass.png,透明又坚硬的材料。,要把它做成刀吗？
+33,red bean pie,红豆派,"CONSUMABLE",20,assets/sprites/item_icons/red_bean_pie.png,是不是看起来很诱人。,在这地狱中少数能让我感到欣慰的东西。
+34,starch chunk,淀粉块,"RESOURCE",60,assets/sprites/item_icons/starch_chunk.png,来自于苏铁的宝贵淀粉。,哦，神圣的碳水。
+35,Spinosaurus tooth,棘龙牙齿,"RESOURCE",30,assets/sprites/item_icons/Spinosaurus_tooth.png,棘龙的牙齿。,合格渔夫的证明。
+36,lungfish,肺鱼,"RESOURCE",30,assets/sprites/item_icons/lungfish.png,一种古老的鱼类。,从海洋到陆地的证明！
+37,lamprey,七鳃鳗,"RESOURCE",30,assets/sprites/item_icons/lamprey.png,令人惧怕的小东西。,我不想再看到它们了！
+38,lamprey pie,七鳃鳗派,"CONSUMABLE",20,assets/sprites/item_icons/lamprey_pie.png,用七鳃鳗做成的美食。,吃它的时候我真希望我是盲人。
+39,cooked lamprey,烤七鳃鳗,"CONSUMABLE",30,assets/sprites/item_icons/cooked_lamprey.png,烤熟的七鳃鳗。,啊哦。
+40,cooked lungfish,烤肺鱼,"CONSUMABLE",20,assets/sprites/item_icons/cooked_lungfish.png,烤熟的肺鱼。,它看起来像在尖叫。
+41,roasted pine nuts,烤松子,"CONSUMABLE",60,assets/sprites/item_icons/roasted_pine_nuts.png,烤熟的松子。,诱人的油脂香味配上松针香气，绝了。
+42,sago,西米,"CONSUMABLE",60,assets/sprites/item_icons/sago_pudding.png,淀粉团子们。,好黏糊。
+43,sago pudding,西米露,"CONSUMABLE",20,assets/sprites/item_icons/sago_pudding.png,用西米做成的布丁。,喝碗这个真是惬意。
+44,roasted ginkgo nuts,烤银杏果,"CONSUMABLE",60,assets/sprites/item_icons/roasted_ginkgo_seeds.png,烤熟的银杏种子。,看起来很像开心果。
+45,ginkgo nut tofu,银杏豆腐,"CONSUMABLE",20,assets/sprites/item_icons/ginkgo_nut_tofu.png,用银杏果仁做成的块状固体。,口感很奇怪。
+46,stuffed lungfish,填馅肺鱼,"CONSUMABLE",20,assets/sprites/item_icons/stuffed_lungfish.png,用肺鱼做成的美食。,它不能呼吸了，但我可以。
+47,plank,木板,"RESOURCE",60,assets/sprites/item_icons/plank.png,用木头加工而成的木板。,可以用来建造东西。
+48,stone brick,石砖,"RESOURCE",60,assets/sprites/item_icons/stone_brick.png,用石头加工而成的砖块。,罗马不是一天建成的。
+49,raw meat,生兽肉,"RESOURCE",30,assets/sprites/item_icons/raw_meat.png,新鲜的生肉。,杀死你，养活我。
+50,cooked meat,熟兽肉,"CONSUMABLE",30,assets/sprites/item_icons/cooked_meat.png,烤熟的兽肉。,味道还可以。
+51,raw poultry,生禽肉,"RESOURCE",30,assets/sprites/item_icons/raw_poultry.png,新鲜的生禽肉。,杀死你，养活我。
+52,ice,冰块,"RESOURCE",60,assets/sprites/item_icons/ice.png,冰冻的水。,也许可以做成透镜生火。
+53,cooked poultry,熟禽肉,"CONSUMABLE",30,assets/sprites/item_icons/cooked_poultry.png,烤熟的禽肉。,味道还可以。
+54,raw salmon,生鲑鱼肉,"RESOURCE",30,assets/sprites/item_icons/raw_salmon.png,新鲜的生鲑鱼。,生鱼片！
+55,cooked salmon,熟鲑鱼肉,"CONSUMABLE",30,assets/sprites/item_icons/cooked_salmon.png,烤熟的鲑鱼。,有点失望。
+56,smoked ham,烟熏火腿,"CONSUMABLE",20,assets/sprites/item_icons/ham.png,熏制的大块兽肉。,让我想家了。
+57,plant sap,植物汁液,"RESOURCE",60,assets/sprites/item_icons/plant_sap.png,带有甜味的植物精华。,虽然甜但是想到怎么来的就有点反胃。
+58,plant syrup,植物糖浆,"RESOURCE",60,assets/sprites/item_icons/plant_syrup.png,由植物汁液熬制而成的糖浆。,太甜了。
+59,honey glazed ham,蜜汁火腿,"CONSUMABLE",20,assets/sprites/item_icons/honey_glazed_ham.png,裹上糖浆的火腿。,太赞了！
+60,turkey feast,火鸡大餐,"CONSUMABLE",20,assets/sprites/item_icons/turkey_feast.png,虽然这不是火鸡。,感恩节快乐。
+61,charcoal,木炭,"RESOURCE",60,assets/sprites/item_icons/charcoal.png,由木头烧制而成的黑色物质。,可以用来生火。
+62,bone broth,骨头汤,"CONSUMABLE",20,assets/sprites/item_icons/bone_broth.png,用兽骨熬制的汤。,也不是不可以。
+63,charging gel,充能凝胶,"RESOURCE",30,assets/sprites/item_icons/charging_gel.png,恐怖力量的来源。,我感觉里面的能量随时会爆出来。
+64,Tyrannosaurus skin,霸王龙皮,"RESOURCE",30,assets/sprites/item_icons/Tyrannosaurus_skin.png,恐怖暴君的的皮肤。,做成皮包带回去我就能发财了，哼。
+65,Tyrannosaurus tooth,霸王龙牙齿,"RESOURCE",30,assets/sprites/item_icons/Tyrannosaurus_tooth.png,恐怖暴君的牙齿。,依然让我胆战心惊。
+66,Tyrannosaurus egg,霸王龙蛋,"RESOURCE",1,assets/sprites/item_icons/Tyrannosaurus_egg.png,恐怖暴君的蛋。,我猜它的后代会吃空我的冰箱。
+67,bone knife,骨刀,"TOOL",1,assets/sprites/item_icons/bone_knife.png,用兽骨制成的砍刀。,我要剥下你的皮。
+68,scrap axe,废料斧,"TOOL",1,assets/sprites/item_icons/scrap_axe.png,用废料制成的斧头。,我可以砍树了。
+69,scrap pickaxe,废料镐,"TOOL",1,assets/sprites/item_icons/scrap_pickaxe.png,用废料制成的镐。,我可以挖矿了。
+70,scrap launcher,废料发射器,"TOOL",1,assets/sprites/item_icons/scrap_launcher.png,可以尝试发射乱七八糟的东西。,用这个东西把家里搞的乱七八糟。
+71,stone hammer,石锤,"TOOL",1,assets/sprites/item_icons/stone_hammer.png,更高效的翻找前辈遗物。,土木老哥最爱。
+72,scrap helmet,废料头盔,"EQUIP",1,assets/sprites/item_icons/scrap_helmet.png,用破烂拼凑的头盔。,看起来更像拾荒者了。
+73,scrap chestplate,废料胸甲,"EQUIP",1,assets/sprites/item_icons/scrap_chestplate.png,用破烂拼凑的胸甲。,拾荒者皮肤。
+74,simple backpack,简易背包,"EQUIP",1,assets/sprites/item_icons/simple_backpack.png,用木棍和草绳做成的小包。,可以装更多东西了。
+75,T-Rex backpack,霸王龙皮包,"EQUIP",1,assets/sprites/item_icons/T-Rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
+76,savage club,野蛮大棒,"TOOL",1,assets/sprites/item_icons/savage_club.png,镶嵌着霸王龙牙齿的恐怖武器。,这一下会很疯狂。
+77,scrap spear,废料长矛,"TOOL",1,assets/sprites/item_icons/scrap_spear.png,用废料制成的长矛。,我要刺穿你。
+78,Spinosaurus harpoon,棘龙鱼叉,"TOOL",1,assets/sprites/item_icons/Spinosaurus_harpoon.png,用棘龙牙齿制成的鱼叉。,永不空军。
+79,thunder battleaxe,雷鸣战斧,"TOOL",1,assets/sprites/item_icons/thunder_battleaxe.png,镶嵌着雷神翼龙头冠的战斧。,POWER!
+80,feather coat,羽毛大衣,"EQUIP",1,assets/sprites/item_icons/feather_coat.png,用羽毛制成的保暖大衣。,温暖而又柔软。
+81,Mammoth hide hat,猛犸象皮帽,"EQUIP",1,assets/sprites/item_icons/Mammoth_hide_hat.png,用猛犸象毛制成的帽子。,保暖又时尚。
+82,Mammoth hide coat,猛犸象皮大衣,"EQUIP",1,assets/sprites/item_icons/Mammoth_hide_coat.png,用猛犸象毛制成的大衣。,保暖又时尚。
+83,generator upgrade kit,发电机升级套件,"RESOURCE",1,assets/sprites/item_icons/generator_upgrade_kit.png,可以让发电机更高效。,老一辈电工的自信。
+84,building upgrade kit,建筑升级套件,"RESOURCE",1,assets/sprites/item_icons/building_upgrade_kit.png,更大更坚固。,老一辈建筑师的自信。
+85,Mammoth meat,猛犸象肉,"RESOURCE",30,assets/sprites/item_icons/Mammoth_meat.png,新鲜的猛犸象肉。,我该跳战舞庆祝吗？
+86,super Mammoth meatball,超级猛犸象肉丸,"CONSUMABLE",20,assets/sprites/item_icons/super_Mammoth_meatball.png,用猛犸象肉做成的肉丸。,史前一万年的味道。
+87,large feather,大羽毛,"RESOURCE",30,assets/sprites/item_icons/large_feather.png,一根巨大的羽毛。,我可以用它做成薄扇。
+88,dino saddle,恐龙鞍,"EQUIP",1,assets/sprites/item_icons/dino_saddle.png,用骨头和金属制成的恐龙鞍。,蒙古人行为。
+89,charge spear,冲锋长矛,"TOOL",1,assets/sprites/item_icons/charge_spear.png,冲刺冲刺冲刺！,战斗爽！
+90,alloy material blueprint,合金材料蓝图,"RESOURCE",1,assets/sprites/item_icons/alloy_material_blueprint.png,如何制作合金材料。,可以做出更坚固的东西了。
+91,alloy ingot,合金锭,"RESOURCE",60,assets/sprites/item_icons/alloy_ingot.png,由多种金属熔炼而成的合金锭。,瞧瞧这光泽。
+92,alloy axe,合金斧,"TOOL",1,assets/sprites/item_icons/alloy_axe.png,由合金锭制成的斧头。,砍树更轻松了。
+93,alloy pickaxe,合金镐,"TOOL",1,assets/sprites/item_icons/alloy_pickaxe.png,由合金锭制成的镐。,挖矿更轻松了。
+94,alloy shovel,合金铲,"TOOL",1,assets/sprites/item_icons/alloy_shovel.png,由合金锭制成的铲子。,挖土更轻松了。
+95,scrap shovel,废料铲,"TOOL",1,assets/sprites/item_icons/scrap_shovel.png,用废料制成的铲子。,挖呀挖呀挖。
+96,alloy machete,合金弯刀,"TOOL",1,assets/sprites/item_icons/alloy_machete.png,由合金锭制成的弯刀。,生存战斗两不误。
+97,alloy crossbow,合金弩,"TOOL",1,assets/sprites/item_icons/alloy_crossbow.png,由合金锭制成的弩。,终于不用徒手搏斗了。
+98,net launcher,网枪,"TOOL",1,assets/sprites/item_icons/net_launcher.png,可以发射网子。,我要抓住你们。
+99,fishing rod,钓鱼竿,"TOOL",1,assets/sprites/item_icons/fishing_rod.png,可以用来钓鱼。,子非鱼，安知鱼之乐。
+100,chromite ore,铬铁矿,"RESOURCE",60,assets/sprites/item_icons/chromite_ore.png,一种常见的金属矿石。,可以用来制作合金。
+101,smoked fish,熏鱼,"CONSUMABLE",20,assets/sprites/item_icons/smoked_fish.png,慢火熏制的鱼。,农家乐会有这种美味。
+102,sturgeon,鲟鱼,"CONSUMABLE",30,assets/sprites/item_icons/sturgeon.png,新鲜的鲟鱼。,古老的鱼，在各个方面。
+103,sturgeon steak,鲟鱼排,"CONSUMABLE",20,assets/sprites/item_icons/sturgeon_steak.png,用鲟鱼做成的美味鱼排。,现在变成古老的美味了。
+104,omelette,煎蛋卷,"CONSUMABLE",20,assets/sprites/item_icons/omelette.png,用鸡蛋做成的美味煎蛋卷。,早餐的最佳选择。
