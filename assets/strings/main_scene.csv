@@ -1,0 +1,6 @@
+key,text
+button_show_message,显示消息
+messagebox_title,消息框
+messagebox_body,你好！这是一条测试消息。
+button_ok,好的
+button_close,关闭

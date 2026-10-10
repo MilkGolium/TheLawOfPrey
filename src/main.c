@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "scene_list.h"
 #include "scene_manager.h"
+#include "strings.h"
 #include "theme.h"
 #include "ui.h"
 #include "utils.h"
@@ -36,6 +37,10 @@ int main(void) {
   // 加载中文字体图集，收集 codepoint
   InitGameFont();
 
+  // 界面文案表。字体收集阶段直接扫描 assets/strings 下的同一批文件，
+  // 与这里的内存表各读一次互不依赖，先后顺序无所谓。
+  InitStrings();
+
   // 字体度量就绪后再套主题，主题只允许改动配色与装饰形态
   InitTheme();
 
@@ -65,6 +70,8 @@ int main(void) {
   SceneManager_UnloadCurrentScene();
   // 释放字体图集（必须在 CloseWindow 之前，此时 GL 上下文尚在）
   UnloadGameFont();
+  // 释放界面文案表
+  UnloadStrings();
   // 释放抖动阴影贴图，同样必须在 CloseWindow 之前
   UiUnloadStyle();
   // 释放设计画布，同样必须在 CloseWindow 之前

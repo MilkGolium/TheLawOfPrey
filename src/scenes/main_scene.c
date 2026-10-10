@@ -1,4 +1,5 @@
 #include "scene_manager.h"
+#include "strings.h"
 #include "ui.h"
 
 static bool showMessageBox;
@@ -12,13 +13,15 @@ void MainSceneInit(void) {
 void MainSceneUpdate(void) {}
 
 void MainSceneDraw(void) {
-  if (UiButton(24, 24, 120, 36, "显示消息", 24, !showMessageBox))
+  if (UiButton(24, 24, 120, 36, GetString("button_show_message"), 24,
+               !showMessageBox))
     showMessageBox = true;
 
   if (showMessageBox) {
-    const char* buttons[] = {"好的", "关闭"};
-    int result = UiMessageBox("消息框", "你好！这是一条测试消息。", buttons, 2,
-                              24, &messageBoxFocus);
+    const char* buttons[] = {GetString("button_ok"), GetString("button_close")};
+    int result = UiMessageBox(GetString("messagebox_title"),
+                              GetString("messagebox_body"), buttons, 2, 24,
+                              &messageBoxFocus);
     if (result != -2) showMessageBox = false;
   }
 }
