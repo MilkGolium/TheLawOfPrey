@@ -212,6 +212,8 @@ void UiDrawLabel(int x, int y, const char* text, int size) {
 static bool TextInkBounds(const char* text, int size, int* outTop,
                           int* outHeight) {
   Font f = GetUIFont(size);
+  // 图集未加载成功时 Font 内部为空，访问 recs/glyphs 会越界
+  if (!FontIsUsable(f)) return false;
   int top = 0;
   int bottom = 0;
   bool found = false;

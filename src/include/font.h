@@ -24,4 +24,9 @@ void DrawUIText(int posX, int posY, const char* text, int size, Color tint);
 // 测量文本尺寸，封装 MeasureTextEx。
 Vector2 MeasureUIText(const char* text, int size);
 
+// 字体是否可用（加载成功，且不是 raylib 退回的内置默认字体）。
+// 返回 false 时 Font 内部字段为空，调用方不得再访问 recs/glyphs，
+// 否则会越界。ui.c 的墨迹测量依赖此判据。
+bool FontIsUsable(Font font);
+
 #endif  // FONT_H

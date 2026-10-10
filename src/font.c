@@ -289,7 +289,7 @@ static int FindSizeIndex(int size) {
 // TTF 解析失败时 raylib 会退回内置 ASCII 默认字体，那份 Font 的
 // texture.id 不为 0，只查它就会把默认字体当成图集、中文照样静默变方框，
 // 故额外比对 glyphs 指针是不是默认字体那一份。
-static bool IsUsableFont(Font font) {
+bool FontIsUsable(Font font) {
   return font.texture.id != 0 && font.glyphs != GetFontDefault().glyphs;
 }
 
@@ -304,7 +304,7 @@ static void LoadFontAt(int idx) {
   }
   sFonts[idx] =
       LoadFontEx(FONT_PATH, kFontLoadSizes[idx], collectedCps, collectedCount);
-  if (!IsUsableFont(sFonts[idx])) {
+  if (!FontIsUsable(sFonts[idx])) {
     if (sFonts[idx].texture.id == 0) {
       TraceLog(LOG_ERROR, "Font: 加载失败 %s@%d", FONT_PATH,
                kFontLoadSizes[idx]);
@@ -355,7 +355,7 @@ bool FontHasGlyph(int codepoint) {
 void DrawUIText(int posX, int posY, const char* text, int size, Color tint) {
   Font f = GetUIFont(size);
   // 未加载成功的 Font 会让 DrawTextEx 越界，直接不画
-  if (!IsUsableFont(f)) return;
+  if (!FontIsUsable(f)) return;
   // 按图集分辨率（baseSize）绘制，scaleFactor 才是 1，字形原样落到像素格。
   DrawTextEx(f, text, (Vector2){(float)posX, (float)posY}, (float)f.baseSize,
              1.0f, tint);
@@ -363,7 +363,7 @@ void DrawUIText(int posX, int posY, const char* text, int size, Color tint) {
 
 Vector2 MeasureUIText(const char* text, int size) {
   Font f = GetUIFont(size);
-  if (!IsUsableFont(f)) return (Vector2){0, 0};
+  if (!FontIsUsable(f)) return (Vector2){0, 0};
   return MeasureTextEx(f, text, (float)f.baseSize, 1.0f);
 }
 
