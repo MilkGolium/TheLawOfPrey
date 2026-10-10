@@ -23,7 +23,7 @@ typedef enum UiBorderStyle {
   UI_BORDER_TRIPLE,
 } UiBorderStyle;
 
-// 阴影形态。AUTO 在加载主题时按桌面色亮度解析成 SOLID 或 DITHER，
+// 阴影形态。AUTO 在加载主题时按桌面色（底色）亮度解析成 SOLID 或 DITHER，
 // 之后渲染只做 switch，不再判断。
 typedef enum UiShadowStyle {
   UI_SHADOW_AUTO = 0,
@@ -37,7 +37,7 @@ typedef enum UiShadowStyle {
 typedef struct UiStyle {
   Color desktop;     // 桌面底色，阴影多数落在它上面
   Color background;  // 控件背景色
-  Color line;        // 单线边框、分隔线
+  Color line;        // 单线/三线边框、分隔线
   Color lineDim;     // 三色边框中间圈
   Color text;        // 正文文字
   Color textDim;     // 次要文字（禁用、弱化）

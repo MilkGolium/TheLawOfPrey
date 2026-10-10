@@ -15,25 +15,25 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 14,resin,树脂,"RESOURCE",60,assets/sprites/item_icons/resin.png,树木分泌的树脂。,黏糊糊的昆虫地狱。
 15,araucaria seed,南洋杉种子,"RESOURCE",60,assets/sprites/item_icons/araucaria_seed.png,从天而降的惊喜。,被它砸中也是一种幸运不是吗。
 16,araucaria nut,南洋杉坚果,"RESOURCE",60,assets/sprites/item_icons/araucaria_nut.png,可食用的坚果。,烤熟了相当不错。
-17,Gigantoraptor egg,巨盗龙蛋,"RESOURCE",1,assets/sprites/item_icons/Gigantoraptor_egg.png,巨盗龙的蛋。,孵化或者做成晚餐。
+17,Gigantoraptor egg,巨盗龙蛋,"RESOURCE",1,assets/sprites/item_icons/gigantoraptor_egg.png,巨盗龙的蛋。,孵化或者做成晚餐。
 18,mushroom,蘑菇,"RESOURCE",60,assets/sprites/item_icons/mushroom.png,树荫下常见的真菌。,吃完后见到的是小人还是上帝？
 19,wood ear,木耳,"RESOURCE",60,assets/sprites/item_icons/wood_ear.png,一种常见的食用菌。,口感不错。
 20,decay,腐烂物,"RESOURCE",60,assets/sprites/item_icons/decay.png,腐烂的食物。,好恶心。
 21,dung,粪便,"RESOURCE",60,assets/sprites/item_icons/dung.png,动物的排泄物。,我的农作物会很高兴的。
-22,Velociraptor claw,迅猛龙爪,"RESOURCE",30,assets/sprites/item_icons/Velociraptor_claw.png,迅猛龙的爪子。,小巧而要命。
+22,Velociraptor claw,迅猛龙爪,"RESOURCE",30,assets/sprites/item_icons/velociraptor_claw.png,迅猛龙的爪子。,小巧而要命。
 23,pterosaur patagium,翼龙翼膜,"RESOURCE",30,assets/sprites/item_icons/pterosaur_patagium.png,翼龙的翼膜。,轻薄而坚韧。
-24,Velociraptor egg,迅猛龙蛋,"RESOURCE",1,assets/sprites/item_icons/Velociraptor_egg.png,迅猛龙的蛋。,烦人小家伙们的蛋。
+24,Velociraptor egg,迅猛龙蛋,"RESOURCE",1,assets/sprites/item_icons/velociraptor_egg.png,迅猛龙的蛋。,烦人小家伙们的蛋。
 25,tar,焦油,"RESOURCE",60,assets/sprites/item_icons/tar.png,来自地下的暗黑大手。,这个我熟，我在拉布雷亚看过。
 26,copper ore,铜矿石,"RESOURCE",60,assets/sprites/item_icons/copper_ore.png,一种常见的金属矿石。,大有用处。
 27,electronic component,电子元件,"RESOURCE",60,assets/sprites/item_icons/electronic_component.png,电子设备的核心。,能先进点了。
-28,Thunder Crown,雷鸣头冠,"RESOURCE",1,assets/sprites/item_icons/Thunder_Crown.png,雷神翼龙的头冠。,蕴含着恐怖的力量。
-29,cooked Araucaria nut,烤南洋杉坚果,"CONSUMABLE",60,assets/sprites/item_icons/Cooked_Araucaria_Nut.png,烤熟的南洋杉坚果。,香极了。
+28,Thunder Crown,雷鸣头冠,"RESOURCE",1,assets/sprites/item_icons/thunder_crown.png,雷神翼龙的头冠。,蕴含着恐怖的力量。
+29,cooked Araucaria nut,烤南洋杉坚果,"CONSUMABLE",60,assets/sprites/item_icons/cooked_araucaria_nut.png,烤熟的南洋杉坚果。,香极了。
 30,fungal soup,菌菇汤,"CONSUMABLE",20,assets/sprites/item_icons/fungal_soup.png,用蘑菇和木耳做成的汤。,堪比肉汤。
 31,grilled fern frond skewers,蕨类嫩芽烤串,"CONSUMABLE",20,assets/sprites/item_icons/grilled_fern_frond_skewers.png,用蕨类嫩芽做成的烤串。,至少比生吃强。
 32,glass,玻璃,"RESOURCE",60,assets/sprites/item_icons/glass.png,透明又坚硬的材料。,要把它做成刀吗？
 33,red bean pie,红豆派,"CONSUMABLE",20,assets/sprites/item_icons/red_bean_pie.png,是不是看起来很诱人。,在这地狱中少数能让我感到欣慰的东西。
 34,starch chunk,淀粉块,"RESOURCE",60,assets/sprites/item_icons/starch_chunk.png,来自于苏铁的宝贵淀粉。,哦，神圣的碳水。
-35,Spinosaurus tooth,棘龙牙齿,"RESOURCE",30,assets/sprites/item_icons/Spinosaurus_tooth.png,棘龙的牙齿。,合格渔夫的证明。
+35,Spinosaurus tooth,棘龙牙齿,"RESOURCE",30,assets/sprites/item_icons/spinosaurus_tooth.png,棘龙的牙齿。,合格渔夫的证明。
 36,lungfish,肺鱼,"RESOURCE",30,assets/sprites/item_icons/lungfish.png,一种古老的鱼类。,从海洋到陆地的证明！
 37,lamprey,七鳃鳗,"RESOURCE",30,assets/sprites/item_icons/lamprey.png,令人惧怕的小东西。,我不想再看到它们了！
 38,lamprey pie,七鳃鳗派,"CONSUMABLE",20,assets/sprites/item_icons/lamprey_pie.png,用七鳃鳗做成的美食。,吃它的时候我真希望我是盲人。
@@ -62,9 +62,9 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 61,charcoal,木炭,"RESOURCE",60,assets/sprites/item_icons/charcoal.png,由木头烧制而成的黑色物质。,可以用来生火。
 62,bone broth,骨头汤,"CONSUMABLE",20,assets/sprites/item_icons/bone_broth.png,用兽骨熬制的汤。,也不是不可以。
 63,charging gel,充能凝胶,"RESOURCE",30,assets/sprites/item_icons/charging_gel.png,恐怖力量的来源。,我感觉里面的能量随时会爆出来。
-64,Tyrannosaurus skin,霸王龙皮,"RESOURCE",30,assets/sprites/item_icons/Tyrannosaurus_skin.png,恐怖暴君的的皮肤。,做成皮包带回去我就能发财了，哼。
-65,Tyrannosaurus tooth,霸王龙牙齿,"RESOURCE",30,assets/sprites/item_icons/Tyrannosaurus_tooth.png,恐怖暴君的牙齿。,依然让我胆战心惊。
-66,Tyrannosaurus egg,霸王龙蛋,"RESOURCE",1,assets/sprites/item_icons/Tyrannosaurus_egg.png,恐怖暴君的蛋。,我猜它的后代会吃空我的冰箱。
+64,Tyrannosaurus skin,霸王龙皮,"RESOURCE",30,assets/sprites/item_icons/tyrannosaurus_skin.png,恐怖暴君的的皮肤。,做成皮包带回去我就能发财了，哼。
+65,Tyrannosaurus tooth,霸王龙牙齿,"RESOURCE",30,assets/sprites/item_icons/tyrannosaurus_tooth.png,恐怖暴君的牙齿。,依然让我胆战心惊。
+66,Tyrannosaurus egg,霸王龙蛋,"RESOURCE",1,assets/sprites/item_icons/tyrannosaurus_egg.png,恐怖暴君的蛋。,我猜它的后代会吃空我的冰箱。
 67,bone knife,骨刀,"TOOL",1,assets/sprites/item_icons/bone_knife.png,用兽骨制成的砍刀。,我要剥下你的皮。
 68,scrap axe,废料斧,"TOOL",1,assets/sprites/item_icons/scrap_axe.png,用废料制成的斧头。,我可以砍树了。
 69,scrap pickaxe,废料镐,"TOOL",1,assets/sprites/item_icons/scrap_pickaxe.png,用废料制成的镐。,我可以挖矿了。
@@ -73,18 +73,18 @@ id,name_id,display_name,category,stack_max,texture,description,inspect_text
 72,scrap helmet,废料头盔,"EQUIP",1,assets/sprites/item_icons/scrap_helmet.png,用破烂拼凑的头盔。,看起来更像拾荒者了。
 73,scrap chestplate,废料胸甲,"EQUIP",1,assets/sprites/item_icons/scrap_chestplate.png,用破烂拼凑的胸甲。,拾荒者皮肤。
 74,simple backpack,简易背包,"EQUIP",1,assets/sprites/item_icons/simple_backpack.png,用木棍和草绳做成的小包。,可以装更多东西了。
-75,T-Rex backpack,霸王龙皮包,"EQUIP",1,assets/sprites/item_icons/T-Rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
+75,T-Rex backpack,霸王龙皮包,"EQUIP",1,assets/sprites/item_icons/t-rex_backpack.png,用霸王龙皮做成的豪华背包。,真奢侈。
 76,savage club,野蛮大棒,"TOOL",1,assets/sprites/item_icons/savage_club.png,镶嵌着霸王龙牙齿的恐怖武器。,这一下会很疯狂。
 77,scrap spear,废料长矛,"TOOL",1,assets/sprites/item_icons/scrap_spear.png,用废料制成的长矛。,我要刺穿你。
-78,Spinosaurus harpoon,棘龙鱼叉,"TOOL",1,assets/sprites/item_icons/Spinosaurus_harpoon.png,用棘龙牙齿制成的鱼叉。,永不空军。
+78,Spinosaurus harpoon,棘龙鱼叉,"TOOL",1,assets/sprites/item_icons/spinosaurus_harpoon.png,用棘龙牙齿制成的鱼叉。,永不空军。
 79,thunder battleaxe,雷鸣战斧,"TOOL",1,assets/sprites/item_icons/thunder_battleaxe.png,镶嵌着雷神翼龙头冠的战斧。,POWER!
 80,feather coat,羽毛大衣,"EQUIP",1,assets/sprites/item_icons/feather_coat.png,用羽毛制成的保暖大衣。,温暖而又柔软。
-81,Mammoth hide hat,猛犸象皮帽,"EQUIP",1,assets/sprites/item_icons/Mammoth_hide_hat.png,用猛犸象毛制成的帽子。,保暖又时尚。
-82,Mammoth hide coat,猛犸象皮大衣,"EQUIP",1,assets/sprites/item_icons/Mammoth_hide_coat.png,用猛犸象毛制成的大衣。,保暖又时尚。
+81,Mammoth hide hat,猛犸象皮帽,"EQUIP",1,assets/sprites/item_icons/mammoth_hide_hat.png,用猛犸象毛制成的帽子。,保暖又时尚。
+82,Mammoth hide coat,猛犸象皮大衣,"EQUIP",1,assets/sprites/item_icons/mammoth_hide_coat.png,用猛犸象毛制成的大衣。,保暖又时尚。
 83,generator upgrade kit,发电机升级套件,"RESOURCE",1,assets/sprites/item_icons/generator_upgrade_kit.png,可以让发电机更高效。,老一辈电工的自信。
 84,building upgrade kit,建筑升级套件,"RESOURCE",1,assets/sprites/item_icons/building_upgrade_kit.png,更大更坚固。,老一辈建筑师的自信。
-85,Mammoth meat,猛犸象肉,"RESOURCE",30,assets/sprites/item_icons/Mammoth_meat.png,新鲜的猛犸象肉。,我该跳战舞庆祝吗？
-86,super Mammoth meatball,超级猛犸象肉丸,"CONSUMABLE",20,assets/sprites/item_icons/super_Mammoth_meatball.png,用猛犸象肉做成的肉丸。,史前一万年的味道。
+85,Mammoth meat,猛犸象肉,"RESOURCE",30,assets/sprites/item_icons/mammoth_meat.png,新鲜的猛犸象肉。,我该跳战舞庆祝吗？
+86,super Mammoth meatball,超级猛犸象肉丸,"CONSUMABLE",20,assets/sprites/item_icons/super_mammoth_meatball.png,用猛犸象肉做成的肉丸。,史前一万年的味道。
 87,large feather,大羽毛,"RESOURCE",30,assets/sprites/item_icons/large_feather.png,一根巨大的羽毛。,我可以用它做成薄扇。
 88,dino saddle,恐龙鞍,"EQUIP",1,assets/sprites/item_icons/dino_saddle.png,用骨头和金属制成的恐龙鞍。,蒙古人行为。
 89,charge spear,冲锋长矛,"TOOL",1,assets/sprites/item_icons/charge_spear.png,冲刺冲刺冲刺！,战斗爽！

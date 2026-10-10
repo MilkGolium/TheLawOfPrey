@@ -25,7 +25,7 @@
 
     恐 浆 筑 蕨 蘑 蛮 餐
 
-缺字位置全部落在 `assets/database/items.csv` 的真实物品文本里，其中
+缺字位置全部落在 `assets/databases/items.csv` 的真实物品文本里，其中
 「恐」出现 5 次、「蕨」3 次、「浆」3 次，不是边缘用例。Ark Pixel 的
 7 个语言变体（`zh_hans` / `zh_hant` / `zh_tw` / `zh_hk` / `ja` / `ko` /
 `latin`）字形数完全相同（24869），覆盖范围一致，缺的是同一批字，换变

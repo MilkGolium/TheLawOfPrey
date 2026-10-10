@@ -5,7 +5,7 @@
 // === 配置 ===
 
 #define FONT_PATH "assets/fonts/ttf/fusion-pixel-12px-proportional-zh_hans.ttf"
-#define CSV_DIR "assets/database"
+#define CSV_DIR "assets/databases"
 #define DEFAULT_FONT_SIZE 24
 #define BMP_RANGE 0x10000
 #define CSV_FIELD_MAX 1024

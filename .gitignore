@@ -9,3 +9,6 @@ build/
 # AI Agent
 /.workbuddy-ai
 /.omo/
+
+# VSCode
+/.vscode

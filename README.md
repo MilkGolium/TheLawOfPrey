@@ -18,7 +18,7 @@
 
 - 定义地图文件格式：给出一版可读的网格格式说明（例如用字符区分草地、树木、石块、水源），作为解析与出图的共同依据。
 - 起草游玩界面布局：背包格子、状态栏（饥饿 / 体力）、交互按钮的位置与操作方式。
-- 梳理 `assets/database/items.csv` 字段：确认现有列是否够用（如堆叠上限、重量、食用恢复量），补齐需要的字段，交给代码解析。
+- 梳理 `assets/databases/items.csv` 字段：确认现有列是否够用（如堆叠上限、重量、食用恢复量），补齐需要的字段，交给代码解析。
 - 编写第一版数值：饥饿消耗速度、食物恢复量、基础移动速度。
 
 ### 界面与字体
@@ -31,7 +31,7 @@
 - CSV 字段超过 `CSV_FIELD_MAX` （1024）时要告警。当前被截掉的 codepoint 既不进图集也不报缺字（收集与检查走同一条截断路径），漏字完全无声。
 - 移除 `font.c` 中的 `uiChars[]` 硬编码，并把 `assets/strings/` 接入 codepoint 收集。两条是耦合的：先建 `assets/strings/main_scene.csv` （key,text 格式）迁入界面用字，再删掉 `uiChars[]` 及其循环，`CollectAllCodepoints` 增扫该目录。
 - 界面文本改为从 CSV 按 key 加载：`main_scene.c` 目前把「显示消息」「消息框」等展示文本写死在 C 字面量里，违反「字符串放数据文件」的约束。
-- 收集阶段缓存文本引用，缺字检查复用，去掉对 `assets/database/*.csv` 的重复磁盘读取；同时让「字段被截断」变成可观测。
+- 收集阶段缓存文本引用，缺字检查复用，去掉对 `assets/databases/*.csv` 的重复磁盘读取；同时让「字段被截断」变成可观测。
 - 补 `font.c` 健壮性：`MemAlloc` 返回值判空；引号字段内遇到 `\r\n` 的处理与普通行保持一致。
 - ~~为 `src/ui.c` 的文本居中与行距公式补断言或测试~~：标题与按钮文字的内缩居中已由临时回读程序覆盖（`triple` 边框下 `ring0` 三行内无标题色/按钮色像素，且墨迹像素数与 `none` 边框逐档相等，12/24/36 三档字号各测一遍）。该程序按约定不入库，行距公式仍缺回归保护。
 - 验收：启动时无缺字告警；除 `src/font.c` 的封装内部外，代码中不直接调用 raylib 的 `DrawText` 、 `DrawTextEx` 、 `MeasureText` 、 `MeasureTextEx` ，一律走 `DrawUIText` 与 `MeasureUIText` ；显存中每个字体尺寸只有一张图集；Release 与 Debug 两个配置均构建并启动正常。
@@ -47,19 +47,18 @@
 
 - 游玩场景骨架：新增 `src/scenes/game_scene.c` ，引入 Camera2D 、按地图文件渲染地砖、摄像机跟随玩家。
 - 玩家移动与碰撞：补全 `src/include/player.h` 的坐标与速度，WASD 移动，被不可通行地砖阻挡。
-- 物品数据层：解析 `assets/database/items.csv` ，按需加载物品图标并做缓存，处理路径前缀与扩展名大小写不一致的问题。
+- 物品数据层：解析 `assets/databases/items.csv` ，按需加载物品图标并做缓存。
 - 配置外置：去掉 `src/main.c` 中硬编码的全屏与目标帧数（分辨率已改由 `GRAPH_DESIGN_*` 提供）。
 - 保持 `scripts/build.sh` 的 Release / Debug 双配置均可构建。
 
 ### 素材
 
-- 物品图标重做：`assets/database/items.csv` 有 104 条记录、103 个不同的 texture 路径，目前没有任何图标。原有 20 个 `64*64` 图标因不符合规范已删除，需按 `48*48` 重做。
-- 统一图标规范：底色、命名与扩展名大小写，并与 CSV 的 texture 字段一一对应。
+- 物品图标：按 `48*48` 制作，路径与命名规范见「素材规范」。当前已到位一部分，其余待美术补齐；缺失与大小写不符可用 `python3 scripts/check_assets.py` 核查。
+- 统一图标规范：底色未定；命名与扩展名大小写已定，见「素材规范」。
 - 出一版地砖图块集：与地图格式逐项对应，含草地、树木、石块等。
 
 ### 待定
 
-- `items.csv` 的 texture 字段为 `res/textures/...` ，而图标曾放在 `assets/sprites/item_icons/resource/...` ；目录前缀与扩展名大小写以哪一边为准需要拍板。
 - 上面三块骨架（游玩场景、玩家移动、物品数据层）的落地顺序，等地图格式定稿后确定。
 
 
@@ -133,6 +132,10 @@
 
 ## 素材规范
 物品图标为 `48*48` 。
+
+物品图标路径为 `assets/sprites/item_icons/<name>.png` ，相对仓库根目录。`<name>` 一律全小写蛇形（snake_case），扩展名 `.png` 为小写。`assets/databases/items.csv` 的 `texture` 字段必须与该路径逐字一致，比较时大小写敏感：macOS 等大小写不敏感的文件系统上直接用 `os.path.exists` 判断会假阳性，须取真实文件名精确比对，核查脚本 `scripts/check_assets.py` 即按此实现。
+
+界面文本按场景一个 CSV 文件，路径为 `assets/strings/<scene_name>.csv` ，不是每个场景一个目录。
 
 ### 历史分辨率/图片尺寸参考
 
