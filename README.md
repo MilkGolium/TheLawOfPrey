@@ -25,16 +25,9 @@
 
 界面层为自建（`src/ui.c` 与 `src/include/ui.h`），不依赖任何第三方 GUI 库；度量约定见「字体与界面方案约束」。以下为待处理项。
 
-- 字体加载失败要可恢复：`GetUIFont` 在 `texture.id == 0` 时仍会置 `fontsLoaded[idx] = true` ，坏 Font 会被整个会话一直返回。改为记录失败状态并回退。
-- `GetUIFont` 在 `InitGameFont` 之前被调用时要告警并拒绝加载：此时 `collectedCps` 为 NULL ，`LoadFontEx` 只会拿到 ASCII ，中文静默变方框且无任何提示。
-- 统一增补平面（U+10000 以上）的处理：`MarkCodepoint` 静默丢弃，收集范围是 BMP 而检查范围是全码点，这类字无论怎么在数据文件里补都加载不进来。改为收集与检查两端一致，并在收集阶段一次性告警。Fusion Pixel 有 1429 个码点在 BMP 之上（U+16FF2 - U+30F91），目前数据文件没有用到，所以 `BMP_RANGE` 仍够用；但「字体不含 BMP 外字形」已不再是可依赖的前提。
-- CSV 字段超过 `CSV_FIELD_MAX` （1024）时要告警。当前被截掉的 codepoint 既不进图集也不报缺字（收集与检查走同一条截断路径），漏字完全无声。
-- 移除 `font.c` 中的 `uiChars[]` 硬编码，并把 `assets/strings/` 接入 codepoint 收集。两条是耦合的：先建 `assets/strings/main_scene.csv` （key,text 格式）迁入界面用字，再删掉 `uiChars[]` 及其循环，`CollectAllCodepoints` 增扫该目录。
-- 界面文本改为从 CSV 按 key 加载：`main_scene.c` 目前把「显示消息」「消息框」等展示文本写死在 C 字面量里，违反「字符串放数据文件」的约束。
-- 收集阶段缓存文本引用，缺字检查复用，去掉对 `assets/databases/*.csv` 的重复磁盘读取；同时让「字段被截断」变成可观测。
-- 补 `font.c` 健壮性：`MemAlloc` 返回值判空；引号字段内遇到 `\r\n` 的处理与普通行保持一致。
-- ~~为 `src/ui.c` 的文本居中与行距公式补断言或测试~~：标题与按钮文字的内缩居中已由临时回读程序覆盖（`triple` 边框下 `ring0` 三行内无标题色/按钮色像素，且墨迹像素数与 `none` 边框逐档相等，12/24/36 三档字号各测一遍）。该程序按约定不入库，行距公式仍缺回归保护。
-- 验收：启动时无缺字告警；除 `src/font.c` 的封装内部外，代码中不直接调用 raylib 的 `DrawText` 、 `DrawTextEx` 、 `MeasureText` 、 `MeasureTextEx` ，一律走 `DrawUIText` 与 `MeasureUIText` ；显存中每个字体尺寸只有一张图集；Release 与 Debug 两个配置均构建并启动正常。
+- 为 `src/ui.c` 的文本居中与行距公式补回归保护：标题与按钮文字的内缩居中已由临时回读程序覆盖（`triple` 边框下 `ring0` 三行内无标题色/按钮色像素，且墨迹像素数与 `none` 边框逐档相等，12/24/36 三档字号各测一遍）。该程序按约定不入库，行距公式仍缺回归保护。
+
+变更后必须保持：启动时无缺字告警；除 `src/font.c` 的封装内部外，代码中不直接调用 raylib 的 `DrawText` 、 `DrawTextEx` 、 `MeasureText` 、 `MeasureTextEx` ，一律走 `DrawUIText` 与 `MeasureUIText` ；显存中每个字体尺寸只有一张图集；Release 与 Debug 两个配置均构建并启动正常。
 
 ### 主题
 
@@ -84,6 +77,10 @@
 - 阴影偏移 8 不需要满足任何整除约束：它既不移动字形也不改控件尺寸，而整数倍缩放配 `TEXTURE_FILTER_POINT` 下每个设计像素都映射成干净的 N×N 块，实测偏移 1 至 12 均产生 0 个混合像素。上限是 `UI_PADDING`（12）而非审美偏好——超过它会让阴影越出消息框边框并压到相邻控件上。
 - 阴影会被画布裁掉，而 `UiMessageBox` 原先没有任何尺寸上限。居中公式 `x = (640 - boxWidth) / 2` 要求 `x + boxWidth + 8 <= 640` 解得 `boxWidth <= 624`，高度同理得 456，两者都是 12 的整数倍（`kMaxBoxWidth` / `kMaxBoxHeight`）。clamp 只保证阴影不被裁掉，不截断正文：按上条「不做宽度上限截断」的约定，超长文本由调用方负责分行。
 - 以下为有意设计，不要改回朴素实现：codepoint 用位图去重 + 升序数组 + 二分查询；按尺寸懒加载 + `initialized` 幂等 + `UnloadGameFont` 可重入；`GetCodepointNext` 返回 0 时的防死循环保护。
+- 判字体是否可用只能用 `FontIsUsable(Font)`。`LoadFontEx` 有两种失败形态：文件读不到时返回零值 `Font`（`recs` 为 NULL ，再访问 `recs` / `glyphs` 会越界——`ui.c` 的墨迹测量曾因此在首帧段错误），TTF 解析失败时 raylib 会**静默退回内置默认字体**（那份 `Font` 的 `texture.id` 不为 0）。只查 `texture.id` 会漏掉后一种，把默认字体当图集用、中文照样变方框；任何消费 `Font` 内部字段的代码都必须先过这个判据。同理，codepoint 尚未收集完成时 `GetUIFont` 拒绝加载并告警一次，否则 `LoadFontEx` 只拿到 ASCII 。
+- 收集范围固定为 BMP（`BMP_RANGE`）。Fusion Pixel 有 1429 个码点在 BMP 之上（U+16FF2 - U+30F91），当前数据文件没有用到，所以该上界仍够用；但「字体不含 BMP 外字形」已不再是可依赖的前提。越界码点由收集阶段一次性告警，且**不得**计入缺字——这类字无论怎么补数据都进不了图集，报成缺字会把排查带偏。
+- 界面文本一律放 `assets/strings/<scene_name>.csv`（key,text 两列带表头）。字体 codepoint 是精确收集的，写死在 C 字面量里的中文不在收集范围内，直接变方框且无提示；`uiChars[]` 那类硬编码已删除，不要重新引入。取文案用 `GetString()` ，缺 key 时回退为 key 本身而不是空串，让漏配在界面上直接可见。
+- CSV 解析全仓只有 `src/utils.c` 的 `CsvReadFile` 一份实现，不要再写第二个解析器。字段超过 1024 字节会被截断并告警：收集与检查曾共用同一条截断路径，被截掉的字既不进图集也不报缺字，漏字完全无声。引号字段不跨行，与非引号字段共用同一条行结束规则（本项目 CSV 由程序生成，没有字段内换行的需求）。
 - 明确不做：不使用 SDF 字体（需要自定义 shader，且会让像素字失去锐利度，本方案只做整数倍缩放，用不到它的平滑缩放优势）；不预载常用 3500 字（精确收集已足够，除非真的出现无法预先收集的动态文字如玩家输入或随机文本，届时再加入，成本约 13MB）；暂不做分页字体（按 codepoint 区间切分的 `Font` 数组，触发条件明确，等真的出现动态文字再补，不影响现有架构）。
 
 ## 渲染分辨率与整数缩放
@@ -230,6 +227,13 @@ Oct-10-2026 数据表目录统一为 `assets/databases/`（原 `assets/database/
 物品图标文件名统一为小写蛇形并与 `items.csv` 的 texture 字段逐字一致，
 新增 `scripts/check_assets.py` 做大小写敏感核查；README 的素材、待定与
 许可三节按现状更新。
+
+Oct-10-2026 界面文案外置：新增 `src/strings.c` 与 `assets/strings/main_scene.csv` ，
+主场景不再有中文字面量，`font.c` 的 `uiChars[]` 硬编码删除；CSV 解析收口到
+`utils.c` 的 `CsvReadFile` ，收集与检查共用 `IsCollectable` ，越界码点与超长
+字段改为一次性告警，缺字检查复用收集阶段的文本快照。`GetUIFont` 加载失败不再
+当作已加载，可用性判据改为 `FontIsUsable()` ，并修掉字体文件缺失时首帧在
+`ui.c` 墨迹测量处越界崩溃的问题（实测 SIGSEGV）。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
