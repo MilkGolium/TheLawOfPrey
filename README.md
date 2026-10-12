@@ -23,18 +23,15 @@
 
 ### 界面与字体
 
-界面层为自建（`src/ui.c` 与 `src/include/ui.h`），不依赖任何第三方 GUI 库；度量约定见「字体与界面方案约束」。以下为待处理项。
+界面层为自建（`src/ui.c` 与 `src/include/ui.h`），不依赖任何第三方 GUI 库；度量约定见「字体与界面方案约束」。当前没有待处理项，以下为变更后必须保持的不变式。
 
-- 为 `src/ui.c` 的文本居中与行距公式补回归保护：标题与按钮文字的内缩居中已由临时回读程序覆盖（`triple` 边框下 `ring0` 三行内无标题色/按钮色像素，且墨迹像素数与 `none` 边框逐档相等，12/24/36 三档字号各测一遍）。该程序按约定不入库，行距公式仍缺回归保护。
-
-变更后必须保持：启动时无缺字告警；除 `src/font.c` 的封装内部外，代码中不直接调用 raylib 的 `DrawText` 、 `DrawTextEx` 、 `MeasureText` 、 `MeasureTextEx` ，一律走 `DrawUIText` 与 `MeasureUIText` ；显存中每个字体尺寸只有一张图集；Release 与 Debug 两个配置均构建并启动正常。
+变更后必须保持：启动时无缺字告警；除 `src/font.c` 的封装内部外，代码中不直接调用 raylib 的 `DrawText` 、 `DrawTextEx` 、 `MeasureText` 、 `MeasureTextEx` ，一律走 `DrawUIText` 与 `MeasureUIText` ；显存中每个字体尺寸只有一张图集；Release 与 Debug 两个配置均构建并启动正常；行距与居中公式由 `tests/ui_tests.c` 的用例守住（见「测试」）。
 
 ### 主题
 
-配色系统已实现并接入 `InitGameFont()` 之后的启动流程，公开接口为 `InitTheme()` 、 `GetThemeCount()` 、 `GetThemeName()` 、 `LoadTheme()` 、 `GetCurrentThemeName()` ；当前 11 个配色键与 2 个枚举键（`border_style` 、 `shadow_style` ），格式说明见 `assets/themes/default.cfg` 。以下为待处理项。
+配色系统已实现并接入 `InitGameFont()` 之后的启动流程，公开接口为 `InitTheme()` 、 `GetThemeCount()` 、 `GetThemeName()` 、 `LoadTheme()` 、 `GetCurrentThemeName()` ；当前 11 个配色键与 2 个枚举键（`border_style` 、 `shadow_style` ），格式说明见 `assets/themes/default.cfg` 。解析器的行为（BOM 、 CRLF 、坏十六进制、未知键、禁用键、枚举键、缺 `default.cfg` 的回退等）已由 `tests/theme_tests.c` 覆盖，见「测试」。以下为待处理项。
 
 - 主题选择：`InitTheme()` 启动时载入的始终是 `default.cfg` ，其余 `.cfg` 只被扫描枚举（`GetThemeCount` / `GetThemeName` ），也可由 `LoadTheme` 按名加载。**留到设置界面再做**：确定玩家侧的主题切换方式，并在做设置界面的同一批改动里落地。在此之前不要另加命令行参数、环境变量或 `active.cfg` 标记文件，以免多出一条会与界面互相打架的选择通路。
-- 主题解析器的回归测试：BOM 、 CRLF 、 `""` 转义、缺 `default.cfg` 时的确定性回退、坏十六进制、未知键、禁用键告警，这些路径目前只靠人工验证。枚举键同样待覆盖：合法标识符、未知标识符、以及只含枚举键的 `.cfg` 是否也能生效（`applied` 计数必须把枚举键算进去，否则整份文件会被判为无效）。
 
 ### 游玩闭环
 
@@ -127,6 +124,24 @@
 - Google Style 中常量/只读变量以 k 开头（Constant），全局变量以 g 开头（Global），静态变量以 s 开头（Static）。
 - 文件名使用蛇形规范，例如 `main_scene.c`, `scene_manager.c` 。
 - 函数、结构使用大驼峰命名，例如 `MainScene->Init()`, `SceneManagerGetCurrent()`, `MainScene` 。
+
+## 测试
+
+回归测试在 `tests/` ，用 CMake 的 `ctest` 跑，自写断言，不引入任何第三方测试框架。
+
+```bash
+bash scripts/run_tests.sh    # 构建 Debug 并跑全部用例
+```
+
+约定与坑点：
+
+- 测试与本体共用 `CMakeLists.txt` 里同一套编译选项（`configure_project_target`），不要给测试单独放宽警告；双配置都要零警告。
+- **断言必须能失败**。新增或修改断言后，故意改坏对应实现确认它真的红，再还原；只跑一遍「通过」不算验证。
+- **判断位置要用对称量或绝对值，不能只判「没有越界」**。例：按钮文字的内缩量算错时墨迹整体下移，既不进 ring0 、像素数也不变，只判这两条会全部放过；改判「墨迹在边框内区的上下余量之差不超过 1px」才拦得住。
+- **回读像素时扫描窗口要比目标区域放宽**。窗口正好等于目标区域时，位置算错的墨迹会被窗口截断，量出一个偏小的尺寸反过来掩盖错误。
+- **`SetTraceLogCallback` 拿到的是原始格式串与 va_list**（raylib 6.0 如此，且 `logType < logTypeLevel` 的过滤发生在回调之前），捕获告警的回调必须自己 `vsnprintf` 。
+- **raylib 6.0 没有 `RemoveFile`** ，测试清理临时文件用 C 标准库的 `remove()` 。
+- 测试只在 `tests/tmp/` 下写临时文件（已 gitignore），不得在 `assets/` 下留任何东西；`THEME_DIR` 的编译宏覆盖只用于测试目标，游戏本体仍只认 `assets/themes` 。
 
 ## 素材规范
 物品图标为 `48*48` 。
@@ -234,6 +249,13 @@ Oct-10-2026 界面文案外置：新增 `src/strings.c` 与 `assets/strings/main
 字段改为一次性告警，缺字检查复用收集阶段的文本快照。`GetUIFont` 加载失败不再
 当作已加载，可用性判据改为 `FontIsUsable()` ，并修掉字体文件缺失时首帧在
 `ui.c` 墨迹测量处越界崩溃的问题（实测 SIGSEGV）。
+
+Oct-12-2026 新增回归测试：`tests/theme_tests.c` 14 条、`tests/ui_tests.c` 5 条，
+覆盖主题解析器的 BOM / CRLF / 坏十六进制 / 未知键 / 禁用键 / 枚举键 / 缺
+`default.cfg` 回退等路径，以及界面层行距公式、边框不吃文字、按钮与标题的
+墨迹居中；接入 `ctest` 与 `scripts/run_tests.sh` ，CMakeLists 的编译选项
+与依赖收口到 `configure_project_target` ，测试与本体共用同一套。原「界面
+与字体」「主题」两节里靠人工验证的待办随之关闭。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
