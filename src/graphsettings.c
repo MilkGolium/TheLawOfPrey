@@ -69,6 +69,8 @@ void DrawCanvas(void) {
                  WHITE);
 }
 
+Texture2D GetCanvasTexture(void) { return canvas.texture; }
+
 Vector2 GetCanvasMouse(void) {
   Vector2 mouse = GetMousePosition();
   int scale = GetCanvasScale();

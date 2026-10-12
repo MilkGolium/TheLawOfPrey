@@ -22,6 +22,11 @@ void BeginCanvas(void);
 void EndCanvas(void);
 void DrawCanvas(void);
 
+// 设计画布的渲染纹理，供需要按像素回读画布内容的调用方使用（回归测试）。
+// 只交出句柄不做任何转换：渲染纹理在 GL 里上下颠倒，回读到 CPU 内存后
+// 行序与画布坐标相反，由调用方自行翻正。画布须已 InitCanvas。
+Texture2D GetCanvasTexture(void);
+
 // 画布坐标下的鼠标位置：窗口坐标减去黑边偏移后除以放大倍数。界面层的
 // 命中测试必须用它，GetMousePosition 给的是窗口坐标，画布放大后不通用。
 Vector2 GetCanvasMouse(void);

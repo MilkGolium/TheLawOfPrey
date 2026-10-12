@@ -9,7 +9,12 @@
 
 // === 配置 ===
 
+// 主题目录。允许测试目标用编译宏覆盖指向临时目录，游戏本体仍只认
+// assets/themes：不引入可变目录、命令行参数或环境变量，避免多出一条
+// 与设置界面互相打架的选主题通路。
+#ifndef THEME_DIR
 #define THEME_DIR "assets/themes"
+#endif
 #define THEME_DEFAULT_NAME "default"
 #define THEME_LINE_MAX 512
 #define THEME_NAME_MAX 64

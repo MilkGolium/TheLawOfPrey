@@ -1,6 +1,9 @@
 # Ignore build artifacts
 build/
 
+# Ignore test scratch directories (theme regression tests write .cfg here)
+tests/tmp/
+
 # Ignore macOS system files
 .DS_Store
 
