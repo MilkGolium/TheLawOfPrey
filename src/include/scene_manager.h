@@ -25,7 +25,14 @@ typedef struct {
 
 // 初始化场景管理器
 void InitSceneManager(void);
-// 切换当前场景并自动初始化；需要传入一个场景结构；成功后会返回 1 ，失败返回 0
+// 提出切换场景的请求。只记录请求，不立即执行：场景不得在自己的回调里
+// 切换自己，切换由主循环在任何场景回调之外统一执行。
+void SceneManager_RequestSceneSwitch(Scene* nextScene);
+// 执行挂起的切换请求。主循环每帧开头调用一次，没有请求时什么都不做。
+// 同一帧内多次请求时后一次覆盖前一次，只有最后一次生效。
+void SceneManager_ProcessPendingSwitch(void);
+// 切换当前场景并自动初始化。这是底层实现，由 ProcessPendingSwitch 调用，
+// 调用点必须已经离开所有场景回调。
 void SceneManager_SwitchCurrentScene(Scene*);
 // 更新当前场景
 void SceneManager_UpdateCurrentScene(void);

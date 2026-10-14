@@ -34,9 +34,16 @@ set(GAME_SOURCES
 )
 
 # Project executable
+# 场景、场景清单与命令行只服务本体：它们彼此引用，回归测试用不到，
+# 因此不进 GAME_SOURCES，否则测试目标会被拖上全套场景。
 add_executable(${PROJECT_NAME}
   src/main.c
-  src/scenes/main_scene.c
+  src/app.c
+  src/cli.c
+  src/scene_list.c
+  src/scenes/settings_scene.c
+  src/scenes/test_scene.c
+  src/scenes/title_scene.c
   ${GAME_SOURCES}
 )
 

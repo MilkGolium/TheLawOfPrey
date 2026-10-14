@@ -67,7 +67,7 @@
 - 缺字自愈不能省：`GetGlyphIndex` 找不到字形时会静默回退到 `'?'` 。保留启动时的缺字扫描与 `TraceLog(LOG_WARNING)` 输出，缺字在开发期补进字符串文件即可收敛。
 - `src/font.c` 对外只暴露 `InitGameFont()` 、 `UnloadGameFont()` 、 `GetUIFont(size)` 、 `DrawUIText()` 、 `MeasureUIText()` 、 `FontHasGlyph(cp)` ，接口名一律大驼峰。
 - 不引入任何第三方 GUI 库，`src/raygui/` 已整体删除。历史原因：raygui 的控件高度按默认 `TEXT_SIZE = 10` 硬编码，`InitGameFont` 把字号提到 24 之后这些常量没有跟着放大；叠加像素字在 24px 下 CJK 墨迹底部贴死行盒底边，控件内高不足时 `TEXT_ALIGNMENT_VERTICAL` 的居中计算会把文字推出边框。
-- 界面尺寸只取 12 的倍数。非网格尺寸一律用 `UI_ALIGN12()` 向上取整，内部留白统一取 `UI_PADDING` ，按钮高度取 `UI_BUTTON_HEIGHT()` ，度量不写死数值。
+- 界面尺寸一律为整像素；**坐标与尺寸的默认节距是 4 ，不是 12**。12 是字体的像素格单位（一个汉字格 12×12），只在「需要装整数个汉字」的地方要求（背包格、正文区、状态栏这类按字符格算的场合）。理由是算术事实：480 = 12×40 可被 12 整除，640 不能（640/12 = 53⅓），gcd(640, 12) = 4 ，横向天然节距只有 4 ，所以「严格居中」与「12 对齐」在 640 宽下不可兼得——居中类布局以数学解为准。12 的倍数天然是 4 的倍数，故既有取值全部继续合法。内部留白统一取 `UI_PADDING` ，按钮高度取 `UI_BUTTON_HEIGHT()` ，`UI_ALIGN12()` 只用于向字符格收敛，度量不写死数值。
 - 多行文本由 `src/ui.c` 逐行绘制，行距为 `UI_LINE_STEP(size)` （等于字号）。raylib 的 `MeasureTextEx` 行间步进是「字号 + 2」（本封装传入的 raylib 字号为 16/32/48，对应 18/34/50），既不是字号也不对齐像素格，且 `spacing` 参数只管行内字符的水平间隔，调不动它。换行只认显式 `'\n'` ，不做自动折行，也不做宽度上限截断。
 - 按钮的焦点是唯一的变色来源：持有焦点时前景与背景互换，鼠标悬停与按下不产生任何视觉变化。焦点归属由调用方管理，原语本身不保存跨帧状态。
 - 主题只管配色与装饰形态，不管字体度量。`assets/themes/*.cfg` 中的 `text_size` 、 `text_spacing` 、 `text_line_spacing` 、 `text_alignment` 、 `text_alignment_vertical` 、 `text_padding` 、 `border_width` 由程序独占，写了会被忽略并告警；配色统一从 `src/ui.c` 的 `gUiStyle` 取。`border_style` 是装饰，不触碰度量，因此允许主题设置，这与 `border_width` 被禁的理由不同。
@@ -284,6 +284,14 @@ Oct-12-2026 新增回归测试：`tests/theme_tests.c` 14 条、`tests/ui_tests.
 墨迹居中；接入 `ctest` 与 `scripts/run_tests.sh` ，CMakeLists 的编译选项
 与依赖收口到 `configure_project_target` ，测试与本体共用同一套。原「界面
 与字体」「主题」两节里靠人工验证的待办随之关闭。
+
+Oct-14-2026 场景骨架与开发用命令行参数：新增 `title_scene`（主界面，启动场景）、
+`settings_scene`（设置界面占位）与 `test_scene`（原 `main_scene` 改名，保留 UI 原语
+与消息框演示，游玩界面出现前作为跳转目标）；`scene_manager` 增加请求式切换
+（`RequestSceneSwitch` / `ProcessPendingSwitch`，场景不得在回调里切换自己），
+新增 `app.c` 的退出请求与 `cli.c` 的参数解析，支持 `--scene` / `--export-frame` /
+`--frames` / `--windowed` ；初始场景切换挪到 `InitCanvas()` 之后。界面网格约定改为
+「默认节距 4 ，12 只用于字符格对齐」——640 不能被 12 整除，紧居中与 12 对齐不可兼得。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
