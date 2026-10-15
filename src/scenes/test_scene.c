@@ -32,8 +32,16 @@ void TestSceneUpdate(void) {
 }
 
 void TestSceneDraw(void) {
-  if (UiButton(24, 24, 120, 36, GetString("button_show_message"), 24,
-               !showMessageBox))
+  // 控件宽度由文案度量推出，不写死：界面层不折行也不截断，写死的宽度在换
+  // 语言后会让文字从两侧溢出边框（英文比中文长）。算式与 UiMessageBox 里
+  // 摆按钮行时用的那一条相同。中文「显示消息」得 96 + 24 = 120，与原先
+  // 写死的值一致；英文自动变宽。
+  const int kLabelSize = 24;
+  const char* label = GetString("button_show_message");
+  const int buttonWidth =
+      UI_ALIGN12(UiMeasureText(label, kLabelSize).width + 2 * UI_PADDING);
+  if (UiButton(24, 24, buttonWidth, UI_BUTTON_HEIGHT(kLabelSize), label,
+               kLabelSize, !showMessageBox))
     showMessageBox = true;
 
   if (showMessageBox) {
