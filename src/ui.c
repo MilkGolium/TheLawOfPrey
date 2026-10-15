@@ -221,6 +221,12 @@ static bool TextInkBounds(const char* text, int size, int* outTop,
     int charBytes = 0;
     int codepoint = GetCodepointNext(p, &charBytes);
     p += charBytes;
+    // 空白字形不参与墨迹范围。有的图集给空格一个整行盒大小的矩形
+    // （本字体在对外字号 24 下是 0..32），一格就足以把墨迹盒撑成整个行盒，
+    // 垂直居中于是整体下移，下伸部（如拉丁字母 g）会顶出容器。
+    if (codepoint == ' ' || codepoint == '\t' || codepoint == 0x00A0 ||
+        codepoint == 0x3000)
+      continue;
     int index = GetGlyphIndex(f, codepoint);
     if (index < 0 || f.recs[index].height <= 0.0f) continue;
     int glyphTop = f.glyphs[index].offsetY;
