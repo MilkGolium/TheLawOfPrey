@@ -7,3 +7,8 @@
 *.wav filter=lfs diff=lfs merge=lfs -text
 *.mp3 filter=lfs diff=lfs merge=lfs -text
 *.obj filter=lfs diff=lfs merge=lfs -text
+
+# 脚本行尾固定 LF：shell 与 Python 脚本遇到 CRLF 会直接报错，
+# 且 Windows 上编辑过的脚本会把 CRLF 带进索引。
+*.sh text eol=lf
+*.py text eol=lf

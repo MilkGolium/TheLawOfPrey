@@ -1,24 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Configure and build the Debug configuration, then run the regression tests
-# through ctest. Requires cmake and ninja installed, and raylib available on
-# the system, exactly like build.sh.
+# 配置并构建 Debug 一份，再用 ctest 跑回归测试，流程与 build.sh 相同。
+# 构建前置检查同样来自 scripts/preflight.sh。
 #
-# The theme regression tests write scratch .cfg files under tests/tmp/themes
-# and clean them up afterwards, so nothing is left behind in assets/.
+# 主题回归测试会在 tests/tmp/themes 下造临时 .cfg 文件并在结束后清掉，
+# assets/ 下不会留下任何东西。
 
 TOP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${TOP_DIR}/scripts/preflight.sh"
 
-echo "Configuring and building Debug for tests..."
+PreflightRequireCMake
+PreflightRequireNinja
+PreflightRequireCompiler
+
+echo "正在配置并构建 Debug（供测试使用）..."
 cmake -S "${TOP_DIR}" -B "${TOP_DIR}/build/Debug" -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build "${TOP_DIR}/build/Debug" --config Debug
 
 echo
-echo "Running tests..."
+echo "正在运行测试..."
 ctest --test-dir "${TOP_DIR}/build/Debug" --output-on-failure
 
 echo
-echo "Tests finished. Test binaries:"
+echo "测试结束，测试程序路径："
 echo "  Debug: ${TOP_DIR}/build/Debug/theme_tests"
 echo "  Debug: ${TOP_DIR}/build/Debug/ui_tests"

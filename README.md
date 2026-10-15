@@ -131,11 +131,27 @@
 - 几何探针不能代表文字：矩形与字形走的是两条不同的光栅化路径。Retina 糊字曾有两个互相独立的根因，只修一个仍会看到糊。
 
 ## 平台支持
-确保支持 FreeBSD 、 Linux ，尽量支持 OpenBSD 、 macOS 、 Windows 。  
-因为弄不到证书，所以当前 Windows 上编译运行可能会遇到 SmartScreen 拦截；OpenBSD 在构建项目的时候遇到了一个头文件缺失问题，但是据说可以传入路径解决，而且此路径下的确发现了缺失的头文件。  
-具体情况正等待测试。
+只确保 UNIX-LIKE：FreeBSD 、 Linux 、 macOS 。
 
-2026-09-18 19:18 因为没有 Windows 电脑可供测试，无法确定 `scripts/build.ps1` 与 `scripts/build.bat` 是否有效，两个文件已改名为 `scripts/build.ps1.bak` 与 `scripts/build.bat.bak` 废弃，请不要盲目使用。
+**Windows 已移除支持**，原因是两条：没有 Windows 机器可供测试，脚本与产物都没法验证；弄不到代码签名证书，编译出来的可执行文件会被 SmartScreen 拦截，交付出去别人也跑不起来。原先的 `scripts/build.bat` 与 `scripts/build.ps1` 已删除。
+
+OpenBSD 在构建项目时遇到一个头文件缺失问题，据说可以通过传入路径解决，而且该路径下的确发现了缺失的头文件；**具体情况正等待分析**——既没有列为支持，也没有列为明确不支持，等有机器能测时再定。
+
+### 构建前置要求
+
+`scripts/build.sh` 与 `scripts/run_tests.sh` 在动手之前会先跑一遍前置检查（实现在 `scripts/preflight.sh` ），按 cmake → ninja → C 编译器 的顺序逐项检查，任一项不达标就打印缺什么与按发行版分组的安装办法，然后以非零码退出。需要的工具：
+
+| 工具 | 要求 |
+|------|------|
+| cmake | ≥ 3.16 ，推荐 3.25 以上 |
+| ninja | 任意版本；脚本固定使用 Ninja 生成器 |
+| C 编译器 | `cc` / `clang` / `gcc` 任一在 `PATH` 里即可 |
+| raylib | 当前在 raylib 6.0 上开发 |
+
+- cmake 的最低版本按「发行版自带的就够用」定档：Ubuntu 20.04 、 Debian 11 、 RHEL 9 这一档自带的 cmake 都已到 3.16 以上，而本项目只用到 3.16 之前就有的功能。发行版仓库里的 cmake 往往太旧，达不到这个下限。
+- ninja 是硬要求，**不做 Make 回退**：`build/` 目录一旦被某个生成器配置过，换生成器会直接报 generator mismatch，与其逼人删目录，不如直接报错。
+- raylib **不在前置检查里**：`CMakeLists.txt` 已有一条带安装办法的 `FATAL_ERROR` 提示，重复一遍必然与它分叉。
+- **脚本不会自动安装任何依赖**，也不会代跑 `sudo`；提示里给出的命令请自行执行。
 
 ## 设计规范
 普通物品最大堆叠 60 ，特殊物品最大堆叠 10 。
@@ -307,6 +323,17 @@ Oct-14-2026 场景骨架与开发用命令行参数：新增 `title_scene`（主
 同日补界面文案的本地化结构：文案改放 `assets/strings/<lang>/<scene_name>.csv` ，新增
 `src/lang.c` 收口文案目录路径（原先 `strings.c` 与 `font.c` 各写一份 `#define STRINGS_DIR`，
 字体码点收集与文案载入因此可能岔开），并新增 `--lang` 开发参数；`en/` 下的英文是占位稿。
+
+Oct-15-2026 构建前置检查与平台策略收敛：`cmake_minimum_required` 从 4.4.2 降到
+3.16（发行版自带的 cmake 就够用），新增前置检查库 `scripts/preflight.sh` ，由
+`build.sh` 与 `run_tests.sh` 用 `source` 引入，按 cmake → ninja → C 编译器 的顺序
+逐项检查，缺哪项就打印缺什么与按发行版分组的安装办法，再以非零码退出；脚本绝不
+自动安装任何依赖，也不代跑 `sudo` 。raylib 仍由 `CMakeLists.txt` 自己的
+`FATAL_ERROR` 提示负责，不在前置检查里重复。平台支持收敛为只确保 UNIX-LIKE
+（FreeBSD / Linux / macOS），Windows 因无机器可测且无签名证书会被 SmartScreen
+拦截而移除支持，OpenBSD 保持「等待分析」；`scripts/build.bat.bak` 与
+`scripts/build.ps1.bak` 已删除。`.gitattributes` 增加 `*.sh` 与 `*.py` 的
+`text eol=lf`。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。

@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 4.4.2)
+cmake_minimum_required(VERSION 3.16)
+# 定 3.16 是因为它覆盖 Ubuntu 20.04 / Debian 11 / RHEL 9 这一档发行版自带的 cmake，而本项目只用到 3.16 之前就有的功能；定更高会让发行版自带的 cmake 在还没走到「缺依赖」就先 FATAL。
 project(TheLawOfPrey VERSION 0.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
