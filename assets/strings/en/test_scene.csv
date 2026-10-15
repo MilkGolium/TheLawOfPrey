@@ -1,0 +1,6 @@
+key,text
+button_show_message,Show Message
+messagebox_title,Message Box
+messagebox_body,Hello! This is a test message.
+button_ok,OK
+button_close,Close

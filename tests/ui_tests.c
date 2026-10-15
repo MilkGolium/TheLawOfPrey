@@ -21,7 +21,7 @@
 #define kInkRowCapacity 128
 #define kInkRunCapacity 8
 
-// 文案取自 assets/strings，字体 codepoint 是精确收集的，写死在 C 字面量里
+// 文案取自 assets/strings/<lang>，字体 codepoint 是精确收集的，写死在 C 字面量里
 // 的中文不在图集里，直接变方框。因此这里只用数据文件里的 key。
 static const char* const kTitleKey = "messagebox_title";
 static const char* const kButtonKey = "button_ok";

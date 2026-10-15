@@ -3,10 +3,11 @@
 #include <raylib.h>
 #include <string.h>
 
+#include "lang.h"
 #include "utils.h"
 
-// 界面文案目录，按场景一个 CSV 文件
-#define STRINGS_DIR "assets/strings"
+// 文案目录由当前语言决定（assets/strings/<lang>），本文件里只此一处引用，
+// 路径的唯一来源是 lang.h，与字体码点收集共用同一条路径。
 
 typedef struct {
   char* key;
@@ -105,7 +106,8 @@ void InitStrings(void) {
   // 可重入：重复调用先清干净
   UnloadStrings();
 
-  FilePathList files = LoadDirectoryFiles(STRINGS_DIR);
+  const char* dir = LangStringsDir();
+  FilePathList files = LoadDirectoryFiles(dir);
   for (unsigned int i = 0; i < files.count; i++) {
     if (!IsFileExtension(files.paths[i], ".csv")) continue;
     bool isHeaderRow = true;
@@ -114,7 +116,7 @@ void InitStrings(void) {
   UnloadDirectoryFiles(files);
 
   if (sEntryCount == 0) {
-    TraceLog(LOG_WARNING, "Strings: %s 下没有可用文案", STRINGS_DIR);
+    TraceLog(LOG_WARNING, "Strings: %s 下没有可用文案", dir);
   } else {
     TraceLog(LOG_INFO, "Strings: 载入 %d 条界面文案", sEntryCount);
   }

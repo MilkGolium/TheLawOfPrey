@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "raylib.h"
+#include "lang.h"
 #include "scene_list.h"
 
 // 参数一律写作 --key=value：不支持短选项、不支持 / 、不支持位置参数。
@@ -19,7 +20,14 @@ static const char* const kUsage =
     "                       导出期间窗口隐藏。格式由扩展名决定\n"
     "  --frames=<n>         与 --export-frame 同用的帧数，缺省 2，必须 >= 1，\n"
     "                       单独给出视为用法错误\n"
-    "  --windowed           本次不进全屏；与 --export-frame 同给时不生效\n";
+    "  --windowed           本次不进全屏；与 --export-frame 同给时不生效\n"
+    "  --lang=<id>          界面文案语言，取值 ";
+
+// 用法里的语言清单从语言表取，避免在这里再抄一份
+void CliPrintUsage(void) {
+  fputs(kUsage, stdout);
+  printf("%s（缺省 %s），未知取值报错\n", LangKnownList(), LangCurrent());
+}
 
 // 比较 arg 的 key 段（'=' 之前）与给定 key 是否逐字相同
 static bool KeyEquals(const char* arg, size_t keyLength, const char* key) {
@@ -49,11 +57,13 @@ bool CliParse(int argc, char** argv, CliOptions* out) {
   out->exportPath = NULL;
   out->frames = CLI_DEFAULT_FRAMES;
   out->windowed = false;
+  out->lang = NULL;
 
   bool seenScene = false;
   bool seenExportFrame = false;
   bool seenFrames = false;
   bool seenWindowed = false;
+  bool seenLang = false;
 
   for (int i = 1; i < argc; i++) {
     const char* arg = argv[i];
@@ -95,6 +105,14 @@ bool CliParse(int argc, char** argv, CliOptions* out) {
       if (!ParseFrames(value, &frames))
         return Reject("帧数须为 >= 1 的整数: %s", arg);
       out->frames = frames;
+    } else if (KeyEquals(arg, keyLength, "--lang")) {
+      if (seenLang) return Reject("同一参数重复给出: %s", arg);
+      seenLang = true;
+      // 语言标识就是目录名，未知取值不静默回落到缺省语言
+      if (value[0] == '\0') return Reject("语言标识为空: %s", arg);
+      if (!LangIsKnown(value))
+        return Reject("不支持的语言: %s", value);
+      out->lang = value;
     } else {
       return Reject("未知参数: %s", arg);
     }
@@ -109,12 +127,12 @@ bool CliParse(int argc, char** argv, CliOptions* out) {
   return true;
 }
 
-void CliPrintUsage(void) { fputs(kUsage, stdout); }
-
 void CliLogEffectiveOptions(const CliOptions* options, const char* sceneName) {
-  TraceLog(LOG_INFO, "启动参数: scene=%s export-frame=%s frames=%d windowed=%s",
-           sceneName, options->exportPath ? options->exportPath : "(无)",
-           options->frames, options->windowed ? "是" : "否");
+  TraceLog(LOG_INFO,
+           "启动参数: scene=%s lang=%s export-frame=%s frames=%d windowed=%s",
+           sceneName, LangCurrent(),
+           options->exportPath ? options->exportPath : "(无)", options->frames,
+           options->windowed ? "是" : "否");
   if (options->windowed && options->exportPath != NULL) {
     TraceLog(LOG_INFO,
              "启动参数: --windowed 与 --export-frame 同给，导帧期间不生效");

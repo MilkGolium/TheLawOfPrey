@@ -5,6 +5,7 @@
 #include "cli.h"
 #include "font.h"
 #include "graphsettings.h"
+#include "lang.h"
 #include "raylib.h"
 #include "scene_list.h"
 #include "scene_manager.h"
@@ -81,10 +82,14 @@ int main(int argc, char** argv) {
   // 用于切换开发和发行的 assets 位置。优先检查身边，其次根据项目结构来寻找。
   InitAssetsDirectory();
 
+  // 界面语言必须先于字体定下来：码点收集就是扫当前语言的文案目录，
+  // 晚了会让图集收错语言的字（见 lang.h 与 README）。
+  LangSet(options.lang);
+
   // 加载中文字体图集，收集 codepoint
   InitGameFont();
 
-  // 界面文案表。字体收集阶段直接扫描 assets/strings 下的同一批文件，
+  // 界面文案表。字体收集阶段直接扫描当前语言目录下的同一批文件，
   // 与这里的内存表各读一次互不依赖，先后顺序无所谓。
   InitStrings();
 

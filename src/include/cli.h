@@ -15,6 +15,7 @@ typedef struct {
   const char* exportPath;  // NULL 表示本次不导帧
   int frames;              // 仅在 exportPath 非 NULL 时有意义
   bool windowed;           // 本次不进全屏
+  const char* lang;        // NULL 表示未指定，用缺省语言（见 lang.h）
 } CliOptions;
 
 // 解析 argv。先把 out 填成缺省值再逐项覆盖。成功返回 true；失败返回 false，

@@ -3,13 +3,13 @@
 #include <assert.h>
 #include <string.h>
 
+#include "lang.h"
 #include "utils.h"
 
 // === 配置 ===
 
 #define FONT_PATH "assets/fonts/ttf/fusion-pixel-12px-proportional-zh_hans.ttf"
 #define DATABASE_DIR "assets/databases"
-#define STRINGS_DIR "assets/strings"
 #define DEFAULT_FONT_SIZE 24
 #define BMP_RANGE 0x10000
 #define FONT_SIZE_COUNT 3
@@ -195,8 +195,9 @@ static void CollectAllCodepoints(void) {
   sDroppedBeyondRange = 0;
 
   ScanCsvDir(DATABASE_DIR, CollectCallback, NULL);
-  // 界面文案同样是精确收集的来源，因此界面用字不需要在代码里另列一份
-  ScanCsvDir(STRINGS_DIR, CollectCallback, NULL);
+  // 界面文案同样是精确收集的来源，因此界面用字不需要在代码里另列一份。
+  // 目录跟着当前语言走，所以 LangSet() 必须先于 InitGameFont()（见 lang.h）。
+  ScanCsvDir(LangStringsDir(), CollectCallback, NULL);
 
   AddBufferCodepoints();
 

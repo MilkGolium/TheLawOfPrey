@@ -26,6 +26,7 @@ add_library(raylib_deps INTERFACE)
 set(GAME_SOURCES
   src/font.c
   src/graphsettings.c
+  src/lang.c
   src/scene_manager.c
   src/strings.c
   src/theme.c
