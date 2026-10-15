@@ -115,6 +115,20 @@ void UiDrawText(int posX, int posY, const char* text, int size, Color tint);
 // 实测偏移 1 至 12 均产生 0 个混合像素、边缘硬边。
 #define UI_SHADOW_OFFSET 8
 
+// === 焦点遍历 ===
+//
+// 两组语义并存，职责不同：方向键是**空间**语义（竖排用上下、横排用左右），
+// 跟着控件在屏幕上的排布走；Tab 是**遍历**语义，按焦点链走一圈，与排布
+// 方向无关。界面层只提供遍历这一组的判据——空间语义由调用方按自己的布局
+// 接，循环取模也由调用方做。焦点归属仍在调用方（焦点是按钮唯一的变色
+// 来源，原语不保存跨帧状态）。
+
+// 焦点前进 / 后退：Tab 与 Shift+Tab 的左右任一 Shift。
+// 按住 Shift 的那一次 Tab 边沿只算后退，两个判据不会同时为真，
+// 否则 Shift+Tab 一次会走两格。
+bool UiFocusNextPressed(void);
+bool UiFocusPrevPressed(void);
+
 // 释放主题切换时重建的图形资源。当前只有抖动阴影用的 2×2 平铺贴图，
 // 必须在 CloseWindow 之前调用。重复调用安全。
 void UiUnloadStyle(void);
@@ -144,8 +158,9 @@ void UiDrawBox(int x, int y, int width, int height, const char* title,
 
 // 模态消息框。尺寸由文本度量推算并在屏幕居中，不接收外部矩形
 // （原 raygui 的固定 400*100 在 24px 字体下装不下标题栏 + 正文 +
-// 按钮 + 间距，见 README「界面与字体」）。左右方向键在按钮间移动
-// 焦点，回车激活，ESC 取消，鼠标点击按钮同样激活。
+// 按钮 + 间距，见 README「界面与字体」）。左右方向键（空间语义）与
+// Tab / Shift+Tab（遍历语义）都在按钮间循环移动焦点，回车激活，
+// ESC 取消，鼠标点击按钮同样激活。
 // 返回值：被激活的按钮下标（>= 0）；ESC 取消返回 -1；本帧无操作
 // 返回 -2。focusIndex 由调用方持有，重新打开前置 0 即重置焦点。
 int UiMessageBox(const char* title, const char* message, const char* buttons[],

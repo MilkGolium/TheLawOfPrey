@@ -264,6 +264,22 @@ static bool TextBodyBounds(const char* text, int size, int* outTop,
   return found;
 }
 
+// === 焦点遍历 ===
+//
+// Shift+Tab 的那一次 Tab 边沿只能算后退。若两个判据都只看 Tab 而不看
+// Shift，按住 Shift 前进与后退会同时为真，调用方一次走两格。
+static bool IsFocusBackModifierDown(void) {
+  return IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+}
+
+bool UiFocusNextPressed(void) {
+  return IsKeyPressed(KEY_TAB) && !IsFocusBackModifierDown();
+}
+
+bool UiFocusPrevPressed(void) {
+  return IsKeyPressed(KEY_TAB) && IsFocusBackModifierDown();
+}
+
 bool UiButton(int x, int y, int width, int height, const char* label, int size,
               bool focused) {
   // 命中测试用画布坐标：GetMousePosition 给的是窗口坐标，画布放大后不通用。
@@ -317,10 +333,13 @@ int UiMessageBox(const char* title, const char* message, const char* buttons[],
   if (buttonCount <= 0) return -1;
   if (*focusIndex < 0 || *focusIndex >= buttonCount) *focusIndex = 0;
 
-  // 左右键在按钮间移动焦点（循环），回车留在按钮处激活。
-  if (IsKeyPressed(KEY_LEFT)) {
+  // 左右键是空间语义（按钮横排），Tab 与 Shift+Tab 是遍历语义，两者并存，
+  // 都按按钮数循环。回车留在按钮处激活。
+  bool focusPrev = IsKeyPressed(KEY_LEFT) || UiFocusPrevPressed();
+  bool focusNext = IsKeyPressed(KEY_RIGHT) || UiFocusNextPressed();
+  if (focusPrev) {
     *focusIndex = (*focusIndex + buttonCount - 1) % buttonCount;
-  } else if (IsKeyPressed(KEY_RIGHT)) {
+  } else if (focusNext) {
     *focusIndex = (*focusIndex + 1) % buttonCount;
   }
   if (IsKeyPressed(KEY_ESCAPE)) return -1;

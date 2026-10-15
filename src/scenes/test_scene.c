@@ -22,11 +22,7 @@ void TestSceneInit(void) {
   messageBoxFocus = 0;
 }
 
-extern void UiProbeArm(bool on);
-static int sProbeFrame = 0;
-
 void TestSceneUpdate(void) {
-  UiProbeArm(sProbeFrame++ == 0);  /* PROBE: 第 1 帧给出一次 Enter 边沿 */
   if (!IsBackKeyPressed()) return;
   if (showMessageBox) {
     showMessageBox = false;
@@ -59,7 +55,6 @@ void TestSceneDraw(void) {
                               &messageBoxFocus);
     if (result != -2) showMessageBox = false;
   }
-  TraceLog(LOG_INFO, "PROBE 帧内 打开前=%d 结束后=%d", before, showMessageBox);
 }
 
 void TestSceneUnload(void) {}

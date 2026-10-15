@@ -35,8 +35,12 @@ static bool IsBackKeyPressed(void) {
 void TitleSceneInit(void) { sFocus = 0; }
 
 void TitleSceneUpdate(void) {
-  if (IsKeyPressed(KEY_DOWN)) sFocus = (sFocus + 1) % kMenuCount;
-  if (IsKeyPressed(KEY_UP)) sFocus = (sFocus + kMenuCount - 1) % kMenuCount;
+  // 上下键是空间语义（菜单一列竖排），Tab 与 Shift+Tab 是遍历语义，两者
+  // 并存，都按菜单项数循环。
+  bool focusNext = IsKeyPressed(KEY_DOWN) || UiFocusNextPressed();
+  bool focusPrev = IsKeyPressed(KEY_UP) || UiFocusPrevPressed();
+  if (focusNext) sFocus = (sFocus + 1) % kMenuCount;
+  if (focusPrev) sFocus = (sFocus + kMenuCount - 1) % kMenuCount;
   if (IsBackKeyPressed()) AppRequestQuit();
 }
 
