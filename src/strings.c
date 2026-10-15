@@ -28,7 +28,7 @@ static char* CopyText(const char* text) {
   size_t size = (size_t)strlen(text) + 1;
   char* copy = (char*)MemAlloc(size);
   if (!copy) {
-    TraceLog(LOG_ERROR, "Strings: 文案分配失败: %s", text);
+    TraceLog(LOG_ERROR, "Strings: UI string allocation failed: %s", text);
     return NULL;
   }
   memcpy(copy, text, size);
@@ -45,7 +45,8 @@ static void WarnOnce(const char* key) {
         (char**)MemRealloc(sWarnedKeys, (size_t)capacity * sizeof(char*));
     if (!grown) {
       // 记账失败只会导致告警重复，不影响取用文案
-      TraceLog(LOG_WARNING, "Strings: 告警表扩容失败: %s", key);
+      TraceLog(LOG_WARNING, "Strings: failed to grow the warning list: %s",
+               key);
       return;
     }
     sWarnedKeys = grown;
@@ -54,14 +55,17 @@ static void WarnOnce(const char* key) {
   char* copy = CopyText(key);
   if (!copy) return;
   sWarnedKeys[sWarnedCount++] = copy;
-  TraceLog(LOG_WARNING, "Strings: 缺少文案 %s，界面上回退为 key 本身", key);
+  TraceLog(LOG_WARNING,
+           "Strings: UI string %s not found, falls back to the key itself",
+           key);
 }
 
 static void AddEntry(const char* key, const char* text) {
   for (int i = 0; i < sEntryCount; i++) {
     if (strcmp(sEntries[i].key, key) != 0) continue;
     if (strcmp(sEntries[i].text, text) == 0) return;
-    TraceLog(LOG_WARNING, "Strings: key %s 重复定义，保留先出现的文案", key);
+    TraceLog(LOG_WARNING,
+             "Strings: duplicate key %s, keeping the first UI string", key);
     return;
   }
 
@@ -70,7 +74,8 @@ static void AddEntry(const char* key, const char* text) {
     StringEntry* grown = (StringEntry*)MemRealloc(
         sEntries, (size_t)capacity * sizeof(StringEntry));
     if (!grown) {
-      TraceLog(LOG_ERROR, "Strings: 文案表扩容失败，丢弃 %s", key);
+      TraceLog(LOG_ERROR,
+               "Strings: failed to grow the UI string table, dropping %s", key);
       return;
     }
     sEntries = grown;
@@ -116,9 +121,9 @@ void InitStrings(void) {
   UnloadDirectoryFiles(files);
 
   if (sEntryCount == 0) {
-    TraceLog(LOG_WARNING, "Strings: %s 下没有可用文案", dir);
+    TraceLog(LOG_WARNING, "Strings: no usable UI string under %s", dir);
   } else {
-    TraceLog(LOG_INFO, "Strings: 载入 %d 条界面文案", sEntryCount);
+    TraceLog(LOG_INFO, "Strings: loaded %d UI string(s)", sEntryCount);
   }
 }
 

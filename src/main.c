@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
       options.sceneName != NULL ? options.sceneName : kDefaultSceneName;
   Scene* startScene = SceneListFindByName(sceneName);
   if (startScene == NULL) {
-    TraceLog(LOG_ERROR, "找不到场景: %s", sceneName);
+    TraceLog(LOG_ERROR, "scene not found: %s", sceneName);
     CliPrintUsage();
     return 1;
   }
@@ -136,10 +136,13 @@ int main(int argc, char** argv) {
     if (exportPending && framesDrawn >= options.frames) {
       exportPending = false;
       if (ExportCanvasFrame(options.exportPath)) {
-        TraceLog(LOG_INFO, "已导出设计画布: %s", options.exportPath);
-      } else {
-        TraceLog(LOG_ERROR, "导出失败（目录不存在或扩展名不受支持）: %s",
+        TraceLog(LOG_INFO, "exported the design canvas: %s",
                  options.exportPath);
+      } else {
+        TraceLog(
+            LOG_ERROR,
+            "export failed (directory missing or unsupported extension): %s",
+            options.exportPath);
         exitCode = 1;
       }
       break;

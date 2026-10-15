@@ -9,7 +9,8 @@ void InitAssetsDirectory(void) {
 
   // 检查程序身边的 assets 是否存在
   if (DirectoryExists("assets")) {
-    TraceLog(LOG_INFO, "正在使用程序身边的 assets 目录：%s/assets",
+    TraceLog(LOG_INFO,
+             "using the assets directory next to the executable: %s/assets",
              GetWorkingDirectory());
   }
   // 如果身边没有，且编译时指定了项目根目录，尝试使用 CMake 指定的路径
@@ -17,13 +18,16 @@ void InitAssetsDirectory(void) {
   else if (DirectoryExists(TextFormat("%s/assets", PROJECT_ROOT_DIR))) {
     ChangeDirectory(PROJECT_ROOT_DIR);
     TraceLog(LOG_INFO,
-             "程序身边的 assets 不存在，已回退至开发目录：%s \n "
-             "这可能是因为程序正在开发目录中运行，没有打包发行。",
+             "the assets directory next to the executable does not exist, "
+             "falling back to the development directory: %s \n "
+             "this may be because the program is running from the "
+             "development directory without being packaged.",
              GetWorkingDirectory());
   }
 #endif
   else {
-    TraceLog(LOG_ERROR, "未找到 assets 目录！当前工作目录：%s",
+    TraceLog(LOG_ERROR,
+             "assets directory not found! current working directory: %s",
              GetWorkingDirectory());
   }
 }
@@ -141,7 +145,7 @@ bool CsvReadFile(const char* path, CsvRowCallback callback, void* userData) {
   unsigned char* data = LoadFileData(path, &dataSize);
   if (!data || dataSize == 0) {
     if (data) UnloadFileData(data);
-    TraceLog(LOG_WARNING, "Csv: 无法读取文件: %s", path);
+    TraceLog(LOG_WARNING, "Csv: failed to read file: %s", path);
     return false;
   }
 
@@ -168,8 +172,10 @@ bool CsvReadFile(const char* path, CsvRowCallback callback, void* userData) {
   stream.cursor = firstRow;
 
   if (columnCount > CSV_MAX_COLUMNS) {
-    TraceLog(LOG_WARNING, "Csv: %s 表头有 %d 列，超过上限 %d，按上限解析", path,
-             columnCount, CSV_MAX_COLUMNS);
+    TraceLog(LOG_WARNING,
+             "Csv: %s header has %d columns, over the limit %d, parsing with "
+             "the limit",
+             path, columnCount, CSV_MAX_COLUMNS);
     columnCount = CSV_MAX_COLUMNS;
   }
 
@@ -180,7 +186,7 @@ bool CsvReadFile(const char* path, CsvRowCallback callback, void* userData) {
     MemFree(fields);
     MemFree(rowPtrs);
     UnloadFileData(data);
-    TraceLog(LOG_ERROR, "Csv: %s 行缓冲分配失败", path);
+    TraceLog(LOG_ERROR, "Csv: %s row buffer allocation failed", path);
     return false;
   }
 
@@ -194,8 +200,8 @@ bool CsvReadFile(const char* path, CsvRowCallback callback, void* userData) {
   }
 
   if (stream.truncated) {
-    TraceLog(LOG_WARNING, "Csv: %s 中存在超过 %d 字节的字段，已截断", path,
-             CSV_FIELD_MAX - 1);
+    TraceLog(LOG_WARNING, "Csv: %s contains fields over %d bytes, truncated",
+             path, CSV_FIELD_MAX - 1);
   }
 
   MemFree(rowPtrs);

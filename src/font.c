@@ -154,7 +154,9 @@ static void SnapshotText(const char* text) {
     int capacity = sTextCapacity ? sTextCapacity * 2 : 64;
     char** grown = (char**)MemRealloc(sTexts, (size_t)capacity * sizeof(char*));
     if (!grown) {
-      TraceLog(LOG_ERROR, "Font: 文本快照扩容失败，后续文本不再收集");
+      TraceLog(LOG_ERROR,
+               "Font: failed to grow the text snapshot list, later text is not "
+               "collected");
       return;
     }
     sTexts = grown;
@@ -163,7 +165,7 @@ static void SnapshotText(const char* text) {
   size_t size = (size_t)strlen(text) + 1;
   char* copy = (char*)MemAlloc(size);
   if (!copy) {
-    TraceLog(LOG_ERROR, "Font: 文本快照分配失败");
+    TraceLog(LOG_ERROR, "Font: text snapshot allocation failed");
     return;
   }
   memcpy(copy, text, size);
@@ -203,7 +205,8 @@ static void CollectAllCodepoints(void) {
 
   if (sDroppedBeyondRange > 0) {
     TraceLog(LOG_WARNING,
-             "Font: %d 个码点超出收集范围（U+%04X 以上），未进图集",
+             "Font: %d codepoint(s) beyond collection range (above U+%04X), "
+             "not in the font atlas",
              sDroppedBeyondRange, (unsigned)BMP_RANGE);
 #ifndef NDEBUG
     sDroppedReported = true;
@@ -217,13 +220,13 @@ static void BuildCodepointArray(void) {
     if (IsCodepointMarked(i)) collectedCount++;
 
   if (collectedCount == 0) {
-    TraceLog(LOG_WARNING, "Font: 未收集到任何 codepoint");
+    TraceLog(LOG_WARNING, "Font: no codepoint collected");
     return;
   }
 
   collectedCps = (int*)MemAlloc((size_t)collectedCount * sizeof(int));
   if (!collectedCps) {
-    TraceLog(LOG_ERROR, "Font: codepoint 数组分配失败（%d 个）",
+    TraceLog(LOG_ERROR, "Font: codepoint array allocation failed (%d)",
              collectedCount);
     collectedCount = 0;
     return;
@@ -259,7 +262,7 @@ static void CheckCallback(const char* text, void* userData) {
         // 收不进图集的码点单独计数，不计入缺字
         sSkippedBeyondRange++;
       } else if (!FontHasGlyph(cp)) {
-        TraceLog(LOG_WARNING, "Font: 缺字 U+%04X", (unsigned)cp);
+        TraceLog(LOG_WARNING, "Font: missing glyph U+%04X", (unsigned)cp);
         (*missing)++;
       }
     }
@@ -273,7 +276,9 @@ static void CheckMissingGlyphs(int* missing) {
   // 复用收集阶段的文本快照，不再读第二遍盘
   for (int i = 0; i < sTextCount; i++) CheckCallback(sTexts[i], missing);
   if (sSkippedBeyondRange > 0) {
-    TraceLog(LOG_WARNING, "Font: 检查阶段有 %d 个码点超出收集范围，未计入缺字",
+    TraceLog(LOG_WARNING,
+             "Font: %d codepoint(s) beyond collection range at the check "
+             "stage, not counted as missing glyphs",
              sSkippedBeyondRange);
   }
 }
@@ -299,7 +304,9 @@ static void LoadFontAt(int idx) {
     // 此时 LoadFontEx 只能拿到 ASCII，中文会静默变方框，故拒绝加载
     if (!sCollectWarned) {
       sCollectWarned = true;
-      TraceLog(LOG_WARNING, "Font: codepoint 尚未收集完成，拒绝加载图集");
+      TraceLog(LOG_WARNING,
+               "Font: codepoint collection not finished, refusing to load the "
+               "font atlas");
     }
     return;
   }
@@ -307,10 +314,12 @@ static void LoadFontAt(int idx) {
       LoadFontEx(FONT_PATH, kFontLoadSizes[idx], collectedCps, collectedCount);
   if (!FontIsUsable(sFonts[idx])) {
     if (sFonts[idx].texture.id == 0) {
-      TraceLog(LOG_ERROR, "Font: 加载失败 %s@%d", FONT_PATH,
+      TraceLog(LOG_ERROR, "Font: failed to load %s@%d", FONT_PATH,
                kFontLoadSizes[idx]);
     } else {
-      TraceLog(LOG_ERROR, "Font: %s@%d 解析失败，raylib 退回内置默认字体",
+      TraceLog(LOG_ERROR,
+               "Font: %s@%d failed to parse, raylib fell back to the built-in "
+               "default font",
                FONT_PATH, kFontLoadSizes[idx]);
     }
     sFontStates[idx] = kFontStateFailed;
@@ -382,7 +391,7 @@ void InitGameFont(void) {
   AssertCollectedInvariants();
 #endif
 
-  TraceLog(LOG_INFO, "Font: 收集到 %d 个唯一 codepoint", collectedCount);
+  TraceLog(LOG_INFO, "Font: collected %d unique codepoints", collectedCount);
 
   // 3. 加载默认尺寸（24px），触发图集加载
   GetUIFont(DEFAULT_FONT_SIZE);
@@ -391,9 +400,9 @@ void InitGameFont(void) {
   int missing = 0;
   CheckMissingGlyphs(&missing);
   if (missing == 0) {
-    TraceLog(LOG_INFO, "Font: 缺字检查通过");
+    TraceLog(LOG_INFO, "Font: glyph coverage check passed");
   } else {
-    TraceLog(LOG_WARNING, "Font: 发现 %d 处缺字", missing);
+    TraceLog(LOG_WARNING, "Font: %d missing glyph(s) found", missing);
   }
 }
 

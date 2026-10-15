@@ -181,7 +181,8 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
                         UiStyle* style) {
   char line[THEME_LINE_MAX];
   if (length >= THEME_LINE_MAX) {
-    TraceLog(LOG_WARNING, "Theme: %s 存在超长行（%d 字符），已截断", fileName,
+    TraceLog(LOG_WARNING,
+             "Theme: %s has an over-long line (%d chars), truncated", fileName,
              length);
     length = THEME_LINE_MAX - 1;
   }
@@ -193,7 +194,7 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
 
   char* eq = strchr(s, '=');
   if (eq == NULL) {
-    TraceLog(LOG_WARNING, "Theme: %s 无法解析的行：%s", fileName, s);
+    TraceLog(LOG_WARNING, "Theme: %s failed to parse: %s", fileName, s);
     return false;
   }
   *eq = '\0';
@@ -203,8 +204,10 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
   NormalizeKey(key);
 
   if (IsForbiddenKey(key)) {
-    TraceLog(LOG_WARNING, "Theme: %s 的 %s 由程序独占，主题无权设置，已忽略",
-             fileName, key);
+    TraceLog(
+        LOG_WARNING,
+        "Theme: %s: %s is owned by the program, themes cannot set it, ignored",
+        fileName, key);
     return false;
   }
 
@@ -212,8 +215,8 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
   if (offset != SIZE_MAX) {
     Color color;
     if (!ParseColor(value, &color)) {
-      TraceLog(LOG_WARNING, "Theme: %s 的 %s 取值非法：%s", fileName, key,
-               value);
+      TraceLog(LOG_WARNING, "Theme: %s: %s has an invalid value: %s", fileName,
+               key, value);
       return false;
     }
     *(Color*)((char*)style + offset) = color;
@@ -222,7 +225,7 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
 
   const ThemeEnumKey* enumKey = FindEnumKey(key);
   if (enumKey == NULL) {
-    TraceLog(LOG_WARNING, "Theme: %s 未知主题键 %s，已忽略", fileName, key);
+    TraceLog(LOG_WARNING, "Theme: %s unknown key %s, ignored", fileName, key);
     return false;
   }
 
@@ -235,7 +238,8 @@ static bool ProcessLine(const char* fileName, const char* raw, int length,
     }
   }
 
-  TraceLog(LOG_WARNING, "Theme: %s 的 %s 取值非法：%s", fileName, key, value);
+  TraceLog(LOG_WARNING, "Theme: %s: %s has an invalid value: %s", fileName, key,
+           value);
   return false;
 }
 
@@ -249,7 +253,7 @@ static bool ApplyThemeFile(const char* path, const char* fileName) {
   int size = 0;
   unsigned char* data = LoadFileData(path, &size);
   if (data == NULL || size == 0) {
-    TraceLog(LOG_WARNING, "Theme: 无法读取主题文件 %s", path);
+    TraceLog(LOG_WARNING, "Theme: failed to read theme file %s", path);
     if (data != NULL) UnloadFileData(data);
     return false;
   }
@@ -275,7 +279,9 @@ static bool ApplyThemeFile(const char* path, const char* fileName) {
 
   if (applied == 0) {
     TraceLog(LOG_WARNING,
-             "Theme: %s 未包含任何有效配色或装饰设置，保持当前样式", fileName);
+             "Theme: %s has no valid color or decoration settings, keeping the "
+             "current style",
+             fileName);
     return false;
   }
 
@@ -301,7 +307,9 @@ static void ScanThemes(void) {
 
   FilePathList files = LoadDirectoryFiles(THEME_DIR);
   if (files.count == 0) {
-    TraceLog(LOG_WARNING, "Theme: %s 下没有找到主题文件，使用内置默认配色",
+    TraceLog(LOG_WARNING,
+             "Theme: no theme file found under %s, using the built-in default "
+             "colors",
              THEME_DIR);
     UnloadDirectoryFiles(files);
     return;
@@ -311,7 +319,8 @@ static void ScanThemes(void) {
   for (unsigned int i = 0; i < files.count; i++) {
     if (!IsFileExtension(files.paths[i], ".cfg")) continue;
     if (found >= THEME_MAX_COUNT) {
-      TraceLog(LOG_WARNING, "Theme: 主题数量超过上限 %d，忽略 %s",
+      TraceLog(LOG_WARNING,
+               "Theme: theme count exceeds the limit %d, ignored %s",
                THEME_MAX_COUNT, files.paths[i]);
       continue;
     }
@@ -323,7 +332,8 @@ static void ScanThemes(void) {
 
     int len = dot != NULL ? (int)(dot - base) : (int)strlen(base);
     if (len <= 0 || len >= THEME_NAME_MAX) {
-      TraceLog(LOG_WARNING, "Theme: 主题名长度非法，已忽略 %s", files.paths[i]);
+      TraceLog(LOG_WARNING, "Theme: theme name length is invalid, ignored %s",
+               files.paths[i]);
       continue;
     }
 
@@ -338,7 +348,7 @@ static void ScanThemes(void) {
 
   themeCount = found;
   UnloadDirectoryFiles(files);
-  TraceLog(LOG_INFO, "Theme: 在 %s 下发现 %d 个主题", THEME_DIR, themeCount);
+  TraceLog(LOG_INFO, "Theme: %s contains %d theme(s)", THEME_DIR, themeCount);
 }
 
 // === 公开接口 ===
@@ -352,11 +362,11 @@ const char* GetThemeName(int index) {
 
 bool LoadTheme(const char* name) {
   if (name == NULL || name[0] == '\0') {
-    TraceLog(LOG_WARNING, "Theme: 主题名为空");
+    TraceLog(LOG_WARNING, "Theme: theme name is empty");
     return false;
   }
   if (strlen(name) >= THEME_NAME_MAX) {
-    TraceLog(LOG_WARNING, "Theme: 主题名过长，已忽略");
+    TraceLog(LOG_WARNING, "Theme: theme name too long, ignored");
     return false;
   }
 
@@ -365,7 +375,7 @@ bool LoadTheme(const char* name) {
   }
 
   TextCopy(currentTheme, name);
-  TraceLog(LOG_INFO, "Theme: 已加载主题 %s", currentTheme);
+  TraceLog(LOG_INFO, "Theme: loaded theme %s", currentTheme);
   return true;
 }
 

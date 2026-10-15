@@ -21,8 +21,8 @@
 #define kInkRowCapacity 128
 #define kInkRunCapacity 8
 
-// 文案取自 assets/strings/<lang>，字体 codepoint 是精确收集的，写死在 C 字面量里
-// 的中文不在图集里，直接变方框。因此这里只用数据文件里的 key。
+// 文案取自 assets/strings/<lang>，字体 codepoint 是精确收集的，写死在 C
+// 字面量里 的中文不在图集里，直接变方框。因此这里只用数据文件里的 key。
 static const char* const kTitleKey = "messagebox_title";
 static const char* const kButtonKey = "button_ok";
 
@@ -123,11 +123,11 @@ static InkScan ScanInk(Image image, int x, int y, int width, int height,
 
 static void ReportRunCount(const char* what, InkScan scan) {
   if (scan.runCount == 0) {
-    printf("      [实测] %s：没有墨迹\n", what);
+    printf("      [measured] %s: no ink\n", what);
   } else {
-    printf("      [实测] %s：%d 段墨迹，", what, scan.runCount);
+    printf("      [measured] %s: %d ink run(s), ", what, scan.runCount);
     for (int i = 0; i < scan.runCount; i++)
-      printf("第%d段 [%d, %d] ", i + 1, scan.runTop[i], scan.runBottom[i]);
+      printf("run%d [%d, %d] ", i + 1, scan.runTop[i], scan.runBottom[i]);
     printf("\n");
   }
   fflush(stdout);
@@ -138,7 +138,9 @@ static void ReportRunCount(const char* what, InkScan scan) {
 // 行距公式：度量按 UI_LINE_STEP 累加，渲染回读的段间距同样等于它。
 // 多行文本两行用同一串字形，墨迹上缘对齐，段间距就是行距本身。
 static void CaseLineStep(void) {
-  TestBeginCase("行距：度量等于行数乘行距，渲染回读第二行正好下移一个行距");
+  TestBeginCase(
+      "line step: measured equals line count times step, render readback moves "
+      "line 2 down by exactly one step");
   ApplyProbeStyle();
 
   static const int kSizes[] = {12, 24, 36};
@@ -146,13 +148,14 @@ static void CaseLineStep(void) {
 
   for (int i = 0; i < 3; i++) {
     int size = kSizes[i];
-    TestCheckInt(UI_LINE_STEP(size), size, "行距宏本身等于字号");
+    TestCheckInt(UI_LINE_STEP(size), size,
+                 "the line step macro equals the font size");
 
     UiSize measured = UiMeasureText(text, size);
     TestCheckInt(measured.height, size + (2 - 1) * UI_LINE_STEP(size),
-                 "两行文本的度量高 = 字号 + 一个行距");
+                 "measured height of two lines = size + one line step");
     TestCheckInt(measured.height, 2 * UI_LINE_STEP(size),
-                 "两行文本的度量高 = 行数 * 行距");
+                 "measured height of two lines = line count * line step");
 
     BeginCanvas();
     ClearBackground(gUiStyle.desktop);
@@ -163,14 +166,14 @@ static void CaseLineStep(void) {
                            measured.height + size, gUiStyle.text);
     UnloadImage(image);
 
-    ReportRunCount("两行文本的墨迹", scan);
-    TestCheckInt(scan.runCount, 2, "回读到两段墨迹（一段一行）");
-    TestCheckInt(scan.pixelCount > 0 ? 1 : 0, 1, "两段墨迹都非空");
+    ReportRunCount("ink of the two-line text", scan);
+    TestCheckInt(scan.runCount, 2, "two ink runs read back (one per line)");
+    TestCheckInt(scan.pixelCount > 0 ? 1 : 0, 1, "both ink runs are non-empty");
     if (scan.runCount == 2) {
       TestCheckInt(scan.runTop[1] - scan.runTop[0], UI_LINE_STEP(size),
-                   "第二行墨迹上缘与第一行相差恰好一个行距");
+                   "the line 2 ink top is exactly one line step below line 1");
     } else {
-      TestFail("没能定位到两段墨迹，无法核对行距");
+      TestFail("could not locate two ink runs, cannot verify the line step");
     }
   }
   TestEndCase();
@@ -179,12 +182,15 @@ static void CaseLineStep(void) {
 // 边框不吃文字：标题墨迹画在边框之后，无边框与三色边框下的墨迹像素数
 // 必须逐档相等。若绘制顺序反了，ring0 会盖掉墨迹上缘，两档立刻不等。
 static void CaseBorderDoesNotCoverTitle(void) {
-  TestBeginCase("边框不吃文字：none 与 triple 下标题墨迹像素数逐档相等");
+  TestBeginCase(
+      "border does not cover text: title ink pixel count matches step by step "
+      "under none and triple");
   ApplyProbeStyle();
 
   const char* title = GetString(kTitleKey);
   TestCheck(strcmp(title, kTitleKey) != 0,
-            "标题文案取自数据文件而不是回退成 key 本身");
+            "the title string comes from the data file, not a fallback to the "
+            "key itself");
 
   static const int kSizes[] = {12, 24, 36};
   for (int i = 0; i < 3; i++) {
@@ -213,9 +219,11 @@ static void CaseBorderDoesNotCoverTitle(void) {
     UnloadImage(image);
 
     TestCheckInt(withoutBorder > 0 ? 1 : 0, 1,
-                 "无边框时标题确有墨迹（否则下面的相等是空断言）");
-    TestCheckInt(withTriple, withoutBorder,
-                 "triple 边框下的标题墨迹像素数与 none 相等");
+                 "the title has ink without a border (otherwise the equality "
+                 "below is vacuous)");
+    TestCheckInt(
+        withTriple, withoutBorder,
+        "title ink pixel count under a triple border equals the none case");
   }
   TestEndCase();
 }
@@ -224,7 +232,9 @@ static void CaseBorderDoesNotCoverTitle(void) {
 // 或按钮字色的像素。文字画在边框之后，一旦内缩量算错就是反过来把 ring0
 // 啃出缺口。
 static void CaseRing0HasNoTextPixels(void) {
-  TestBeginCase("内缩量正确：triple 的 ring0 三行内没有标题字色与按钮字色");
+  TestBeginCase(
+      "correct inset: no title or button text color pixels inside the three "
+      "rows of triple ring0");
   ApplyProbeStyle();
   gUiStyle.borderStyle = UI_BORDER_TRIPLE;
 
@@ -232,7 +242,7 @@ static void CaseRing0HasNoTextPixels(void) {
   const char* label = GetString(kButtonKey);
   static const int kSizes[] = {12, 24, 36};
   int rings = RingCountOf(UI_BORDER_TRIPLE);
-  TestCheckInt(rings, 3, "三色边框的圈数为 3");
+  TestCheckInt(rings, 3, "a three-color border has 3 rings");
 
   for (int i = 0; i < 3; i++) {
     int size = kSizes[i];
@@ -261,11 +271,13 @@ static void CaseRing0HasNoTextPixels(void) {
     UnloadImage(image);
 
     TestCheckInt(titleInk > 0 ? 1 : 0, 1,
-                 "标题确有墨迹（否则下面是无意义的 0）");
+                 "the title has ink (otherwise the 0 below is meaningless)");
     TestCheckInt(buttonInk > 0 ? 1 : 0, 1,
-                 "按钮确有墨迹（否则下面是无意义的 0）");
-    TestCheckInt(titleRing, 0, "标题栏 ring0 三行内没有标题字色像素");
-    TestCheckInt(buttonRing, 0, "按钮 ring0 三行内没有按钮字色像素");
+                 "the button has ink (otherwise the 0 below is meaningless)");
+    TestCheckInt(titleRing, 0,
+                 "no title text color pixels inside title bar ring0");
+    TestCheckInt(buttonRing, 0,
+                 "no button text color pixels inside button ring0");
   }
   TestEndCase();
 }
@@ -274,7 +286,9 @@ static void CaseRing0HasNoTextPixels(void) {
 // 标题栏内区 14 - 3 = 11，余量 0、字顶字底贴边。这是「12 号不建议用
 // triple」这个结论的根据，用断言钉住。
 static void CaseTripleMarginAtSize12(void) {
-  TestBeginCase("内缩量：12 号三色边框余量为 0，字顶字底正好贴边");
+  TestBeginCase(
+      "inset: at size 12 a three-color border leaves 0 margin, ink touches "
+      "both edges");
   ApplyProbeStyle();
   gUiStyle.borderStyle = UI_BORDER_TRIPLE;
 
@@ -296,10 +310,12 @@ static void CaseTripleMarginAtSize12(void) {
                            barHeight + UI_PADDING, gUiStyle.titleText);
     UnloadImage(image);
 
-    ReportRunCount("标题栏内的标题墨迹", scan);
-    TestCheckInt(scan.runCount, 1, "标题栏内只有一段标题墨迹");
+    ReportRunCount("title ink inside the title bar", scan);
+    TestCheckInt(scan.runCount, 1,
+                 "exactly one title ink run inside the title bar");
     if (scan.runCount != 1) {
-      TestFail("没能定位到唯一的标题墨迹段，无法核对内缩量");
+      TestFail(
+          "could not locate the single title ink run, cannot verify the inset");
       continue;
     }
 
@@ -307,18 +323,23 @@ static void CaseTripleMarginAtSize12(void) {
     int leftOver = barHeight - rings - inkHeight;
 
     if (size == 12) {
-      TestCheckInt(inkHeight, kTitleInkHeight12, "12 号标题墨迹并集高为 11px");
+      TestCheckInt(inkHeight, kTitleInkHeight12,
+                   "title ink union height at size 12 is 11px");
       TestCheckInt(scan.runTop[0] - kProbeY, kTitleInkTop12,
-                   "12 号标题墨迹上缘落在框顶往下 3px（紧贴 ring0 内侧）");
+                   "title ink top at size 12 lands 3px below the frame top "
+                   "(flush inside ring0)");
       TestCheckInt(scan.runBottom[0] - kProbeY, kTitleInkBottom12,
-                   "12 号标题墨迹下缘落在框顶往下 13px（紧贴标题栏底）");
-      TestCheckInt(leftOver, 0, "12 号三色边框的上下余量都是 0");
+                   "title ink bottom at size 12 lands 13px below the frame top "
+                   "(flush with the title bar bottom)");
+      TestCheckInt(leftOver, 0, "top and bottom margins are both 0 at size 12");
     } else {
       int expected = (size == 24) ? 1 : 2;
       TestCheckInt(leftOver, expected,
-                   "该字号下三色边框的剩余留白符合 README 实测");
+                   "the remaining padding for a three-color border matches the "
+                   "README measurement at this size");
     }
-    TestCheck(scan.runTop[0] - kProbeY >= rings, "标题墨迹上缘没有落进 ring0");
+    TestCheck(scan.runTop[0] - kProbeY >= rings,
+              "the title ink top does not fall into ring0");
   }
   TestEndCase();
 }
@@ -328,7 +349,9 @@ static void CaseTripleMarginAtSize12(void) {
 // 也不变，于是全都放过。这里按墨迹在三色边框内区的上下余量是否对称来
 // 判，把按钮的居中公式也钉住。
 static void CaseButtonInkCentered(void) {
-  TestBeginCase("按钮文字：triple 与 none 墨迹像素数相等，且在内区居中");
+  TestBeginCase(
+      "button text: ink pixel counts match under triple and none, and it is "
+      "centered in the inner area");
   const char* label = GetString(kButtonKey);
   static const int kSizes[] = {12, 24, 36};
   int rings = RingCountOf(UI_BORDER_TRIPLE);
@@ -355,13 +378,15 @@ static void CaseButtonInkCentered(void) {
       UnloadImage(image);
     }
 
-    ReportRunCount("按钮内的文字墨迹（none）", scans[0]);
-    ReportRunCount("按钮内的文字墨迹（triple）", scans[1]);
+    ReportRunCount("button text ink (none)", scans[0]);
+    ReportRunCount("button text ink (triple)", scans[1]);
     TestCheckInt(scans[0].pixelCount > 0 ? 1 : 0, 1,
-                 "按钮确有墨迹（否则下面是无意义的 0）");
-    TestCheckInt(scans[1].runCount, 1, "按钮内只有一段文字墨迹");
-    TestCheckInt(scans[1].pixelCount, scans[0].pixelCount,
-                 "triple 边框下按钮墨迹像素数与 none 相等");
+                 "the button has ink (otherwise the 0 below is meaningless)");
+    TestCheckInt(scans[1].runCount, 1,
+                 "exactly one text ink run inside the button");
+    TestCheckInt(
+        scans[1].pixelCount, scans[0].pixelCount,
+        "button ink pixel count under a triple border equals the none case");
     if (scans[1].runCount != 1) continue;
 
     // 三色边框的内区是 [按钮顶 + 圈数, 按钮底 - 圈数)，居中要求上下余量对称
@@ -372,11 +397,12 @@ static void CaseButtonInkCentered(void) {
                                          : bottomMargin - topMargin;
     char what[160];
     snprintf(what, sizeof(what),
-             "%d 号按钮文字在边框内区居中（上余量 %d、下余量 %d）", size,
-             topMargin, bottomMargin);
+             "button text at size %d is centered in the border inner area "
+             "(top margin %d, bottom margin %d)",
+             size, topMargin, bottomMargin);
     TestCheckInt(gap <= 1 ? 1 : 0, 1, what);
     TestCheck(scans[1].runTop[0] - kProbeButtonY >= rings,
-              "按钮文字上缘没有落进 ring0");
+              "the button text top does not fall into ring0");
   }
   TestEndCase();
 }
@@ -397,7 +423,7 @@ int main(void) {
   InitTheme();
   InitCanvas();
 
-  TestBegin("界面行距与居中回归测试");
+  TestBegin("UI line step and centering regression tests");
   CaseLineStep();
   CaseBorderDoesNotCoverTitle();
   CaseRing0HasNoTextPixels();

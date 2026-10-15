@@ -34,7 +34,8 @@ void LangSet(const char* id) {
   if (id != NULL) {
     if (!LangIsKnown(id)) {
       // 调用方负责校验，走到这里说明校验被绕过：保持原语言，不静默改
-      TraceLog(LOG_ERROR, "Lang: 不支持的语言 %s，保持 %s", id, sCurrent);
+      TraceLog(LOG_ERROR, "Lang: unsupported language %s, keeping %s", id,
+               sCurrent);
       return;
     }
     sCurrent = id;
@@ -45,7 +46,8 @@ void LangSet(const char* id) {
   // 目录缺失不是致命错误：文案会回退成 key 本身，缺字检查照常告警。
   // 打一条提醒是为了打包漏带语言目录时不至于一头雾水。
   if (!DirectoryExists(sStringsDir)) {
-    TraceLog(LOG_WARNING, "Lang: 文案目录不存在：%s", sStringsDir);
+    TraceLog(LOG_WARNING, "Lang: UI strings directory not found: %s",
+             sStringsDir);
   }
 }
 
