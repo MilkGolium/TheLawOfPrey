@@ -22,7 +22,11 @@ void TestSceneInit(void) {
   messageBoxFocus = 0;
 }
 
+extern void UiProbeArm(bool on);
+static int sProbeFrame = 0;
+
 void TestSceneUpdate(void) {
+  UiProbeArm(sProbeFrame++ == 0);  /* PROBE: 第 1 帧给出一次 Enter 边沿 */
   if (!IsBackKeyPressed()) return;
   if (showMessageBox) {
     showMessageBox = false;
@@ -41,8 +45,12 @@ void TestSceneDraw(void) {
   const int buttonWidth =
       UI_ALIGN12(UiMeasureText(label, kLabelSize).width + 2 * UI_PADDING);
   if (UiButton(24, 24, buttonWidth, UI_BUTTON_HEIGHT(kLabelSize), label,
-               kLabelSize, !showMessageBox))
+               kLabelSize, !showMessageBox)) {
     showMessageBox = true;
+    // 本帧到此为止：打开模态框的这一次按键边沿在同一帧里是整帧可见的，
+    // 框里的默认按钮会再吃一遍，框当场被关掉（表现为「闪一下就没了」）。
+    return;
+  }
 
   if (showMessageBox) {
     const char* buttons[] = {GetString("button_ok"), GetString("button_close")};
@@ -51,6 +59,7 @@ void TestSceneDraw(void) {
                               &messageBoxFocus);
     if (result != -2) showMessageBox = false;
   }
+  TraceLog(LOG_INFO, "PROBE 帧内 打开前=%d 结束后=%d", before, showMessageBox);
 }
 
 void TestSceneUnload(void) {}
