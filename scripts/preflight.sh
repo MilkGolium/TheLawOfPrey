@@ -1,10 +1,13 @@
-# 构建前置检查库，被 scripts/build.sh 与 scripts/run_tests.sh 用 source 引入。
-# 没有 shebang，也没有可执行位：它不单独执行。
-# 只负责把「工具没就位」这件事说清楚——缺什么、按发行版怎么装、然后退出。
-# 绝不自动安装任何东西，也绝不代跑 sudo；缺依赖一律以非零码退出。
+# Build preflight checks, sourced by scripts/build.sh and scripts/run_tests.sh.
+# No shebang and no executable bit: this file is never run on its own.
+# It answers one question -- is the toolchain here -- and when it is not, it
+# prints what is missing plus how to install it per distribution, then exits.
+# It never installs anything and never runs sudo for you; a failed check always
+# exits non-zero. All output is ASCII so it stays readable on a plain console.
 
-# 本项目用到的 cmake 功能在 3.16 之前就已全部存在，版本要求只按「发行版自带的够用」定档。
-kRequiredCMake="3.16"  # 与 CMakeLists.txt 的 cmake_minimum_required 保持一致
+# Every CMake feature this project uses predates 3.16, so the floor is set by
+# "whatever the distributions ship".
+kRequiredCMake="3.16"  # keep in sync with cmake_minimum_required in CMakeLists.txt
 
 PreflightRequireCMake() {
   local required_major required_minor version_line version major minor
@@ -13,22 +16,24 @@ PreflightRequireCMake() {
 
   if ! command -v cmake >/dev/null 2>&1; then
     printf '%s\n' \
-      "[前置检查] 未找到 cmake 命令。" \
+      "[preflight] cmake not found in PATH." \
       "" \
-      "发行版仓库里的 cmake 往往太旧，达不到本项目要求的最低版本（${kRequiredCMake}）。可以这样装：" \
+      "This project needs ${kRequiredCMake} or newer; distribution packages are often older." \
+      "Ways to get a current cmake:" \
       "" \
-      "  pip install cmake                最快拿到新版" \
-      "  Debian/Ubuntu 的 Kitware 官方 apt 源" \
-      "      先按 https://cmake.org/install/ 配好源，再执行 sudo apt install cmake" \
+      "  pip install cmake                  fastest way to a current release" \
+      "  Debian/Ubuntu: Kitware's apt repository" \
+      "      set it up as described at https://cmake.org/install/ then: sudo apt install cmake" \
       "  snap install cmake --classic" \
-      "  macOS：brew install cmake" \
-      "  FreeBSD：pkg install cmake" \
+      "  macOS:   brew install cmake" \
+      "  FreeBSD: pkg install cmake" \
       "" \
-      "以上命令请自行执行。这是构建前置检查，构建尚未开始。"
+      "Run that command yourself. This is a build preflight check; the build has not started."
     exit 1
   fi
 
-  # 只看第一行，形如「cmake version 3.16.3」；取 major.minor 与最低要求做整数比较。
+  # First line only, shaped like "cmake version 3.16.3"; compare major.minor as
+  # integers.
   version_line="$(cmake --version 2>/dev/null || true)"
   version_line="${version_line%%$'\n'*}"
   version="${version_line##* }"
@@ -36,25 +41,27 @@ PreflightRequireCMake() {
   IFS=. read -r major minor _ <<<"${version}"
   major="${major:-0}"
   minor="${minor:-0}"
-  # 一律按十进制读：bash 算术会把带前导零的数字当八进制（"08" 直接报错），
-  # 算术出错会让下面的比较判假，也就是把畸形的版本串静默判成「合格」。
+  # Force base 10: bash arithmetic reads a leading zero as octal ("08" is an
+  # error), and an arithmetic error makes the comparison below false, which
+  # would silently pass a malformed version string.
   major="$((10#${major}))"
   minor="$((10#$minor))"
 
   if (( major < required_major || (major == required_major && minor < required_minor) )); then
     printf '%s\n' \
-      "[前置检查] cmake 版本不达标：需要 ${kRequiredCMake} 或更高，实际读到「${version_line:-（空输出）}」。" \
+      "[preflight] cmake is too old: ${kRequiredCMake} or newer is required, found \"${version_line:-no version output}\"." \
       "" \
-      "发行版仓库里的 cmake 往往太旧，达不到本项目要求的最低版本。可以这样装：" \
+      "Distribution packages are often older than this project needs." \
+      "Ways to get a current cmake:" \
       "" \
-      "  pip install cmake                最快拿到新版" \
-      "  Debian/Ubuntu 的 Kitware 官方 apt 源" \
-      "      先按 https://cmake.org/install/ 配好源，再执行 sudo apt install cmake" \
+      "  pip install cmake                  fastest way to a current release" \
+      "  Debian/Ubuntu: Kitware's apt repository" \
+      "      set it up as described at https://cmake.org/install/ then: sudo apt install cmake" \
       "  snap install cmake --classic" \
-      "  macOS：brew install cmake" \
-      "  FreeBSD：pkg install cmake" \
+      "  macOS:   brew install cmake" \
+      "  FreeBSD: pkg install cmake" \
       "" \
-      "以上命令请自行执行。这是构建前置检查，构建尚未开始。"
+      "Run that command yourself. This is a build preflight check; the build has not started."
     exit 1
   fi
 }
@@ -62,18 +69,18 @@ PreflightRequireCMake() {
 PreflightRequireNinja() {
   if ! command -v ninja >/dev/null 2>&1; then
     printf '%s\n' \
-      "[前置检查] 未找到 ninja 命令。" \
+      "[preflight] ninja not found in PATH." \
       "" \
-      "本项目的构建脚本固定使用 Ninja 生成器，请按发行版安装：" \
+      "The build scripts always use the Ninja generator; install it per distribution:" \
       "" \
-      "  Debian/Ubuntu：sudo apt install ninja-build" \
-      "  Fedora：sudo dnf install ninja-build" \
-      "  Arch：sudo pacman -S ninja" \
-      "  openSUSE：sudo zypper install ninja" \
-      "  macOS：brew install ninja" \
-      "  FreeBSD：pkg install ninja" \
+      "  Debian/Ubuntu: sudo apt install ninja-build" \
+      "  Fedora:        sudo dnf install ninja-build" \
+      "  Arch:          sudo pacman -S ninja" \
+      "  openSUSE:      sudo zypper install ninja" \
+      "  macOS:         brew install ninja" \
+      "  FreeBSD:       pkg install ninja" \
       "" \
-      "以上命令请自行执行。这是构建前置检查，构建尚未开始。"
+      "Run that command yourself. This is a build preflight check; the build has not started."
     exit 1
   fi
 }
@@ -83,17 +90,18 @@ PreflightRequireCompiler() {
      ! command -v clang >/dev/null 2>&1 &&
      ! command -v gcc >/dev/null 2>&1; then
     printf '%s\n' \
-      "[前置检查] 未找到 C 编译器（cc、clang、gcc 都没有）。" \
+      "[preflight] no C compiler found (none of cc, clang, gcc)." \
       "" \
-      "本项目是 C11 + raylib，至少要有一个 C 编译器在 PATH 里，请按发行版安装：" \
+      "This project is C11 + raylib and needs at least one C compiler in PATH;" \
+      "install one per distribution:" \
       "" \
-      "  Debian/Ubuntu：sudo apt install build-essential" \
-      "  Fedora：sudo dnf groupinstall \"Development Tools\"" \
-      "  Arch：sudo pacman -S base-devel" \
-      "  macOS：xcode-select --install" \
-      "  FreeBSD：pkg install llvm" \
+      "  Debian/Ubuntu: sudo apt install build-essential" \
+      "  Fedora:        sudo dnf groupinstall \"Development Tools\"" \
+      "  Arch:          sudo pacman -S base-devel" \
+      "  macOS:         xcode-select --install" \
+      "  FreeBSD:       pkg install llvm" \
       "" \
-      "以上命令请自行执行。这是构建前置检查，构建尚未开始。"
+      "Run that command yourself. This is a build preflight check; the build has not started."
     exit 1
   fi
 }

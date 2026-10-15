@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""素材一致性核查：图标路径大小写、路径规范与悬空引用。
+"""Asset consistency check: icon path case, path rules, dangling references.
 
-只用标准库。退出码：存在错误返回 1，只有警告返回 0。
+Standard library only. Exit code: 1 when errors exist, 0 when only warnings do.
 
-关键约定：本脚本刻意不使用 os.path.exists 判断图标是否存在。macOS 等
-大小写不敏感的文件系统上，os.path.exists('a/bone.png') 在磁盘只有
-'Bone.png' 时同样返回 True，会漏报大小写不符这一类错误。改为先用
-os.listdir() 取回目录下的真实文件名，再做逐字节精确比对。
+Key convention: this script deliberately avoids os.path.exists to decide whether
+an icon exists. On a case-insensitive filesystem such as macOS,
+os.path.exists('a/bone.png') also returns True when the disk only holds
+'Bone.png', which would hide exactly the case-mismatch class of error. Instead
+the real file names are read with os.listdir() and compared byte for byte.
 """
 
 import csv
 import os
 import sys
 
-# 与 scripts/build.sh 的 TOP_DIR 同义：脚本所在目录的上一级即仓库根。
+# Same meaning as TOP_DIR in scripts/build.sh: the parent of this script is the repo root.
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ITEMS_CSV = os.path.join(ROOT, 'assets', 'databases', 'items.csv')
@@ -22,30 +23,30 @@ ICON_DIR = os.path.join(ROOT, 'assets', 'sprites', 'item_icons')
 ICON_PREFIX = 'assets' + os.sep + 'sprites' + os.sep
 PNG_SUFFIX = '.png'
 
-# 每类明细最多列出的条数，其余只给计数。
+# At most this many rows are listed per category; the rest are only counted.
 DETAIL_LIMIT = 10
 
 
 def load_table(path, label, required):
-    """读 CSV，返回 (行列表, 错误信息列表)。缺列属于错误，退出码由调用方决定。"""
+    """Read a CSV, return (rows, errors). Missing columns are errors; the caller decides."""
     errors = []
     if not os.path.isfile(path):
-        return [], ['文件不存在：%s' % label]
+        return [], ['file not found: %s' % label]
 
     with open(path, newline='', encoding='utf-8-sig') as handle:
         reader = csv.DictReader(handle)
         if reader.fieldnames is None:
-            return [], ['文件为空：%s' % label]
+            return [], ['file is empty: %s' % label]
         missing = [c for c in required if c not in reader.fieldnames]
         if missing:
-            return [], ['%s 缺少字段：%s' % (label, '、'.join(missing))]
+            return [], ['%s is missing column(s): %s' % (label, ', '.join(missing))]
         rows = list(reader)
 
     return rows, errors
 
 
 def list_icon_dir():
-    """用 os.listdir 取真实文件名。返回 (精确名集合, 折叠大小写后的映射, 冲突列表)。"""
+    """Read real file names with os.listdir. Returns (exact set, folded map, conflicts)."""
     if not os.path.isdir(ICON_DIR):
         return None, {}, []
 
@@ -64,21 +65,21 @@ def list_icon_dir():
     return exact, folded, conflicts
 
 
-def show(title, count, rows, render, unit='条'):
-    """打印某一类的计数与前若干条明细。"""
-    print('  %s：%d %s' % (title, count, unit))
+def show(title, count, rows, render, unit='entries'):
+    """Print one category's count and its first few rows."""
+    print('  %s: %d %s' % (title, count, unit))
     if count == 0:
         return
     shown = rows[:DETAIL_LIMIT]
     for row in shown:
         print('    - %s' % render(row))
     if count > len(shown):
-        print('    ...另有 %d 条未列出' % (count - len(shown)))
+        print('    ...%d more not listed' % (count - len(shown)))
 
 
 def main():
-    print('素材一致性核查')
-    print('仓库根目录：%s' % ROOT)
+    print('Asset consistency check')
+    print('repository root: %s' % ROOT)
     print()
 
     items, item_errors = load_table(
@@ -88,7 +89,7 @@ def main():
 
     hard_errors = list(item_errors) + list(consumable_errors)
 
-    # 按 texture 路径归并，重复引用同一图标的行不重复计入明细。
+    # Group by texture path; rows reusing the same icon are not listed twice.
     order = []
     usage = {}
     for row in items:
@@ -98,25 +99,25 @@ def main():
             order.append(texture)
         usage[texture].append((row.get('id') or '').strip())
 
-    print('[数据表]')
-    print('  assets/databases/items.csv：%d 条记录，%d 个不同 texture 路径'
+    print('[tables]')
+    print('  assets/databases/items.csv: %d rows, %d distinct texture paths'
           % (len(items), len(order)))
-    print('  assets/databases/consumables.csv：%d 条记录'
+    print('  assets/databases/consumables.csv: %d rows'
           % len(consumables))
     if hard_errors:
-        print('  数据表读取错误：')
+        print('  data table errors:')
         for message in hard_errors:
             print('    - %s' % message)
         print()
-        print('结论：数据表不可读，无法继续核查。')
+        print('Result: data tables are unreadable, cannot continue.')
         return 1
     print()
 
     def render_texture(texture):
-        ids = '、'.join(i for i in usage[texture] if i) or '?'
-        return '%s（item id=%s）' % (texture, ids)
+        ids = ', '.join(i for i in usage[texture] if i) or '?'
+        return '%s (item id=%s)' % (texture, ids)
 
-    # 路径规范：仓库根相对、位于 assets/sprites/ 下、扩展名为小写 .png。
+    # Path rules: relative to the repo root, under assets/sprites/, lowercase .png.
     bad_abs = [t for t in order if os.path.isabs(t) or t.startswith('~')]
     bad_escape = [t for t in order
                   if '..' in os.path.normpath(t).split(os.sep)]
@@ -124,21 +125,21 @@ def main():
                   if not t.replace('/', os.sep).startswith(ICON_PREFIX)]
     bad_ext = [t for t in order if not t.endswith(PNG_SUFFIX)]
 
-    print('[检查一] texture 路径规范（相对仓库根、assets/sprites/ 下、小写 .png）')
-    show('非相对路径（错误）', len(bad_abs), bad_abs, render_texture)
-    show('含 .. 越界（错误）', len(bad_escape), bad_escape, render_texture)
-    show('不在 assets/sprites/ 下（错误）', len(bad_prefix), bad_prefix,
+    print('[texture paths] texture path rules (repo-relative, under assets/sprites/, lowercase .png)')
+    show('not a relative path (error)', len(bad_abs), bad_abs, render_texture)
+    show('escapes with .. (error)', len(bad_escape), bad_escape, render_texture)
+    show('outside assets/sprites/ (error)', len(bad_prefix), bad_prefix,
          render_texture)
-    show('扩展名非小写 .png（错误）', len(bad_ext), bad_ext, render_texture)
+    show('extension is not lowercase .png (error)', len(bad_ext), bad_ext, render_texture)
     norm_errors = len(bad_abs) + len(bad_escape) + len(bad_prefix) + len(bad_ext)
-    print('  小计：%d 条错误' % norm_errors)
+    print('  subtotal: %d error(s)' % norm_errors)
     print()
 
-    # 存在性：真实文件名精确比对，见模块 docstring 的说明。
+    # Existence: byte-exact comparison against real file names, see the module docstring.
     exact, folded, conflicts = list_icon_dir()
     matched, cased, absent = [], [], []
     if exact is None:
-        hard_errors.append('图标目录不存在：assets/sprites/item_icons')
+        hard_errors.append('icon directory not found: assets/sprites/item_icons')
         matched, cased, absent = [], [], order
     else:
         for texture in order:
@@ -150,24 +151,24 @@ def main():
             else:
                 absent.append(texture)
 
-    print('[检查二] 图标文件存在性（大小写敏感）')
+    print('[icon existence] icon file existence (case sensitive)')
     if exact is None:
-        print('  图标目录不存在，全部 %d 个路径无法核查' % len(order))
+        print('  icon directory missing; none of the %d paths can be checked' % len(order))
     else:
         for old, new in conflicts:
-            print('    - 错误：磁盘同时存在 %s 与 %s，仅大小写不同' % (old, new))
-        print('  磁盘实际文件数：%d' % len(exact))
-        show('完全匹配', len(matched), matched, render_texture)
-        show('仅大小写不符（错误）', len(cased), cased,
-             lambda p: 'CSV 写 %s，磁盘实际为 %s（%s）'
+            print('    - error: %s and %s both exist on disk, differing only in case' % (old, new))
+        print('  files actually on disk: %d' % len(exact))
+        show('exact match', len(matched), matched, render_texture)
+        show('case mismatch only (error)', len(cased), cased,
+             lambda p: 'CSV says %s, disk has %s (%s)'
                        % (p[0], p[1], render_texture(p[0])))
-        show('文件不存在（警告，美术未交付）', len(absent), absent, render_texture)
+        show('missing on disk (warning, art not delivered yet)', len(absent), absent, render_texture)
     case_errors = len(cased) + len(conflicts)
-    print('  小计：%d 条错误（大小写不符或磁盘重名），%d 条警告（文件不存在）'
+    print('  subtotal: %d error(s) (case mismatch or duplicate on disk), %d warning(s) (missing file)'
           % (case_errors, len(absent)))
     print()
 
-    # consumables.csv 的 item_id 必须能在 items.csv 的 id 中找到。
+    # Every item_id in consumables.csv must exist as an id in items.csv.
     item_ids = {(row.get('id') or '').strip() for row in items}
     dangling = []
     seen_ids = set()
@@ -179,19 +180,19 @@ def main():
         if item_id not in item_ids:
             dangling.append(item_id)
 
-    print('[检查三] consumables.csv 悬空引用')
-    show('item_id 在 items.csv 中找不到（错误）', len(dangling), dangling,
+    print('[consumables] consumables.csv dangling references')
+    show('item_id not found in items.csv (error)', len(dangling), dangling,
          lambda i: 'item_id=%s' % i)
     print()
 
     total_errors = norm_errors + case_errors + len(dangling) + len(hard_errors)
     total_warnings = len(absent)
 
-    print('结论：错误 %d 条，警告 %d 条' % (total_errors, total_warnings))
+    print('Result: %d error(s), %d warning(s)' % (total_errors, total_warnings))
     if total_errors:
-        print('有错误，退出码 1。')
+        print('Errors present, exit code 1.')
         return 1
-    print('无错误（警告不阻断），退出码 0。')
+    print('No errors (warnings do not block), exit code 0.')
     return 0
 
 

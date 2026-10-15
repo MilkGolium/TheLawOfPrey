@@ -159,6 +159,7 @@ OpenBSD 在构建项目时遇到一个头文件缺失问题，据说可以通过
 ## 代码及文档规范
 - 交流与注释中的路径表示约定：默认从项目根目录起始，例如根目录下的 `.clang-format` 表示为 `.clang-format` ，`main.c` 在 项目根目录 `/src/main.c` ，所以表示为 `src/main.c` 。
 - 代码中不要使用 emoji ，注释不要包含 12345 类似的编号（ AI 经常这样做）；允许 ASCII 和中文汉字。
+- `scripts/` 下的脚本（sh 与 py）**输出与注释一律英文**：FreeBSD / Linux 的 tty 默认没有中文字形，中文会显示成方块或乱码。C 代码的注释不受此限，因为它不进入终端。
 - C 代码使用 Google Style ，限宽 80 字符，配置已经写在了 `.clang-format` 里面。
 - Google Style 中常量/只读变量以 k 开头（Constant），全局变量以 g 开头（Global），静态变量以 s 开头（Static）。
 - 文件名使用蛇形规范，例如 `main_scene.c`, `scene_manager.c` 。
