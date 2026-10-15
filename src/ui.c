@@ -209,14 +209,23 @@ void UiDrawLabel(int x, int y, const char* text, int size) {
 // raylib 把字形画在 posY + glyph.offsetY，墨迹的上下边界与字号并不相等。
 // 垂直居中必须按真实墨迹算：加载字号变大后 offsetY 同比增长，若仍按
 // 「高度 - 字号」摆放，文字会整体下坠。返回 false 表示串内没有可绘制字形。
-static bool TextInkBounds(const char* text, int size, int* outTop,
-                          int* outHeight) {
+// 垂直居中用的「主体块」：墨迹上缘到基线，不含下伸部（拉丁 g、y 等）。
+//
+// 为什么不能直接用整串墨迹盒：下伸部会把墨迹盒往下撑长，按墨迹盒居中会让
+// 字母主体偏上（英文 Message Box 主体 2 行在上、6 行在下，偏一个像素方块；
+// 中文没有下伸部，所以一直没暴露）。基线取字形底边的众数——下伸字形通常是
+// 少数，取最大值会被它们拉低整串的视觉中心。没有下伸部的串，主体块与墨迹盒
+// 完全一致，版面不受影响。
+static bool TextBodyBounds(const char* text, int size, int* outTop,
+                           int* outHeight) {
   Font f = GetUIFont(size);
   // 图集未加载成功时 Font 内部为空，访问 recs/glyphs 会越界
   if (!FontIsUsable(f)) return false;
   int top = 0;
-  int bottom = 0;
+  int worstBottom = 0;
   bool found = false;
+  // 字形底边直方图，用来求基线（众数）。字号最大 36 时行盒 48，留到 64 够用。
+  int bottomCounts[64] = {0};
   for (const char* p = text; *p != '\0';) {
     int charBytes = 0;
     int codepoint = GetCodepointNext(p, &charBytes);
@@ -232,8 +241,21 @@ static bool TextInkBounds(const char* text, int size, int* outTop,
     int glyphTop = f.glyphs[index].offsetY;
     int glyphBottom = glyphTop + (int)f.recs[index].height;
     if (!found || glyphTop < top) top = glyphTop;
-    if (!found || glyphBottom > bottom) bottom = glyphBottom;
+    if (glyphBottom > worstBottom) worstBottom = glyphBottom;
+    if (glyphBottom >= 0 && glyphBottom < (int)(sizeof(bottomCounts) /
+                                                sizeof(bottomCounts[0])))
+      bottomCounts[glyphBottom]++;
     found = true;
+  }
+  // 基线 = 出现次数最多的字形底边；并列时取较高的那个，宁可少算下伸部
+  int bottom = worstBottom;
+  int best = 0;
+  for (int i = 0; i < (int)(sizeof(bottomCounts) / sizeof(bottomCounts[0]));
+       i++) {
+    if (bottomCounts[i] > best) {
+      best = bottomCounts[i];
+      bottom = i;
+    }
   }
   if (found) {
     *outTop = top;
@@ -263,7 +285,7 @@ bool UiButton(int x, int y, int width, int height, const char* label, int size,
   int inkTop = 0;
   int inkHeight = 0;
   int textY = y + (height - size) / 2;
-  if (TextInkBounds(label, size, &inkTop, &inkHeight))
+  if (TextBodyBounds(label, size, &inkTop, &inkHeight))
     textY = y + inset + (height - inset - inkHeight) / 2 - inkTop;
   UiDrawText(textX, textY, label, size, fg);
 
@@ -285,7 +307,7 @@ void UiDrawBox(int x, int y, int width, int height, const char* title,
   int inkTop = 0;
   int inkHeight = 0;
   int titleY = y + inset;
-  if (TextInkBounds(title, size, &inkTop, &inkHeight))
+  if (TextBodyBounds(title, size, &inkTop, &inkHeight))
     titleY = y + inset + (titleBarHeight - inset - inkHeight) / 2 - inkTop;
   UiDrawText(x + UI_PADDING, titleY, title, size, gUiStyle.titleText);
 }
