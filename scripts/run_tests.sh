@@ -6,6 +6,7 @@ set -euo pipefail
 #
 # The theme regression tests create scratch .cfg files under tests/tmp/themes
 # and remove them afterwards, so nothing is left behind in assets/.
+# The config regression tests do the same under tests/tmp/config.
 
 TOP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${TOP_DIR}/scripts/preflight.sh"
@@ -25,4 +26,5 @@ ctest --test-dir "${TOP_DIR}/build/Debug" --output-on-failure
 echo
 echo "Tests finished. Test binaries:"
 echo "  Debug: ${TOP_DIR}/build/Debug/theme_tests"
+echo "  Debug: ${TOP_DIR}/build/Debug/config_tests"
 echo "  Debug: ${TOP_DIR}/build/Debug/ui_tests"

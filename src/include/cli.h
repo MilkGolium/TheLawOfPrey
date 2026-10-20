@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 
-// 开发工具用的启动参数，不是配置系统：目标帧数与分辨率这些要外置的设置
-// 走另一条通路（README「游玩闭环」的「配置外置」），两者不揉在一起。
+// 开发工具用的启动参数。持久化配置走另一条通路（见 config.h 与 README
+// 「配置文件」），两者不揉在一起：--config 只指定读哪个配置文件，
+// 取值的优先级仍是启动参数 > 配置文件 > 代码默认值。
 // 参数表与报错口径见 README「命令行参数（开发工具）」。
 
 // --frames 的缺省帧数
@@ -16,6 +17,7 @@ typedef struct {
   int frames;              // 仅在 exportPath 非 NULL 时有意义
   bool windowed;           // 本次不进全屏
   const char* lang;        // NULL 表示未指定，用缺省语言（见 lang.h）
+  const char* configPath;  // NULL 表示用平台默认的配置文件位置
 } CliOptions;
 
 // 解析 argv。先把 out 填成缺省值再逐项覆盖。成功返回 true；失败返回 false，

@@ -13,7 +13,7 @@
 // 未知参数、缺 =、同一参数重复给出都报错退出。
 static const char* const kUsage =
     "Usage: TheLawOfPrey [--scene=<name>] [--export-frame=<path>]\n"
-    "                      [--frames=<n>] [--windowed]\n"
+    "                      [--frames=<n>] [--windowed] [--config=<path>]\n"
     "\n"
     "  --scene=<name>       start scene, one of title / settings / test\n"
     "  --export-frame=<path> render the design canvas (640*480) after the\n"
@@ -23,6 +23,9 @@ static const char* const kUsage =
     "                       must be >= 1; on its own it is a usage error\n"
     "  --windowed           stay windowed this run; ignored when given\n"
     "                       together with --export-frame\n"
+    "  --config=<path>      read the settings from this file instead of the\n"
+    "                       platform default location; the path must exist\n"
+    "                       and be readable\n"
     "  --lang=<id>          UI string language, one of ";
 
 // 用法里的语言清单从语言表取，避免在这里再抄一份
@@ -61,12 +64,14 @@ bool CliParse(int argc, char** argv, CliOptions* out) {
   out->frames = CLI_DEFAULT_FRAMES;
   out->windowed = false;
   out->lang = NULL;
+  out->configPath = NULL;
 
   bool seenScene = false;
   bool seenExportFrame = false;
   bool seenFrames = false;
   bool seenWindowed = false;
   bool seenLang = false;
+  bool seenConfig = false;
 
   for (int i = 1; i < argc; i++) {
     const char* arg = argv[i];
@@ -116,6 +121,13 @@ bool CliParse(int argc, char** argv, CliOptions* out) {
       if (value[0] == '\0') return Reject("language id is empty: %s", arg);
       if (!LangIsKnown(value)) return Reject("unsupported language: %s", value);
       out->lang = value;
+    } else if (KeyEquals(arg, keyLength, "--config")) {
+      if (seenConfig) return Reject("duplicate option: %s", arg);
+      seenConfig = true;
+      if (value[0] == '\0') return Reject("config path is empty: %s", arg);
+      // 路径能不能打开由配置模块判定：显式指定的路径打不开是硬错误，
+      // 那样退出比静默退回默认值更早暴露打错的路径。
+      out->configPath = value;
     } else {
       return Reject("unknown option: %s", arg);
     }

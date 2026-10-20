@@ -25,6 +25,7 @@ add_library(raylib_deps INTERFACE)
 # Bodies only, deliberately without src/main.c: the tests bring their own
 # entry point.
 set(GAME_SOURCES
+  src/config.c
   src/font.c
   src/graphsettings.c
   src/lang.c
@@ -96,6 +97,17 @@ target_compile_definitions(theme_tests PRIVATE
 )
 configure_project_target(theme_tests)
 add_test(NAME theme_tests COMMAND theme_tests)
+
+# 配置文件解析器。配置文件的位置由接口给出，测试在自己的临时目录里
+# 造文件，不会往 assets/ 下留任何东西，游戏本体那边仍然只认平台默认位置。
+add_executable(config_tests
+  tests/config_tests.c
+  tests/test_util.c
+  ${GAME_SOURCES}
+)
+target_include_directories(config_tests PRIVATE tests)
+configure_project_target(config_tests)
+add_test(NAME config_tests COMMAND config_tests)
 
 # 界面度量与居中。需要一个隐藏窗口把内容画进设计画布再回读像素。
 add_executable(ui_tests

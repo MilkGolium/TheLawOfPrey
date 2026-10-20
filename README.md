@@ -33,7 +33,7 @@
 
 配色系统已实现并接入 `InitGameFont()` 之后的启动流程，公开接口为 `InitTheme()` 、 `GetThemeCount()` 、 `GetThemeName()` 、 `LoadTheme()` 、 `GetCurrentThemeName()` ；当前 11 个配色键与 2 个枚举键（`border_style` 、 `shadow_style` ），格式说明见 `assets/themes/default.cfg` 。解析器的行为（BOM 、 CRLF 、坏十六进制、未知键、禁用键、枚举键、缺 `default.cfg` 的回退等）已由 `tests/theme_tests.c` 覆盖，见「测试」。以下为待处理项。
 
-- 主题选择：`InitTheme()` 启动时载入的始终是 `default.cfg` ，其余 `.cfg` 只被扫描枚举（`GetThemeCount` / `GetThemeName` ），也可由 `LoadTheme` 按名加载。**留到设置界面再做**：确定玩家侧的主题切换方式，并在做设置界面的同一批改动里落地。在此之前不要**为选择主题**另开命令行参数、环境变量或 `active.cfg` 标记文件，以免多出一条会与界面互相打架的选择通路；`--scene` 一类的启动参数是开发工具（见「命令行参数（开发工具）」），不参与主题选择。
+- 主题选择：`InitTheme()` 启动时载入的始终是 `default.cfg` ，其余 `.cfg` 只被扫描枚举（`GetThemeCount` / `GetThemeName` ），也可由 `LoadTheme` 按名加载。**留到设置界面再做**：确定玩家侧的主题切换方式，并在做设置界面的同一批改动里落地。在此之前不要**为选择主题**另开命令行参数、环境变量或 `active.cfg` 标记文件，以免多出一条会与界面互相打架的选择通路；`--scene` 一类的启动参数是开发工具（见「命令行参数（开发工具）」），不参与主题选择。配置文件的 `theme` 键是那条通路的**读侧**（见「配置文件」）：启动时按名字校验，认不出就告警并保持缺省，写回等设置界面上线再定。
 
 ### 游玩闭环
 
@@ -41,7 +41,6 @@
 - 游玩场景骨架：新增 `src/scenes/game_scene.c` ，引入 Camera2D 、按世界生成的分块数据渲染地砖、摄像机跟随玩家。
 - 玩家移动与碰撞：补全 `src/include/player.h` 的坐标与速度，WASD 移动，被不可通行地砖阻挡。
 - 物品数据层：解析 `assets/databases/items.csv` ，按需加载物品图标并做缓存。
-- 配置外置：去掉 `src/main.c` 中硬编码的全屏与目标帧数（分辨率已改由 `GRAPH_DESIGN_*` 提供）。
 - 保持 `scripts/build.sh` 的 Release / Debug 双配置均可构建。
 
 ### 素材
@@ -178,6 +177,14 @@ OpenBSD 在构建项目时遇到一个头文件缺失问题，据说可以通过
 bash scripts/run_tests.sh    # 构建 Debug 并跑全部用例
 ```
 
+当前三个测试程序：
+
+| 目标 | 覆盖 |
+|------|------|
+| `theme_tests` | 主题解析器：BOM 、 CRLF 、坏十六进制、未知键、禁用键、枚举键、缺 `default.cfg` 的回退等 |
+| `config_tests` | 配置文件解析器：缺文件、正常文件、未知键、坏 bool 、坏 int 、越界 int 、重复键、注释与空行与 CRLF 、显式路径不存在、运行期用错键名、权限探测、只读不回写 |
+| `ui_tests` | 界面度量与居中：行距公式、边框不吃文字、按钮与标题的墨迹居中 |
+
 约定与坑点：
 
 - 测试与本体共用 `CMakeLists.txt` 里同一套编译选项（`configure_project_target`），不要给测试单独放宽警告；双配置都要零警告。
@@ -186,11 +193,88 @@ bash scripts/run_tests.sh    # 构建 Debug 并跑全部用例
 - **回读像素时扫描窗口要比目标区域放宽**。窗口正好等于目标区域时，位置算错的墨迹会被窗口截断，量出一个偏小的尺寸反过来掩盖错误。
 - **`SetTraceLogCallback` 拿到的是原始格式串与 va_list**（raylib 6.0 如此，且 `logType < logTypeLevel` 的过滤发生在回调之前），捕获告警的回调必须自己 `vsnprintf` 。
 - **raylib 6.0 没有 `RemoveFile`** ，测试清理临时文件用 C 标准库的 `remove()` 。
-- 测试只在 `tests/tmp/` 下写临时文件（已 gitignore），不得在 `assets/` 下留任何东西；`THEME_DIR` 的编译宏覆盖只用于测试目标，游戏本体仍只认 `assets/themes` 。
+- 测试只在 `tests/tmp/` 下写临时文件（已 gitignore），不得在 `assets/` 下留任何东西；`THEME_DIR` 的编译宏覆盖只用于测试目标，游戏本体仍只认 `assets/themes` 。配置文件的位置由接口给出（`ConfigSetPathOverride`），配置测试因此同样只在 `tests/tmp/` 下造文件。
+
+## 配置文件
+
+持久化设置放在一个 `key = value` 的文本文件里。**本阶段程序只读，绝不写回**：
+回写与注释保留等设置界面上线时再定，因此手改这个文件不会丢。
+
+### 位置
+
+| 平台 | 路径 |
+|------|------|
+| macOS | `$HOME/Library/Application Support/TheLawOfPrey/config.cfg` |
+| Linux / FreeBSD | `${XDG_CONFIG_HOME:-$HOME/.config}/TheLawOfPrey/config.cfg` |
+
+`XDG_CONFIG_HOME` 为空时按 `$HOME/.config` 展开；`HOME` 也取不到时退回当前工作
+目录并打一条告警，不会崩溃。`--config=<path>` 可以指定别的文件。
+
+### 键
+
+键名、类型、默认值与合法范围只在 `src/config.c` 的键表里登记一份，设置界面
+上线后由同一张表生成控件，界面与文件格式因此不会分叉。键名**大小写敏感**，
+与键表逐字符比较。
+
+| 键 | 类型 | 默认 | 范围 / 取值 |
+|---|---|---|---|
+| `fullscreen` | bool | `true` | `true` / `false` |
+| `target_fps` | int | `144` | 30..240 |
+| `theme` | string | `default` | 主题名（应用时校验） |
+| `lang` | string | `zh-hans` | `LangIsKnown` 认可的语言标识（应用时校验） |
+
+`theme` 与 `lang` 在**应用时**校验：`theme` 要能在扫描到的主题列表里找到，
+`lang` 要过 `LangIsKnown`；认不出就告警并保持缺省，不静默改写。
+
+### 格式
+
+- 每行一条 `键 = 值`，`#` 起注释（行内的 `#` 之后同样整段忽略）。
+- 允许空行与行尾空白；行结束符 LF 与 CRLF 都认。
+- 样例见 `assets/config/config.sample.cfg` 。那份文件只是给人看的样本，
+  **程序既不创建它也不读取它**。
+
+### 优先级
+
+**启动参数 > 配置文件 > 代码默认值。**
+例如 `--lang` 覆盖配置里的 `lang`，`--windowed` 覆盖配置里的 `fullscreen`。
+`--config` 只决定读哪个文件，不改取值。
+
+启动时的两行日志分工不同：`Config: path=... fullscreen=... target_fps=...
+theme=... lang=...` 打的是**配置文件里的值**（缺键即缺省），`startup options:
+... lang=...` 打的是**启动参数覆盖后的最终生效值**。
+
+### 失败路径
+
+| 情况 | 处理 |
+|---|---|
+| 文件不存在 | 一行日志，全部用默认值（首次运行的正常状态） |
+| 文件存在但打不开 | 告警，全部用默认值 |
+| 未知键 | 告警，忽略该行 |
+| 值非法（bool 不是 `true`/`false` 、 int 非数字或越界） | 告警，**该键**退回默认值 |
+| 同一键重复 | 告警，保留先出现的 |
+
+显式指定的路径（`--config=`）打不开时**报错并非零退出**，不静默退回默认值：
+路径打错字是典型场景，静默兜底会把错误藏起来。
+
+### 权限探测
+
+`ConfigCanWrite()` 用 `access(2)` 探测：文件是否存在、是否可读、是否可写，
+以及**所在目录**是否可写。启动时那行日志把这些状态与路径、四个键的生效值
+一起打出来，四种情形分开写：
+
+- **文件不存在**：首次运行的正常状态，不是问题。
+- **存在但读不了**：告警，用默认值。
+- **存在但不可写**：告警，将来写设置会失败。
+- **目录不存在**：首次写入时需要先把它建出来。
+
+`access(2)` 只是**尽力而为**的探测：判 `W_OK` 不保证真正写入时成功（磁盘满、
+只读挂载、文件被别的进程换掉等），因此写入方仍须处理写入失败。
 
 ## 命令行参数（开发工具）
 
-给开发与自动化用的启动参数，**不是配置系统**——「配置外置」那条待办（全屏与目标帧数从配置文件读）另行处理，不要把两者揉在一起。
+给开发与自动化用的启动参数。持久化配置走另一条通路（见「配置文件」），两者
+不揉在一起：`--config` 只决定读哪个配置文件，取值的优先级仍是
+启动参数 > 配置文件 > 代码默认值。
 
 - 一律写作 `--key=value` 。**不支持短选项、不支持 `/` 、不支持位置参数**；未知参数、缺 `=` 、同一参数重复给出一律报错退出并打印用法。
 - 启动时打一行日志记录本次生效的参数，便于取证。
@@ -201,6 +285,7 @@ bash scripts/run_tests.sh    # 构建 Debug 并跑全部用例
 | `--export-frame=<path>` | 渲染 `--frames` 帧后，把**当前帧的设计画布**（640×480）导出成图片后退出。导出的是画布纹理而不是窗口后备缓冲，因此**与窗口尺寸和 DPI 无关**，也不是操作系统层面的屏幕截图。格式由扩展名决定（`png` / `bmp` / `tga` / `jpg` / `qoi` 等，常用 `.png` ），扩展名不受支持或目录不存在时导出失败，必须报错并以非零码退出。导出期间窗口隐藏，不占用桌面。 |
 | `--frames=<n>` | 与 `--export-frame` 同用的帧数，缺省 2 ，必须 ≥ 1 ；单独给出时视为用法错误。 |
 | `--windowed` | 本次不进全屏。与 `--export-frame` 同时给出时该参数不生效，会打一条日志说明（不静默）。 |
+| `--config=<path>` | 指定配置文件的路径，不给就用平台默认位置。空值是用法错误；路径不存在或打不开时报错并以非零码退出，不静默退回默认值。 |
 | `--lang=<id>` | 指定界面文案语言，取值为 `zh-hans` / `en` （缺省 `zh-hans`）。未知取值报错退出。这是开发工具：玩家侧的语言选择属于设置界面（与主题选择同批做），届时与持久化配置共享通路，不由启动参数负责。 |
 
 退出路径与正常退出共用同一套卸载顺序（字体、文案、画布都在 `CloseWindow` 之前释放）。
@@ -339,7 +424,11 @@ Oct-15-2026 构建前置检查与平台策略收敛：`cmake_minimum_required` �
 （FreeBSD / Linux / macOS），Windows 因无机器可测且无签名证书会被 SmartScreen
 拦截而移除支持，OpenBSD 保持「等待分析」；`scripts/build.bat.bak` 与
 `scripts/build.ps1.bak` 已删除。`.gitattributes` 增加 `*.sh` 与 `*.py` 的
-`text eol=lf`。
+`text eol=lf`。同批新增持久化配置：新增 `src/config.c` 与
+`src/include/config.h` （键表、平台默认路径、`access(2)` 权限探测），命令行
+加 `--config=<path>` ，`main.c` 的全屏与目标帧数改从配置读，优先级是
+启动参数 > 配置文件 > 代码默认值；本阶段程序只读配置不回写，样例见
+`assets/config/config.sample.cfg` ；新增 `tests/config_tests.c` 12 条。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
