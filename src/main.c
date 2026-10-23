@@ -24,27 +24,15 @@ static const char* const kDefaultSceneName = "title";
 // 免得日后再次加载配置时把当前语言指过去。
 static char sLangId[32] = "";
 
-// 渲染纹理回读到 CPU 内存后上下颠倒（见 graphsettings.h），导出前翻正。
-// raylib 6.0 没有写单个像素的接口，因此以一行为单位把源图第 y 行贴到
-// 目标图的第 height - 1 - y 行。
-static Image FlipImageVertically(Image image) {
-  Image flipped = GenImageColor(image.width, image.height, BLANK);
-  for (int row = 0; row < image.height; row++) {
-    const Rectangle source = {0.0f, (float)(image.height - 1 - row),
-                              (float)image.width, 1.0f};
-    const Rectangle destination = {0.0f, (float)row, (float)image.width, 1.0f};
-    ImageDraw(&flipped, image, source, destination, WHITE);
-  }
-  return flipped;
-}
-
 // 导出设计画布。画布纹理不是渲染目标、也不是窗口后备缓冲，因此导出结果
 // 与窗口尺寸和 DPI 无关。失败（目录不存在、扩展名不受支持）返回 false。
 static bool ExportCanvasFrame(const char* path) {
-  const Image canvas = LoadImageFromTexture(GetCanvasTexture());
-  const Image flipped = FlipImageVertically(canvas);
-  const bool exported = ExportImage(flipped, path);
-  UnloadImage(flipped);
+  // 渲染纹理回读到 CPU 内存后是上下颠倒的（见 graphsettings.h），导出前翻正。
+  // 用 ImageFlipVertical 就地翻：手写逐行搬运要依赖 ImageDraw，而那个函数在
+  // raylib 6.5 里已经被移除（6.0 还在），换版本就编译不过。
+  Image canvas = LoadImageFromTexture(GetCanvasTexture());
+  ImageFlipVertical(&canvas);
+  const bool exported = ExportImage(canvas, path);
   UnloadImage(canvas);
   return exported;
 }

@@ -157,6 +157,13 @@ OpenBSD 在构建项目时遇到一个头文件缺失问题，据说可以通过
 - raylib **不在前置检查里**：`CMakeLists.txt` 已有一条带安装办法的 `FATAL_ERROR` 提示，重复一遍必然与它分叉。
 - **脚本不会自动安装任何依赖**，也不会代跑 `sudo`；提示里给出的命令请自行执行。
 
+### Linux / FreeBSD 上的两个坑
+
+- **raylib 要 6.0 以上，而且多数发行版没有包**：Debian 13 与 Ubuntu 不提供 raylib 包，openSUSE / Fedora 有 `raylib-devel` 但版本可能偏旧。最省事的是从源码构建一次（`cmake --install` 到 `/usr/local`，本项目会自动找到）。**不要用被移除的 API**：`ImageDraw` 在 raylib 6.5 里已经不存在（6.0 还在），本项目的导出翻正因此改用一直存在的 `ImageFlipVertical`。
+- **没有显示环境时**（纯控制台、CI、容器）：`ui_tests` 需要 OpenGL 上下文，直接跑会因 `DISPLAY` 缺失而崩。用 Xvfb 包一层即可：
+  `xvfb-run -a bash scripts/run_tests.sh`、`xvfb-run -a ./build/Release/TheLawOfPrey --scene=title --export-frame=/tmp/a.png --frames=3`（Xvfb 需 `x11-server-xvfb` / `xvfb` 包，软件渲染靠 `libgl1-mesa-dri`）。
+- 构建矩阵的现状：macOS（Homebrew raylib 6.0）与 Debian 13（源码装 raylib 6.5、gcc 14）都应当零警告通过——两边的 raylib 大版本相同但小版本不同，改动时两边都要跑。
+
 ## 设计规范
 普通物品最大堆叠 60 ，特殊物品最大堆叠 10 。
 

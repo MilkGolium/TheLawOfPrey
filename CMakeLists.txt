@@ -50,6 +50,13 @@ add_executable(${PROJECT_NAME}
   ${GAME_SOURCES}
 )
 
+# Linux / FreeBSD 上 raylib 的静态库会调用 libm（powf、cosf 之类），不显式
+# 链接就会在链接期报 undefined reference；macOS 把 libm 并进了系统库，不链接
+# 也能过——所以这个缺陷只在 Linux / FreeBSD 上暴露。用 check_library_exists
+# 探测，而不是按平台硬写：libm 并进 libc 的平台（musl、新版 glibc）不需要它。
+include(CheckLibraryExists)
+check_library_exists(m powf "" HAVE_LIBM)
+
 function(configure_project_target target)
   target_include_directories(${target} PRIVATE
     src/include
@@ -136,8 +143,28 @@ else()
     target_include_directories(raylib_deps INTERFACE ${RAYLIB_INCLUDE_DIR})
     target_link_libraries(raylib_deps INTERFACE ${RAYLIB_LIBRARY})
   else()
-    message(FATAL_ERROR "Could not find raylib.\n\nPlease install raylib or point CMake to it.\n\nOptions:\n - Install via package manager:\n   macOS (Homebrew):    brew install raylib\n   Ubuntu/Debian:       sudo apt install libraylib-dev  # package name may vary\n - Build from source:   https://github.com/raysan5/raylib\n - Or set environment variable RAYLIB_DIR or pass -DRAYLIB_DIR=/path/to/raylib when calling cmake.\n\nExamples:\n cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release -DRAYLIB_DIR=/usr/local\n")
+    message(FATAL_ERROR "Could not find raylib (this project needs 6.0 or newer).\n\nOptions:\n - Build from source (works everywhere, takes a minute):\n   git clone https://github.com/raysan5/raylib && cmake -S raylib -B raylib/build -G Ninja -DBUILD_EXAMPLES=OFF && cmake --build raylib/build && sudo cmake --install raylib/build\n - Package manager, where a current package exists:\n   Arch:      sudo pacman -S raylib\n   openSUSE:  sudo zypper install raylib-devel\n   Fedora:    sudo dnf install raylib-devel\n   FreeBSD:   pkg install raylib\n   macOS:     brew install raylib\n   NOTE: Debian 13 and Ubuntu ship no raylib package at all, and most distributions\n         that do package it are older than 6.0. Build from source or use vcpkg there.\n - Then point CMake at it if it went somewhere unusual:\n   -DRAYLIB_DIR=/path/to/raylib, or the RAYLIB_DIR environment variable.\n\nExamples:\n cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release -DRAYLIB_DIR=/usr/local\n")
   endif()
+endif()
+
+# raylib 的静态包在 Linux / FreeBSD 上不携带它自己的链接依赖（X11 / GL /
+# dl / pthread / m）。两个后果，都必须在这里处理：
+#   其一，缺了它们会在链接期报一堆 undefined reference（首当其冲是 powf 与
+#   XInternAtom）；其二，静态库对**顺序**敏感——-lm 若排在 libraylib.a 之前，
+#   链接器不会回头解析归档里的 powf。所以这些库挂在 raylib_deps 的 INTERFACE
+#   上，保证每个使用者拿到的顺序都是 raylib 在前、平台库在后。
+# 逐个 find_library 探测而不是硬写 -lX11：缺哪个就让链接器报哪个，别猜。
+if(UNIX AND NOT APPLE)
+  find_package(OpenGL REQUIRED)
+  find_package(Threads REQUIRED)
+  set(raylib_platform_libs OpenGL::GL Threads::Threads ${CMAKE_DL_LIBS})
+  foreach(lib_name IN ITEMS X11 Xrandr Xinerama Xcursor Xi rt m)
+    find_library(${lib_name}_library ${lib_name})
+    if(${lib_name}_library)
+      list(APPEND raylib_platform_libs ${${lib_name}_library})
+    endif()
+  endforeach()
+  target_link_libraries(raylib_deps INTERFACE ${raylib_platform_libs})
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
