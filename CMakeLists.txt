@@ -91,6 +91,11 @@ configure_project_target(${PROJECT_NAME})
 # 因此双配置都能零警告构建。
 enable_testing()
 
+# 测试用 POSIX 接口（access(2)、mkdtemp 之类），在 Windows 上没有意义：Windows 上
+# 只构建本体、不构建测试目标。这不表示支持 Windows——只是让非目标平台也能编译
+# 本体做一次交叉检查（最近正是靠它发现了 raylib 6.2 的字体崩溃路径）。
+if(NOT WIN32)
+
 # 主题解析器。THEME_DIR 指向临时目录：测试在自己的目录下造 .cfg，
 # 不会往 assets/ 下留任何文件，游戏本体那边仍然只认 assets/themes。
 add_executable(theme_tests
@@ -125,6 +130,7 @@ add_executable(ui_tests
 target_include_directories(ui_tests PRIVATE tests)
 configure_project_target(ui_tests)
 add_test(NAME ui_tests COMMAND ui_tests)
+endif()  # NOT WIN32
 
 # Try to find raylib (more robust handling and helpful messages)
 # Allow user to hint raylib location with environment variable RAYLIB_DIR or CMake variable RAYLIB_DIR
