@@ -1,6 +1,7 @@
 #include "font.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "lang.h"
@@ -299,6 +300,43 @@ bool FontIsUsable(Font font) {
   return font.texture.id != 0 && font.glyphs != GetFontDefault().glyphs;
 }
 
+// 文件层面的验证。真实的故障场景：Git LFS 没拉下来的指针文件（132 字节纯
+// 文本，raylib 照样报 "File loaded successfully"），或者下载/编辑器写坏的
+// 文件。这类输入交给 LoadFontEx，raylib 6.2 不返回错误而是访问越界崩溃
+// （LoadFontData 里读野指针），所以必须在调用之前自己判断一次。
+// reason 返回给人看的原因，NULL 表示文件看起来是合法字体。
+static void FontFileCheck(const char** reason) {
+  *reason = NULL;
+  FILE* fp = fopen(FONT_PATH, "rb");
+  if (fp == NULL) {
+    *reason = "cannot be opened (missing file or no permission)";
+    return;
+  }
+  unsigned char head[64] = {0};
+  size_t got = fread(head, 1, sizeof head, fp);
+  fclose(fp);
+
+  static const char kLfsMagic[] = "version https://git-lfs.github.com/spec/";
+  if (got >= sizeof kLfsMagic - 1 &&
+      memcmp(head, kLfsMagic, sizeof kLfsMagic - 1) == 0) {
+    *reason =
+        "it is an un-fetched Git LFS pointer, not the font itself "
+        "(run: git lfs install && git lfs pull)";
+    return;
+  }
+  // sfnt 的开头只有这四种：TrueType、Apple TrueType、CFF OpenType、字体集合
+  static const unsigned char kTrueType[] = {0x00, 0x01, 0x00, 0x00};
+  if (got >= 4 && (memcmp(head, kTrueType, 4) == 0 ||
+                   memcmp(head, "true", 4) == 0 ||
+                   memcmp(head, "OTTO", 4) == 0 ||
+                   memcmp(head, "ttcf", 4) == 0)) {
+    return;
+  }
+  *reason =
+      "it does not start with a TrueType/OpenType signature "
+      "(truncated, corrupt, or not a font)";
+}
+
 static void LoadFontAt(int idx) {
   if (!collectedCps || collectedCount == 0) {
     // 此时 LoadFontEx 只能拿到 ASCII，中文会静默变方框，故拒绝加载
@@ -310,6 +348,23 @@ static void LoadFontAt(int idx) {
     }
     return;
   }
+  // 文件不合格就不进 LoadFontEx：那边不报错，直接崩
+  static bool sFileChecked = false;
+  static bool sFileWarned = false;
+  static const char* sFileProblem = NULL;
+  if (!sFileChecked) {
+    sFileChecked = true;
+    FontFileCheck(&sFileProblem);
+  }
+  if (sFileProblem != NULL) {
+    if (!sFileWarned) {
+      sFileWarned = true;
+      TraceLog(LOG_ERROR, "Font: %s is not usable: %s", FONT_PATH, sFileProblem);
+    }
+    sFontStates[idx] = kFontStateFailed;
+    return;
+  }
+
   sFonts[idx] =
       LoadFontEx(FONT_PATH, kFontLoadSizes[idx], collectedCps, collectedCount);
   if (!FontIsUsable(sFonts[idx])) {
@@ -348,19 +403,21 @@ Font GetUIFont(int size) {
 
 // === 公开接口 ===
 
+// 查的是**已经加载的图集**里有没有这个码点，不是"我们请求过哪些码点"。
+// 早先查的是收集数组，而那份数组正是检查时的请求清单，于是缺字检查恒真：
+// 字体整个加载失败（raylib 退回内置 ASCII 字体）也照样报 "检查通过"。
 bool FontHasGlyph(int codepoint) {
-  if (!collectedCps || collectedCount == 0) return false;
-  int lo = 0, hi = collectedCount - 1;
-  while (lo <= hi) {
-    int mid = lo + (hi - lo) / 2;
-    if (collectedCps[mid] == codepoint) return true;
-    if (collectedCps[mid] < codepoint)
-      lo = mid + 1;
-    else
-      hi = mid - 1;
+  Font f = GetUIFont(DEFAULT_FONT_SIZE);
+  if (!FontIsUsable(f)) return false;
+  for (int i = 0; i < f.glyphCount; i++) {
+    if (f.glyphs[i].value == codepoint) return true;
   }
   return false;
 }
+
+// 界面能不能画字，全看默认字号那一档图集。main 在 InitGameFont 之后问一次，
+// 不可用就直接带着上面的原因退出，不开一个满屏空白/方框的窗口。
+bool FontIsReady(void) { return FontIsUsable(GetUIFont(DEFAULT_FONT_SIZE)); }
 
 void DrawUIText(int posX, int posY, const char* text, int size, Color tint) {
   Font f = GetUIFont(size);
@@ -399,7 +456,11 @@ void InitGameFont(void) {
   // 4. 缺字检查
   int missing = 0;
   CheckMissingGlyphs(&missing);
-  if (missing == 0) {
+  if (!FontIsReady()) {
+    TraceLog(LOG_ERROR,
+             "Font: no usable font atlas, every UI string would be blank or "
+             "tofu (see the font messages above)");
+  } else if (missing == 0) {
     TraceLog(LOG_INFO, "Font: glyph coverage check passed");
   } else {
     TraceLog(LOG_WARNING, "Font: %d missing glyph(s) found", missing);

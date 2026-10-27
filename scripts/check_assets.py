@@ -22,6 +22,7 @@ CONSUMABLES_CSV = os.path.join(ROOT, 'assets', 'databases', 'consumables.csv')
 ICON_DIR = os.path.join(ROOT, 'assets', 'sprites', 'item_icons')
 ICON_PREFIX = 'assets' + os.sep + 'sprites' + os.sep
 PNG_SUFFIX = '.png'
+ASSETS_DIR = os.path.join(ROOT, 'assets')
 
 # At most this many rows are listed per category; the rest are only counted.
 DETAIL_LIMIT = 10
@@ -185,7 +186,30 @@ def main():
          lambda i: 'item_id=%s' % i)
     print()
 
-    total_errors = norm_errors + case_errors + len(dangling) + len(hard_errors)
+    # A checkout without git-lfs leaves 132-byte text pointers where the real
+    # binaries should be. Everything else in this script sees an ordinary file
+    # (the TTF "loads successfully", the PNG "exists"), so detect the pointers
+    # here, by content, before any of that matters.
+    lfs_magic = b'version https://git-lfs.github.com/spec/'
+    lfs_files = []
+    for walk_root, _dirs, walk_files in os.walk(ASSETS_DIR):
+        for name in walk_files:
+            path = os.path.join(walk_root, name)
+            try:
+                with open(path, 'rb') as fp:
+                    if fp.read(len(lfs_magic)) == lfs_magic:
+                        lfs_files.append(os.path.relpath(path, ROOT).replace(os.sep, '/'))
+            except OSError:
+                pass
+    lfs_files.sort()
+
+    print('[lfs] asset files that are still Git LFS pointers')
+    show('pointer instead of the real file (error)', len(lfs_files), lfs_files, lambda p: p)
+    if lfs_files:
+        print('  fix: git lfs install && git lfs pull')
+    print()
+
+    total_errors = norm_errors + case_errors + len(dangling) + len(hard_errors) + len(lfs_files)
     total_warnings = len(absent)
 
     print('Result: %d error(s), %d warning(s)' % (total_errors, total_warnings))

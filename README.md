@@ -359,6 +359,19 @@ BSD 2-Clause 适用于项目自身的源代码与美术资源；内置字体作�
 ## Git LFS
 本仓库已经启用了 Git LFS ，全新拉取仓库以后可以执行 `git lfs pull` 拉取字体、图片等二进制文件。
 
+**没装 Git LFS 的机器上，`.ttf` / `.png` 会变成 132 字节的指针文件**，内容以
+`version https://git-lfs.github.com/spec/v1` 开头。它骗得过所有"文件存在、能打开"的
+检查：raylib 照样打印 `File loaded successfully`，直到把指针当字体解析才出事——而且
+raylib 6.2 在 Windows 上不是报错返回，是在 `LoadFontData` 里读野指针**崩溃**
+（`Exception 0xc0000005`）。所以两处都留了防线：
+
+- 程序在 `LoadFontEx` 之前先验文件头：不是 sfnt 签名就打印
+  `is not usable: it is an un-fetched Git LFS pointer … (run: git lfs install && git lfs pull)`
+  并以非零码退出（字体不可用就没有字可画，不再开一个满屏空白的窗口）；
+- `scripts/check_assets.py` 逐个扫描 `assets/` ，把指针文件算作错误。
+
+Windows / MSYS2 上补一次即可：`pacman -S git-lfs` 然后 `git lfs install && git lfs pull`。
+
 ## 大事记
 Jul-24-2026 转为开源。
 

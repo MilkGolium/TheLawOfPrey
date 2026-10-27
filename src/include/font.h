@@ -29,4 +29,8 @@ Vector2 MeasureUIText(const char* text, int size);
 // 否则会越界。ui.c 的墨迹测量依赖此判据。
 bool FontIsUsable(Font font);
 
+// 默认字号的图集是否真的可画。初始化之后问一次，false 表示整个界面没有字，
+// 调用方应当带着日志里的原因退出，而不是继续画一个空窗口。
+bool FontIsReady(void);
+
 #endif  // FONT_H

@@ -614,6 +614,15 @@ int main(void) {
   SetConfigFlags(FLAG_WINDOW_HIDDEN);
   InitWindow(GRAPH_DESIGN_WIDTH, GRAPH_DESIGN_HEIGHT,
              "The Law Of Prey UI 测试");
+  // 无窗口就无 GL 上下文，后面每次纹理上传都会失败，CloseWindow 还会崩。
+  // 直接报一行能看懂的错，而不是给出一段段错误堆栈。
+  if (!IsWindowReady()) {
+    TraceLog(LOG_ERROR,
+             "window or OpenGL context is not available, cannot run the UI "
+             "tests (headless session? run under Xvfb: xvfb-run -a "
+             "bash scripts/run_tests.sh)");
+    return 1;
+  }
   TestLogBegin();
 
   InitAssetsDirectory();

@@ -127,6 +127,17 @@ int main(int argc, char** argv) {
   SetConfigFlags(windowFlags);
 
   InitWindow(GRAPH_DESIGN_WIDTH, GRAPH_DESIGN_HEIGHT, "The Law Of Prey");
+  // 没有窗口就没有 GL 上下文：headless 会话（SSH、CI、容器）、没有桌面、
+  // 显卡驱动坏掉时 InitWindow 只打两行 WARNING 就返回，之后任何一次纹理
+  // 上传都会失败，CloseWindow 还会在未初始化的 GLFW 上崩。所以这里问一句，
+  // 不成就带着原因退出，绝不再碰窗口相关的东西。
+  if (!IsWindowReady()) {
+    TraceLog(LOG_ERROR,
+             "window or OpenGL context is not available, cannot start "
+             "(headless session? on Linux run under a display server, "
+             "or Xvfb for tests and frame export)");
+    return 1;
+  }
   SetExitKey(KEY_NULL);  // 禁用 ESC 退出按键
   SetTargetFPS(ConfigGetInt("target_fps"));
   // 默认全屏；--windowed 关掉；导帧期间窗口隐藏，不进全屏；
@@ -143,6 +154,15 @@ int main(int argc, char** argv) {
 
   // 加载中文字体图集，收集 codepoint
   InitGameFont();
+
+  // 字体不可用（文件缺失、Git LFS 没拉、文件损坏）就没有任何文字可画：
+  // 带着日志里的原因退出，而不是开一个满屏空白或方块的窗口让人猜。
+  if (!FontIsReady()) {
+    TraceLog(LOG_ERROR, "font atlas is not usable, aborting");
+    UnloadGameFont();
+    CloseWindow();
+    return 1;
+  }
 
   // 界面文案表。字体收集阶段直接扫描当前语言目录下的同一批文件，
   // 与这里的内存表各读一次互不依赖，先后顺序无所谓。
