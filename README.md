@@ -148,11 +148,29 @@
 
 三档都留在源码里，因为第二、第三套工具链本身有用：Linux 那次抓出 `ImageDraw` 被 raylib 6.5 移除、缺 `libm`；Windows 那次抓出 LFS 指针陷阱、恒真的缺字检查、无窗口时的崩溃。这些缺陷没有一个是「只在该平台存在」，但都只有换一套工具链才暴露。
 
-### 二级：FreeBSD
+### 二级：FreeBSD（已实测）
 
-验证方式：虚拟机里 `bash scripts/build.sh && xvfb-run -a bash scripts/run_tests.sh` 。
-**UTM 里 FreeBSD 的 Xorg 起不来**，所以 GUI 目测只能走 VirtualBox（真显卡）或导帧
-（`xvfb-run -a … --export-frame=…`，看的是同一张设计画布）。
+环境：UTM 虚拟机里的 FreeBSD 15.1-RELEASE-p6 / arm64 / 4 核 4 GB，全程 SSH 操作，**看不到画面**。
+
+```sh
+# root：
+pkg install -y cmake ninja bash git python3 raylib xorg-vfbserver
+#   raylib 包里就是 6.0，正好压我们的下限，不用从源码构建
+
+bash scripts/build.sh                                     # 0 warning、0 error
+Xvfb :99 -screen 0 1366x768x24 &                          # FreeBSD 没有 xvfb-run 这层包装
+DISPLAY=:99 bash scripts/run_tests.sh                     # 3/3 通过
+DISPLAY=:99 ./build/Release/TheLawOfPrey --scene=title \
+    --export-frame=/tmp/a.png --frames=3
+```
+
+- **验收标准是导帧逐字节比对**：`title` / `settings` / `test` 三个场景在 FreeBSD（llvmpipe
+  软件渲染、clang 19.1）导出的 PNG 与 macOS（Apple GPU）**md5 完全相同**。字体栅格化、
+  居中、边框只要差一个像素就对不上，所以这条比肉眼更硬。
+- **两种虚拟机各有硬伤**：UTM 里看不到画面（FreeBSD 的 Xorg 起不来），VirtualBox 在
+  ARM64 上开机极慢（实测后已卸载）。所以 FreeBSD 只做 headless 验收，不指望窗口目测。
+- 这一次是**一次过**：0 warning，说明先前为 Linux 修的三处（sfnt 前置校验、平台库、
+  静态库链接顺序）都瞄对了地方。
 
 ### 三级：Windows（备忘）
 
@@ -189,8 +207,8 @@ X11 / GL / `libm` 的探测已经覆盖，缺的多半是 X11 开发包或头文
 ### Linux / FreeBSD 上的两个坑
 
 - **raylib 要 6.0 以上，而且多数发行版没有包**：Debian 13 与 Ubuntu 不提供 raylib 包，openSUSE / Fedora 有 `raylib-devel` 但版本可能偏旧。最省事的是从源码构建一次（`cmake --install` 到 `/usr/local`，本项目会自动找到）。**不要用被移除的 API**：`ImageDraw` 在 raylib 6.5 里已经不存在（6.0 还在），本项目的导出翻正因此改用一直存在的 `ImageFlipVertical`。
-- **没有显示环境时**（纯控制台、CI、容器）：`ui_tests` 需要 OpenGL 上下文，直接跑会因 `DISPLAY` 缺失而崩。用 Xvfb 包一层即可：
-  `xvfb-run -a bash scripts/run_tests.sh`、`xvfb-run -a ./build/Release/TheLawOfPrey --scene=title --export-frame=/tmp/a.png --frames=3`（Xvfb 需 `x11-server-xvfb` / `xvfb` 包，软件渲染靠 `libgl1-mesa-dri`）。
+- **没有显示环境时**（纯控制台、CI、容器）：`ui_tests` 需要 OpenGL 上下文，直接跑会因 `DISPLAY` 缺失而退出（程序自己会打印 `window or OpenGL context is not available`）。用 Xvfb 包一层即可：
+  `xvfb-run -a bash scripts/run_tests.sh`、`xvfb-run -a ./build/Release/TheLawOfPrey --scene=title --export-frame=/tmp/a.png --frames=3`（Linux 上 Xvfb 在 `xvfb` 包里，软件渲染靠 `libgl1-mesa-dri`）。**FreeBSD 没有 `xvfb-run` 这层包装**，`pkg install xorg-vfbserver` 只给 `Xvfb` 本体，手动起：`Xvfb :99 -screen 0 1366x768x24 & DISPLAY=:99 bash scripts/run_tests.sh`。
 - 构建矩阵的现状：macOS（Homebrew raylib 6.0）与 Debian 13（源码装 raylib 6.5、gcc 14）都应当零警告通过——两边的 raylib 大版本相同但小版本不同，改动时两边都要跑。
 
 ## 设计规范
@@ -491,6 +509,14 @@ Oct-27-2026 平台支持改分三档，并修掉字体链路的三处缺陷。�
 `FontIsReady()` 让字体不可用时带原因非零退出、`main` 与 `ui_tests` 在 `InitWindow`
 后查 `IsWindowReady()`（无显示环境原先是段错误，现在是一行可执行的提示）、
 `scripts/check_assets.py` 增加 `[lfs]` 段扫出 Git LFS 指针文件。
+
+Oct-27-2026（同日） FreeBSD 首次实测通过，二级支持落实。UTM 里的 FreeBSD 15.1-RELEASE-p6
+/ arm64 上：pkg 仓库里的 raylib 正好是 6.0，`bash scripts/build.sh` **一次过**（0 warning、
+0 error），`Xvfb :99` + `DISPLAY=:99` 下三个测试全部通过；`title` / `settings` / `test`
+三个场景导出的 PNG 与 macOS **md5 完全相同**（llvmpipe 软件渲染 vs Apple GPU），说明字体
+栅格化、居中与边框在三平台上没有漂移。备忘两条：FreeBSD 的 `xorg-vfbserver` 只给 `Xvfb`
+本体、不带 `xvfb-run` 这层包装，要手动起 `:99`；VirtualBox 在 ARM64 上开机极慢（实测后
+卸载），UTM 里又看不到画面，所以 FreeBSD 只做 headless 验收，不指望窗口目测。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
