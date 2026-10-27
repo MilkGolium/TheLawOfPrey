@@ -135,11 +135,40 @@
 - 几何探针不能代表文字：矩形与字形走的是两条不同的光栅化路径。Retina 糊字曾有两个互相独立的根因，只修一个仍会看到糊。
 
 ## 平台支持
-只确保 UNIX-LIKE：FreeBSD 、 Linux 、 macOS 。
 
-**Windows 已移除支持**，原因是两条：没有 Windows 机器可供测试，脚本与产物都没法验证；弄不到代码签名证书，编译出来的可执行文件会被 SmartScreen 拦截，交付出去别人也跑不起来。原先的 `scripts/build.bat` 与 `scripts/build.ps1` 已删除。
+分三档。区别在「谁负责验」，不在「代码能不能编」。
 
-OpenBSD 在构建项目时遇到一个头文件缺失问题，据说可以通过传入路径解决，而且该路径下的确发现了缺失的头文件；**具体情况正等待分析**——既没有列为支持，也没有列为明确不支持，等有机器能测时再定。
+| 档位 | 含义 | 平台 | 谁来验 |
+|------|------|------|--------|
+| **一级** | 每次改动都构建、跑测试、看画面；坏了算 bug | macOS 、 Linux | 开发机与虚拟机，随每次改动 |
+| **二级** | 保证能构建、能运行，不参与像素级回归；坏了可以排期 | FreeBSD | 定期手动验一次 |
+| **三级** | 「能玩，但可能要折腾或者移植」；坏了可以不修 | Windows 、 OpenBSD | 想起来手动试一次 |
+
+**Steam 页面只列 macOS 与 Linux。**
+
+三档都留在源码里，因为第二、第三套工具链本身有用：Linux 那次抓出 `ImageDraw` 被 raylib 6.5 移除、缺 `libm`；Windows 那次抓出 LFS 指针陷阱、恒真的缺字检查、无窗口时的崩溃。这些缺陷没有一个是「只在该平台存在」，但都只有换一套工具链才暴露。
+
+### 二级：FreeBSD
+
+验证方式：虚拟机里 `bash scripts/build.sh && xvfb-run -a bash scripts/run_tests.sh` 。
+**UTM 里 FreeBSD 的 Xorg 起不来**，所以 GUI 目测只能走 VirtualBox（真显卡）或导帧
+（`xvfb-run -a … --export-frame=…`，看的是同一张设计画布）。
+
+### 三级：Windows（备忘）
+
+- 只在 **MSYS2 UCRT64** 里构建：`pacman -S mingw-w64-ucrt-x86_64-raylib mingw-w64-ucrt-x86_64-git-lfs` ，其余照常 `./scripts/build.sh` 。**不提供 bat / ps1**：脚本单真源，Windows 侧走 MSYS2 的 sh。
+- 测试目标在 Windows 上自动跳过（`CMakeLists.txt` 的 `if(NOT WIN32)`），因为测试用 `access(2)` 、 `mkdtemp` 这些 POSIX 接口。
+- 最近一次实测（Windows 11 / MSYS2 UCRT64 / raylib 6.2）：Release 与 Debug 都零警告，中文与英文界面都正常，日志里是 `Font: collected 676 unique codepoints` 与 `glyph coverage check passed` 。
+- 已知缺口，暂不修：
+  - **配置路径没有正确位置**：原生 Windows 没有 `HOME` / `XDG_CONFIG_HOME` ，会回退到**工作目录**下的 `TheLawOfPrey/config.cfg` ，装在 `Program Files` 里就永远写不进去。真要支持时改成 `%APPDATA%\TheLawOfPrey\config.cfg` ，`access(2)` 换 `_access` （`<io.h>`）。
+  - **DPI 缩放没验过**：Windows 上 125% / 150% 是常态，640×480 的整数缩放在那里可能变成大片黑边，或者被裁。
+  - **打包要带 DLL**：`libraylib.dll` 加 MinGW 运行时（`libgcc_s_seh-1` 、 `libstdc++-6` 、 `libwinpthread-1`），或者改静态链接；未签名的 exe 在 Steam 之外会被 SmartScreen 与杀软误报。
+
+### 三级：OpenBSD
+
+构建时报一个头文件缺失，据说传入路径即可解决，而且那个路径下确实有缺失的头文件——
+没有机器，**悬案未结**。真要验时先看 `CMakeLists.txt` 里 `UNIX AND NOT APPLE` 那一支：
+X11 / GL / `libm` 的探测已经覆盖，缺的多半是 X11 开发包或头文件搜索路径。
 
 ### 构建前置要求
 
@@ -449,6 +478,19 @@ Oct-15-2026 构建前置检查与平台策略收敛：`cmake_minimum_required` �
 加 `--config=<path>` ，`main.c` 的全屏与目标帧数改从配置读，优先级是
 启动参数 > 配置文件 > 代码默认值；本阶段程序只读配置不回写，样例见
 `assets/config/config.sample.cfg` ；新增 `tests/config_tests.c` 12 条。
+
+Oct-27-2026 平台支持改分三档，并修掉字体链路的三处缺陷。一级＝macOS / Linux（每次
+改动都构建、跑测试、看画面），二级＝FreeBSD（定期手动验），三级＝Windows / OpenBSD
+（能玩，但可能要折腾或者移植，坏了可以不修）；Steam 页面只列 macOS 与 Linux。Windows
+重新进入源码支持范围，但只在 MSYS2 UCRT64 里用 `build.sh` 构建，不提供 bat / ps1，
+测试目标由 `if(NOT WIN32)` 跳过；已知缺口（配置路径回退到工作目录、DPI 缩放未验、
+打包需带 raylib 与 MinGW 运行时 DLL）写在「平台支持」一节。同批修复全部来自 Windows
+实测：字体在交给 `LoadFontEx` 之前先验 sfnt 签名（Git LFS 指针文件骗得过所有「文件
+存在、能打开」的检查，raylib 6.2 会因此崩在 `LoadFontData` 里）、缺字检查改为查已
+加载的图集而不是请求清单（原实现恒真，字体退回内置 ASCII 字体也报「通过」）、新增
+`FontIsReady()` 让字体不可用时带原因非零退出、`main` 与 `ui_tests` 在 `InitWindow`
+后查 `IsWindowReady()`（无显示环境原先是段错误，现在是一行可执行的提示）、
+`scripts/check_assets.py` 增加 `[lfs]` 段扫出 Git LFS 指针文件。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
