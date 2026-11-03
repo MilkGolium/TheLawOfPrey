@@ -227,12 +227,31 @@ bash scripts/build.sh
 | cmake | ≥ 3.16 ，推荐 3.25 以上 |
 | ninja | 任意版本；脚本固定使用 Ninja 生成器 |
 | C 编译器 | `cc` / `clang` / `gcc` 任一在 `PATH` 里即可 |
-| raylib | 当前在 raylib 6.0 上开发 |
+| raylib | ≥ 6.0 。**没有包时按下面的源码步骤装**——Debian / Ubuntu 与 OpenBSD 都没有 raylib 包 |
 
 - cmake 的最低版本按「发行版自带的就够用」定档：Ubuntu 20.04 、 Debian 11 、 RHEL 9 这一档自带的 cmake 都已到 3.16 以上，而本项目只用到 3.16 之前就有的功能。发行版仓库里的 cmake 往往太旧，达不到这个下限。
 - ninja 是硬要求，**不做 Make 回退**：`build/` 目录一旦被某个生成器配置过，换生成器会直接报 generator mismatch，与其逼人删目录，不如直接报错。
 - raylib **不在前置检查里**：`CMakeLists.txt` 已有一条带安装办法的 `FATAL_ERROR` 提示，重复一遍必然与它分叉。
 - **脚本不会自动安装任何依赖**，也不会代跑 `sudo`；提示里给出的命令请自行执行。
+
+#### 没有 raylib 包时：源码安装（任何平台，不需要 root）
+
+Debian / Ubuntu 与 OpenBSD 都不提供 raylib 包。把 raylib 装到自己的家目录，再用 `RAYLIB_DIR`
+指过去即可，全程不需要 root，大约一分钟：
+
+```sh
+git clone --depth 1 --branch 6.5 https://github.com/raysan5/raylib.git
+cmake -S raylib -B raylib/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$HOME/raylib-install
+cmake --build raylib/build
+cmake --install raylib/build
+export RAYLIB_DIR=$HOME/raylib-install
+bash scripts/build.sh          # 脚本会把 RAYLIB_DIR 传给 CMake
+```
+
+这段步骤在 `CMakeLists.txt` 找不到 raylib 时打出的提示里也有同样的一份——照着抄就能过，
+不用去翻文档。克隆不下来时（跨境网络常常连不上 GitHub），可以从任何一台已经拉过源码的机器
+用 `tar` + `ssh` 拷过来，目录结构一样。
 
 ### Linux / FreeBSD 上的两个坑
 
