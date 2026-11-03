@@ -148,8 +148,8 @@
 | 档位 | 含义 | 平台 | 谁来验 |
 |------|------|------|--------|
 | **一级** | 每次改动都构建、跑测试、看画面；坏了算 bug | macOS 、 Linux | 开发机与虚拟机，随每次改动 |
-| **二级** | 保证能构建、能运行，不参与像素级回归；坏了可以排期 | FreeBSD | 定期手动验一次 |
-| **三级** | 「能玩，但可能要折腾或者移植」；坏了可以不修 | Windows 、 OpenBSD | 想起来手动试一次 |
+| **二级** | 保证能构建、能运行，不参与像素级回归；坏了可以排期 | FreeBSD 、 OpenBSD | 定期手动验一次 |
+| **三级** | 「能玩，但可能要折腾或者移植」；坏了可以不修 | Windows | 想起来手动试一次 |
 
 **Steam 页面只列 macOS 与 Linux。**
 
@@ -179,20 +179,10 @@ DISPLAY=:99 ./build/Release/TheLawOfPrey --scene=title \
 - 这一次是**一次过**：0 warning，说明先前为 Linux 修的三处（sfnt 前置校验、平台库、
   静态库链接顺序）都瞄对了地方。
 
-### 三级：Windows（备忘）
+### 二级：OpenBSD（已实测 + 人工目测）
 
-- 只在 **MSYS2 UCRT64** 里构建：`pacman -S mingw-w64-ucrt-x86_64-raylib mingw-w64-ucrt-x86_64-git-lfs` ，其余照常 `./scripts/build.sh` 。**不提供 bat / ps1**：脚本单真源，Windows 侧走 MSYS2 的 sh。
-- 测试目标在 Windows 上自动跳过（`CMakeLists.txt` 的 `if(NOT WIN32)`），因为测试用 `access(2)` 、 `mkdtemp` 这些 POSIX 接口。
-- 最近一次实测（Windows 11 / MSYS2 UCRT64 / raylib 6.2）：Release 与 Debug 都零警告，中文与英文界面都正常，日志里是 `Font: collected 676 unique codepoints` 与 `glyph coverage check passed` 。
-- 已知缺口，暂不修：
-  - **配置路径没有正确位置**：原生 Windows 没有 `HOME` / `XDG_CONFIG_HOME` ，会回退到**工作目录**下的 `TheLawOfPrey/config.cfg` ，装在 `Program Files` 里就永远写不进去。真要支持时改成 `%APPDATA%\TheLawOfPrey\config.cfg` ，`access(2)` 换 `_access` （`<io.h>`）。
-  - **DPI 缩放没验过**：Windows 上 125% / 150% 是常态，640×480 的整数缩放在那里可能变成大片黑边，或者被裁。
-  - **打包要带 DLL**：`libraylib.dll` 加 MinGW 运行时（`libgcc_s_seh-1` 、 `libstdc++-6` 、 `libwinpthread-1`），或者改静态链接；未签名的 exe 在 Steam 之外会被 SmartScreen 与杀软误报。
-
-### 三级：OpenBSD（已实测）
-
-环境：OpenBSD 8.0 GENERIC.MP amd64，clang、cmake 4.3.5、ninja 在包里，**X11 与 GL 的头文件和
-库在 base 里**（`/usr/X11R6`），不需要装任何 X 开发包。
+环境：OpenBSD 8.0 GENERIC.MP amd64（笔记本实机），clang、cmake 4.3.5、ninja 都在包里，
+**X11 与 GL 的头文件和库在 base 里**（`/usr/X11R6`），不需要装任何 X 开发包。
 
 ```sh
 # root，只有这一步：
@@ -207,16 +197,31 @@ cmake --build raylib/build && cmake --install raylib/build
 # 然后照常，用 RAYLIB_DIR 指过去（CMakeLists 读环境变量）：
 export RAYLIB_DIR=$HOME/raylib-install
 bash scripts/build.sh
+./build/Release/TheLawOfPrey --windowed
 ```
 
-- **一次通过**：Release 与 Debug 都是 0 error、我们自己的代码 0 warning，三个测试在 Xvfb 下全过，
-  `title` / `settings` / `test` 三帧与 macOS **md5 完全相同**（llvmpipe 软渲染）。
+- **构建与测试一次通过**：Release 与 Debug 都 0 error、我们自己的代码 0 warning，
+  `bash scripts/run_tests.sh` 在 Xvfb 下 3/3，`title` / `settings` / `test` 三帧与 macOS
+  **md5 完全相同**（llvmpipe 软渲染）。
+- **人工目测也过了**：`--windowed` 下中英文界面都正常。
+- **全屏在 FVWM 上不可用，这是 raylib 的行为、不是本项目的代码**：不加 `--windowed` 时 raylib
+  请求全屏，默认的 FVWM 不认这个请求，画布只显示一半；此时拖动窗口会退回窗口模式，手动全屏后
+  才正常。所以在 OpenBSD 上**用 `--windowed`，或在配置文件里写 `fullscreen=false`**。
 - **12 行 `ld: warning` 来自 raylib 自己的源码**（`sprintf`/`strcat`/`strcpy` 被 OpenBSD 的链接器
   标记），不是本项目的代码，别去追。
-- Xvfb 在 base 里（`/usr/X11R6/bin/Xvfb`），GLX 可用，所以 `Xvfb :99` + `DISPLAY=:99` 就能跑
-  `ui_tests`，不需要任何额外图形包。
+- Xvfb 在 base 里（`/usr/X11R6/bin/Xvfb`），GLX 可用，`Xvfb :99` + `DISPLAY=:99` 就能跑 `ui_tests`。
 - 构建失败时先查这两条：raylib 是否用 `-DRAYLIB_DIR` 指到了（否则 CMake 找不到 6.x），
   以及 `bash` 是否装了（脚本是 bash，OpenBSD 默认 ksh）。
+
+### 三级：Windows（备忘）
+
+- 只在 **MSYS2 UCRT64** 里构建：`pacman -S mingw-w64-ucrt-x86_64-raylib mingw-w64-ucrt-x86_64-git-lfs` ，其余照常 `./scripts/build.sh` 。**不提供 bat / ps1**：脚本单真源，Windows 侧走 MSYS2 的 sh。
+- 测试目标在 Windows 上自动跳过（`CMakeLists.txt` 的 `if(NOT WIN32)`），因为测试用 `access(2)` 、 `mkdtemp` 这些 POSIX 接口。
+- 最近一次实测（Windows 11 / MSYS2 UCRT64 / raylib 6.2）：Release 与 Debug 都零警告，中文与英文界面都正常，日志里是 `Font: collected 676 unique codepoints` 与 `glyph coverage check passed` 。
+- 已知缺口，暂不修：
+  - **配置路径没有正确位置**：原生 Windows 没有 `HOME` / `XDG_CONFIG_HOME` ，会回退到**工作目录**下的 `TheLawOfPrey/config.cfg` ，装在 `Program Files` 里就永远写不进去。真要支持时改成 `%APPDATA%\TheLawOfPrey\config.cfg` ，`access(2)` 换 `_access` （`<io.h>`）。
+  - **DPI 缩放没验过**：Windows 上 125% / 150% 是常态，640×480 的整数缩放在那里可能变成大片黑边，或者被裁。
+  - **打包要带 DLL**：`libraylib.dll` 加 MinGW 运行时（`libgcc_s_seh-1` 、 `libstdc++-6` 、 `libwinpthread-1`），或者改静态链接；未签名的 exe 在 Steam 之外会被 SmartScreen 与杀软误报。
 
 ### 构建前置要求
 
@@ -574,6 +579,11 @@ raylib**，从源码构建 6.5（X11/GL 头文件在 base 的 `/usr/X11R6`，不
 macOS **md5 完全相同**。`ld` 的 12 行警告全部来自 raylib 自己的源码（OpenBSD 链接器会对
 `sprintf`/`strcat`/`strcpy` 报警），与本项目无关。此前记的「头文件缺失」悬案即此状况——缺的是
 raylib 的源码构建路径，不是本项目代码。
+
+Nov-03-2026（同日）OpenBSD 人工目测通过，从三级升到二级。`--windowed` 下中英文界面都正常。
+不加 `--windowed` 时 raylib 请求全屏，但默认的 FVWM 不认这个请求，画布只显示一半，拖动窗口会
+退回窗口模式，手动全屏后才正常——这是 raylib 在 FVWM 上的行为，与本项目代码无关，作为使用提示
+写进 README（OpenBSD 上建议 `--windowed` 或配置里 `fullscreen=false`）。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
