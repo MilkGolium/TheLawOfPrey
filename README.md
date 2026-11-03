@@ -189,11 +189,34 @@ DISPLAY=:99 ./build/Release/TheLawOfPrey --scene=title \
   - **DPI 缩放没验过**：Windows 上 125% / 150% 是常态，640×480 的整数缩放在那里可能变成大片黑边，或者被裁。
   - **打包要带 DLL**：`libraylib.dll` 加 MinGW 运行时（`libgcc_s_seh-1` 、 `libstdc++-6` 、 `libwinpthread-1`），或者改静态链接；未签名的 exe 在 Steam 之外会被 SmartScreen 与杀软误报。
 
-### 三级：OpenBSD
+### 三级：OpenBSD（已实测）
 
-构建时报一个头文件缺失，据说传入路径即可解决，而且那个路径下确实有缺失的头文件——
-没有机器，**悬案未结**。真要验时先看 `CMakeLists.txt` 里 `UNIX AND NOT APPLE` 那一支：
-X11 / GL / `libm` 的探测已经覆盖，缺的多半是 X11 开发包或头文件搜索路径。
+环境：OpenBSD 8.0 GENERIC.MP amd64，clang、cmake 4.3.5、ninja 在包里，**X11 与 GL 的头文件和
+库在 base 里**（`/usr/X11R6`），不需要装任何 X 开发包。
+
+```sh
+# root，只有这一步：
+pkg_add bash
+
+# 包里没有 raylib，必须从源码构建（需要 cmake >= 3.22，OpenBSD 8.0 的 4.3.5 够）：
+git clone --depth 1 --branch 6.5 https://github.com/raysan5/raylib.git
+cmake -S raylib -B raylib/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$HOME/raylib-install
+cmake --build raylib/build && cmake --install raylib/build
+
+# 然后照常，用 RAYLIB_DIR 指过去（CMakeLists 读环境变量）：
+export RAYLIB_DIR=$HOME/raylib-install
+bash scripts/build.sh
+```
+
+- **一次通过**：Release 与 Debug 都是 0 error、我们自己的代码 0 warning，三个测试在 Xvfb 下全过，
+  `title` / `settings` / `test` 三帧与 macOS **md5 完全相同**（llvmpipe 软渲染）。
+- **12 行 `ld: warning` 来自 raylib 自己的源码**（`sprintf`/`strcat`/`strcpy` 被 OpenBSD 的链接器
+  标记），不是本项目的代码，别去追。
+- Xvfb 在 base 里（`/usr/X11R6/bin/Xvfb`），GLX 可用，所以 `Xvfb :99` + `DISPLAY=:99` 就能跑
+  `ui_tests`，不需要任何额外图形包。
+- 构建失败时先查这两条：raylib 是否用 `-DRAYLIB_DIR` 指到了（否则 CMake 找不到 6.x），
+  以及 `bash` 是否装了（脚本是 bash，OpenBSD 默认 ksh）。
 
 ### 构建前置要求
 
@@ -524,6 +547,14 @@ Oct-27-2026（同日） FreeBSD 首次实测通过，二级支持落实。UTM �
 栅格化、居中与边框在三平台上没有漂移。备忘两条：FreeBSD 的 `xorg-vfbserver` 只给 `Xvfb`
 本体、不带 `xvfb-run` 这层包装，要手动起 `:99`；VirtualBox 在 ARM64 上开机极慢（实测后
 卸载），UTM 里又看不到画面，所以 FreeBSD 只做 headless 验收，不指望窗口目测。
+
+Nov-03-2026 OpenBSD 首次实测通过，从「悬案」变成可构建。OpenBSD 8.0 amd64 上：包里**没有
+raylib**，从源码构建 6.5（X11/GL 头文件在 base 的 `/usr/X11R6`，不需要额外包）；唯一需要 root
+的动作是 `pkg_add bash`（脚本用 bash，OpenBSD 默认 ksh）。Release 与 Debug 都 0 error、我们
+自己的代码 0 warning，三个测试在 base 自带的 Xvfb 下全过，`title` / `settings` / `test` 三帧与
+macOS **md5 完全相同**。`ld` 的 12 行警告全部来自 raylib 自己的源码（OpenBSD 链接器会对
+`sprintf`/`strcat`/`strcpy` 报警），与本项目无关。此前记的「头文件缺失」悬案即此状况——缺的是
+raylib 的源码构建路径，不是本项目代码。
 
 ## 致谢
 本项目在开发过程中使用了 AI 编码工具 OpenCode 辅助代码编写与文档整理。
