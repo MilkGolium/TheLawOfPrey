@@ -181,7 +181,8 @@ DISPLAY=:99 ./build/Release/TheLawOfPrey --scene=title \
 
 ### 二级：OpenBSD（已实测 + 人工目测）
 
-环境：OpenBSD 8.0 GENERIC.MP amd64（笔记本实机），clang、cmake 4.3.5、ninja 都在包里，
+环境：OpenBSD 8.0 GENERIC.MP amd64（当时那台笔记本已换成 openSUSE，往后 OpenBSD 走虚拟机，
+只能做 headless 验收；下面的目测结论是当时在实机上取得的），clang、cmake 4.3.5、ninja 都在包里，
 **X11 与 GL 的头文件和库在 base 里**（`/usr/X11R6`），不需要装任何 X 开发包。
 
 ```sh
