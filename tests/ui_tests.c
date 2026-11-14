@@ -985,35 +985,41 @@ static void CaseGallerySceneRenders(void) {
 // 绘制之前，否则静态告警标志已经置位，计数断言会永远得到 0。
 static void CasePageTabHit(void) {
   TestBeginCase(
-      "page tabs: hit testing on both edges, out-of-range points, count "
-      "clamping, and a single clamp warning");
+      "page tabs: horizontal hit testing on both edges, count clamping, and a "
+      "single clamp warning");
   ApplyProbeStyle();
 
-  TestCheckInt(UiPageTabAt(0, 0, 6), 0, "(0,0) hits tab 0");
-  TestCheckInt(UiPageTabAt(39, 15, 6), 0, "(39,15) hits tab 0");
-  TestCheckInt(UiPageTabAt(0, 16, 6), 1, "(0,16) hits tab 1");
-  TestCheckInt(UiPageTabAt(39, 95, 6), 5, "(39,95) hits tab 5");
-  TestCheckInt(UiPageTabAt(40, 0, 6), -1, "x=40 is outside the tab strip");
-  TestCheckInt(UiPageTabAt(-1, 0, 6), -1, "a negative x returns -1");
-  TestCheckInt(UiPageTabAt(0, 96, 6), -1, "y=96 is below six tabs");
-  TestCheckInt(UiPageTabAt(0, 0, 0), -1, "tabCount 0 returns -1");
-  TestCheckInt(UiPageTabAt(0, 8 * UI_PAGE_TAB_HEIGHT, 12), 8,
-               "tabCount 12 is clamped to 9 and tab 8 still hits");
+  TestCheckInt(UiPageTabWidth(6), 106, "six tabs are 106 px wide");
+  TestCheckInt(UiPageTabWidth(9), 71, "nine tabs are 71 px wide");
+  TestCheckInt(UiPageTabWidth(0), 0, "tabCount 0 has no width");
 
-  // 选中项越界：99 钳到最后一项，第一项保持未选中底色。
+  TestCheckInt(UiPageTabAt(0, 0, 6), 0, "(0,0) hits tab 0");
+  TestCheckInt(UiPageTabAt(105, 15, 6), 0, "(105,15) is still tab 0");
+  TestCheckInt(UiPageTabAt(106, 0, 6), 1, "(106,0) starts tab 1");
+  TestCheckInt(UiPageTabAt(639, 15, 6), 5,
+               "the last tab absorbs the 4 px remainder");
+  TestCheckInt(UiPageTabAt(0, UI_PAGE_TAB_BAR_HEIGHT, 6), -1,
+               "y equal to the bar height is content, not a tab");
+  TestCheckInt(UiPageTabAt(-1, 0, 6), -1, "a negative x returns -1");
+  TestCheckInt(UiPageTabAt(640, 0, 6), -1, "x=640 is outside the canvas");
+  TestCheckInt(UiPageTabAt(0, 0, 0), -1, "tabCount 0 returns -1");
+  TestCheckInt(UiPageTabAt(568, 8, 12), 8,
+               "tabCount 12 clamps to 9: 640/9 = 71, tab 8 starts at 568");
+  TestCheckInt(UiPageTabAt(639, 8, 12), 8,
+               "the clamped ninth tab reaches the right edge");
+
   static const char* const kLabels[6] = {"A", "B", "C", "D", "E", "F"};
   BeginCanvas();
   ClearBackground(gUiStyle.desktop);
   UiDrawPageTabs(99, 6, kLabels);
   EndCanvas();
   Image image = LoadImageFromTexture(GetCanvasTexture());
-  TestCheckColor(PixelAt(image, 0, 5 * UI_PAGE_TAB_HEIGHT), gUiStyle.button,
+  TestCheckColor(PixelAt(image, 600, 8), gUiStyle.button,
                  "selectedTab 99 clamps to the last tab");
-  TestCheckColor(PixelAt(image, 0, 0), gUiStyle.background,
+  TestCheckColor(PixelAt(image, 8, 8), gUiStyle.background,
                  "the first tab stays unselected");
   UnloadImage(image);
 
-  // 12 项按 9 项画，告警只报一次。
   static const char* const kManyLabels[12] = {"A", "B", "C", "D", "E", "F",
                                                "G", "H", "I", "J", "K", "L"};
   TestLogReset();
@@ -1023,12 +1029,10 @@ static void CasePageTabHit(void) {
   UiDrawPageTabs(0, 12, kManyLabels);
   EndCanvas();
   image = LoadImageFromTexture(GetCanvasTexture());
-  TestCheckColor(PixelAt(image, 0, 8 * UI_PAGE_TAB_HEIGHT),
-                 gUiStyle.background,
-                 "the ninth tab is drawn when the count is clamped to 9");
-  TestCheckColor(PixelAt(image, 0, 9 * UI_PAGE_TAB_HEIGHT),
-                 gUiStyle.desktop,
-                 "no tenth tab is drawn after clamping");
+  TestCheckColor(PixelAt(image, 600, 8), gUiStyle.background,
+                 "the ninth clamped tab is drawn at the right edge");
+  TestCheckColor(PixelAt(image, 600, UI_PAGE_TAB_BAR_HEIGHT), gUiStyle.desktop,
+                 "nothing is painted below the tab bar");
   UnloadImage(image);
   TestCheckInt(TestLogWarnCount(), 1,
                "an oversized tab count warns only once across two draws");
@@ -1205,15 +1209,17 @@ static void CaseBarFill(void) {
 // 都有非底色像素；第 1 页出现全部六种品阶色。
 static void CasePageContainerRenders(void) {
   TestBeginCase(
-      "page container: content rect is 40,0,600,480, every page paints inside "
+      "page container: content rect is 0,16,640,464, every page paints inside "
       "it, page 1 carries all six rarity colors, and the page index clamps");
   gUiStyle = kDefaultUiStyle;
 
   Rectangle content = UiPageContentRect();
-  TestCheckInt((int)content.x, 40, "the content rect starts at x=40");
-  TestCheckInt((int)content.y, 0, "the content rect starts at y=0");
-  TestCheckInt((int)content.width, 600, "the content rect is 600 wide");
-  TestCheckInt((int)content.height, 480, "the content rect is 480 tall");
+  TestCheckInt((int)content.x, 0, "the content rect starts at x=0");
+  TestCheckInt((int)content.y, UI_PAGE_TAB_BAR_HEIGHT,
+               "the content rect starts below the tab bar");
+  TestCheckInt((int)content.width, 640, "the content rect is the full 640 wide");
+  TestCheckInt((int)content.height, 480 - UI_PAGE_TAB_BAR_HEIGHT,
+               "the content rect is 480 minus the tab bar tall");
 
   UiGallerySetPage(-3);
   TestCheckInt(UiGalleryGetPage(), 0, "a negative page clamps to 0");

@@ -14,9 +14,15 @@
 static bool sTabClampWarned = false;
 
 Rectangle UiPageContentRect(void) {
-  return (Rectangle){(float)UI_PAGE_TAB_WIDTH, 0.0f,
-                     (float)(GRAPH_DESIGN_WIDTH - UI_PAGE_TAB_WIDTH),
-                     (float)GRAPH_DESIGN_HEIGHT};
+  return (Rectangle){0.0f, (float)UI_PAGE_TAB_BAR_HEIGHT,
+                     (float)GRAPH_DESIGN_WIDTH,
+                     (float)(GRAPH_DESIGN_HEIGHT - UI_PAGE_TAB_BAR_HEIGHT)};
+}
+
+int UiPageTabWidth(int tabCount) {
+  if (tabCount <= 0) return 0;
+  if (tabCount > UI_PAGE_TAB_COUNT_MAX) tabCount = UI_PAGE_TAB_COUNT_MAX;
+  return GRAPH_DESIGN_WIDTH / tabCount;
 }
 
 void UiDrawPageTabs(int selectedTab, int tabCount, const char* const* labels) {
@@ -35,22 +41,28 @@ void UiDrawPageTabs(int selectedTab, int tabCount, const char* const* labels) {
   if (selected < 0) selected = 0;
   if (selected >= tabCount) selected = tabCount - 1;
 
+  int tabWidth = GRAPH_DESIGN_WIDTH / tabCount;
+
   for (int i = 0; i < tabCount; i++) {
     Color background = (i == selected) ? gUiStyle.button : gUiStyle.background;
     Color foreground = (i == selected) ? gUiStyle.buttonText : gUiStyle.text;
-    int y = i * UI_PAGE_TAB_HEIGHT;
+    int x = i * tabWidth;
+    // 最后一项吃掉除不尽的余数，页签栏与画布右边缘严丝合缝。
+    int width = (i == tabCount - 1) ? (GRAPH_DESIGN_WIDTH - x) : tabWidth;
 
-    DrawRectangle(0, y, UI_PAGE_TAB_WIDTH, UI_PAGE_TAB_HEIGHT, background);
+    DrawRectangle(x, 0, width, UI_PAGE_TAB_BAR_HEIGHT, background);
 
     if (labels == NULL || labels[i] == NULL) continue;
 
-    // 页签太窄，文案最多留 3 个码点；4 字节的 UTF-8 码点最多 12 字节，
-    // 再加结尾的 '\0'，16 字节的栈缓冲足够。
+    // 页签文案最多留 3 个码点（9 项时每项 71px，3 个汉字 36px 绰绰有余）；
+    // 4 字节的 UTF-8 码点最多 12 字节，再加结尾的 '\0'，16 字节缓冲足够。
     char truncated[16];
     UiTruncateUtf8(labels[i], 3, truncated, (int)sizeof(truncated));
     int textWidth = UiMeasureText(truncated, 12).width;
-    int textX = (UI_PAGE_TAB_WIDTH - textWidth) / 2;
-    UiDrawText(textX, y + 2, truncated, 12, foreground);
+    int textX = x + (width - textWidth) / 2;
+// 12 号字的行盒是 16px，在 24px 的条里上下各留 4px。
+    UiDrawText(textX, (UI_PAGE_TAB_BAR_HEIGHT - 16) / 2, truncated, 12,
+               foreground);
   }
 }
 
@@ -60,10 +72,13 @@ int UiPageTabAt(int px, int py, int tabCount) {
 
   if (tabCount > UI_PAGE_TAB_COUNT_MAX) tabCount = UI_PAGE_TAB_COUNT_MAX;
 
-  if (px >= UI_PAGE_TAB_WIDTH) return -1;
-  if (py >= tabCount * UI_PAGE_TAB_HEIGHT) return -1;
+  if (py >= UI_PAGE_TAB_BAR_HEIGHT) return -1;
+  if (px >= GRAPH_DESIGN_WIDTH) return -1;
 
-  return py / UI_PAGE_TAB_HEIGHT;
+  int index = px / (GRAPH_DESIGN_WIDTH / tabCount);
+  // 最后一项比其它项宽（吃掉余数），落在它上面的坐标一并归给它。
+  if (index >= tabCount) index = tabCount - 1;
+  return index;
 }
 
 // === 滚动条 ===

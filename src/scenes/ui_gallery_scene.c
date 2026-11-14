@@ -45,33 +45,37 @@ static const int kSlotStacks[kSlotCount] = {1, 7, 12, 99, 0, 3};
 // 网格 5×2 的品阶与角标做混合，用来证明 1px 分割线。
 static const int kGridStacks[10] = {1, 5, 12, 0, 99, 3, 7, 0, 42, 8};
 
-// 内容区从页签栏右侧开始；标题与左侧留白沿用 A1 的 12px，整体右移 40px。
-static const int kContentMarginX = UI_PAGE_TAB_WIDTH + 12;
-static const int kTitleY = 8;
+// 横向页签栏只占顶部 16px，内容区整幅 640 宽都可用；下方所有 y 以
+// kContentTop 为基准，左侧留白回到 A1 的 12px。
+static const int kContentTop = UI_PAGE_TAB_BAR_HEIGHT;
+static const int kContentMarginX = 12;
+static const int kTitleY = kContentTop + 8;
 static const int kTitleSize = 24;
 static const int kLabelSize = 12;
-static const int kSlotsLabelY = 48;
-static const int kSlotsY = 64;
-static const int kGridLabelY = 136;
-static const int kGridY = 152;
-static const int kDigitsLabelY = 280;
-static const int kDigitsY = 296;
-static const int kSmallDigitsY = 312;
-static const int kTruncateLabelY = 336;
-static const int kFullTextY = 352;
-static const int kTruncatedTextY = 368;
+static const int kSlotsLabelY = kContentTop + 48;
+static const int kSlotsY = kContentTop + 64;
+static const int kGridLabelY = kContentTop + 136;
+static const int kGridY = kContentTop + 152;
+static const int kDigitsLabelY = kContentTop + 280;
+static const int kDigitsY = kContentTop + 296;
+static const int kSmallDigitsY = kContentTop + 312;
+static const int kTruncateLabelY = kContentTop + 336;
+static const int kFullTextY = kContentTop + 352;
+static const int kTruncatedTextY = kContentTop + 368;
 static const int kTextGap = 8;
 
 // 状态条页：三条 200px 宽的条，标签在条上方。
 static const int kBarX = 60;
 static const int kBarWidth = 200;
-static const int kBarLabelY[3] = {64, 128, 192};
-static const int kBarY[3] = {80, 144, 208};
+static const int kBarLabelY[3] = {kContentTop + 64, kContentTop + 128,
+                                 kContentTop + 192};
+static const int kBarY[3] = {kContentTop + 80, kContentTop + 144,
+                             kContentTop + 208};
 static const int kBarValues[3] = {0, 50, 100};
 
 // 滚动条页：4×4 网格右侧贴一条滚动条，再向右 40px 放两个演示滑块。
 static const int kScrollGridX = 60;
-static const int kScrollGridY = 40;
+static const int kScrollGridY = kContentTop + 40;
 // 4 列 × 53 − 1 = 211，既是网格高度也是滚动条轨道高度。
 static const int kScrollGridSize = kScrollColumns * UI_SLOT_PITCH - 1;
 static const int kScrollbarX = kScrollGridX + kScrollGridSize + 1;
