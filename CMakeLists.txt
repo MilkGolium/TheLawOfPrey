@@ -33,6 +33,7 @@ set(GAME_SOURCES
   src/strings.c
   src/theme.c
   src/ui.c
+  src/ui_slot.c
   src/utils.c
 )
 
@@ -47,6 +48,7 @@ add_executable(${PROJECT_NAME}
   src/scenes/settings_scene.c
   src/scenes/test_scene.c
   src/scenes/title_scene.c
+  src/scenes/ui_gallery_scene.c
   ${GAME_SOURCES}
 )
 
@@ -122,9 +124,17 @@ configure_project_target(config_tests)
 add_test(NAME config_tests COMMAND config_tests)
 
 # 界面度量与居中。需要一个隐藏窗口把内容画进设计画布再回读像素。
+# 图鉴场景用例要走 SceneManager，因此测试目标也链接场景清单与场景本体；
+# 它们只服务这一个用例，不改变游戏本体的源文件清单。
 add_executable(ui_tests
   tests/ui_tests.c
   tests/test_util.c
+  src/app.c
+  src/scene_list.c
+  src/scenes/settings_scene.c
+  src/scenes/test_scene.c
+  src/scenes/title_scene.c
+  src/scenes/ui_gallery_scene.c
   ${GAME_SOURCES}
 )
 target_include_directories(ui_tests PRIVATE tests)

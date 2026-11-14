@@ -15,6 +15,7 @@ static SceneEntry sScenes[] = {
     {"title", &TitleScene},
     {"settings", &SettingsScene},
     {"test", &TestScene},
+    {"ui_gallery", &UiGalleryScene},
 };
 
 Scene* SceneListFindByName(const char* name) {

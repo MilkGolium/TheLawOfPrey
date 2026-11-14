@@ -10,6 +10,10 @@
 static const char* sSuiteName = "";
 static const char* sCaseName = "";
 static int sCaseCount = 0;
+// 用例是否还开着。TestBeginCase 与 TestEndCase 必须成对出现：漏了结尾会把
+// 断言失败记进总数却不算在任何用例上，TestEnd 于是照样返回 0 —— 测试看起来
+// 全绿，实际有断言在红。这层守卫就是为这个坑加的。
+static bool sCaseOpen = false;
 static int sFailedCases = 0;
 static int sFailureCount = 0;
 static int sCaseFailed = 0;
@@ -96,12 +100,14 @@ void TestBegin(const char* suiteName) {
 void TestBeginCase(const char* name) {
   sCaseName = name;
   sCaseFailed = 0;
+  sCaseOpen = true;
   sCaseCount++;
   printf("  [case] %s\n", sCaseName);
   fflush(stdout);
 }
 
 void TestEndCase(void) {
+  sCaseOpen = false;
   if (sCaseFailed) {
     sFailedCases++;
     printf("  [result] FAILED: %s\n", sCaseName);
@@ -217,6 +223,14 @@ void TestCheckStyle(const UiStyle* actual, const UiStyle* expected,
   CHECK_COLOR_FIELD(titleBar);
   CHECK_COLOR_FIELD(titleText);
   CHECK_COLOR_FIELD(shadow);
+  CHECK_COLOR_FIELD(slotBg);
+  CHECK_COLOR_FIELD(slotDivider);
+  CHECK_COLOR_FIELD(rarityCommon);
+  CHECK_COLOR_FIELD(rarityUncommon);
+  CHECK_COLOR_FIELD(rarityRare);
+  CHECK_COLOR_FIELD(rarityEpic);
+  CHECK_COLOR_FIELD(rarityLegendary);
+  CHECK_COLOR_FIELD(rarityMythic);
 
 #undef CHECK_COLOR_FIELD
 
@@ -233,11 +247,16 @@ void TestCheckStyle(const UiStyle* actual, const UiStyle* expected,
     return;
   }
 
-  printf("    [pass] %s (all 11 color keys and 2 enum keys are equal)\n", what);
+  printf("    [pass] %s (all 19 color keys and 2 enum keys are equal)\n", what);
   fflush(stdout);
 }
 
 int TestEnd(void) {
+  if (sCaseOpen) {
+    printf("  [result] FAILED: %s (TestEndCase is missing)\n", sCaseName);
+    sFailedCases++;
+    sFailureCount++;
+  }
   printf(
       "=== %s done: %d case(s), %d failed, %d assertion failure(s) total ===\n",
       sSuiteName, sCaseCount, sFailedCases, sFailureCount);

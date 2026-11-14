@@ -1,0 +1,7 @@
+key,text
+gallery_title,界面原语图鉴
+gallery_slots,品阶与槽位
+gallery_grid,网格与分割线
+gallery_digits,点阵数字
+gallery_truncate,文本截断
+gallery_long_text,这是用于验证截断的一行很长很长的中文文案

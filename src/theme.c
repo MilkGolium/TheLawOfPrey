@@ -44,6 +44,14 @@ static const ThemeColorKey kColorKeys[] = {
     {"titlebar", offsetof(UiStyle, titleBar)},
     {"titletext", offsetof(UiStyle, titleText)},
     {"shadow", offsetof(UiStyle, shadow)},
+    {"slotbg", offsetof(UiStyle, slotBg)},
+    {"slotdivider", offsetof(UiStyle, slotDivider)},
+    {"raritycommon", offsetof(UiStyle, rarityCommon)},
+    {"rarityuncommon", offsetof(UiStyle, rarityUncommon)},
+    {"rarityrare", offsetof(UiStyle, rarityRare)},
+    {"rarityepic", offsetof(UiStyle, rarityEpic)},
+    {"raritylegendary", offsetof(UiStyle, rarityLegendary)},
+    {"raritymythic", offsetof(UiStyle, rarityMythic)},
 };
 
 // 枚举键。取值是标识符而非十六进制，标识表同样按归一后的

@@ -1,0 +1,7 @@
+key,text
+gallery_title,UI primitives
+gallery_slots,Rarity frames
+gallery_grid,Grid and dividers
+gallery_digits,Bitmap digits
+gallery_truncate,Text truncation
+gallery_long_text,A deliberately long line used to verify truncation

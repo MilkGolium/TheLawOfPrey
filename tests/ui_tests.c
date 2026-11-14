@@ -1,12 +1,16 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "font.h"
 #include "graphsettings.h"
+#include "scene_list.h"
+#include "scene_manager.h"
 #include "strings.h"
 #include "test_util.h"
 #include "theme.h"
 #include "ui.h"
+#include "ui_slot.h"
 #include "utils.h"
 
 // 界面层的度量与居中回归测试：把设计画布画一遍，再把像素回读到 CPU 内存
@@ -606,6 +610,350 @@ static void CaseBodyBlockCentered(void) {
   TestEndCase();
 }
 
+// === 批次 A1：槽位 / 点阵数字 / 网格 / 截断 / 图鉴场景 ===
+
+// 槽位探针用一套两两不同的颜色，与桌面黑底、品阶色都分得开。
+static void ApplySlotProbeStyle(void) {
+  ApplyProbeStyle();
+  gUiStyle.slotBg = (Color){0x12, 0x34, 0x56, 0xff};
+  gUiStyle.slotDivider = (Color){0x65, 0x43, 0x21, 0xff};
+  gUiStyle.rarityCommon = (Color){0x80, 0x80, 0x80, 0xff};
+  gUiStyle.rarityUncommon = (Color){0x37, 0xa0, 0x30, 0xff};
+  gUiStyle.rarityRare = (Color){0x6b, 0x7f, 0xff, 0xff};
+  gUiStyle.rarityEpic = (Color){0xd8, 0x69, 0xd0, 0xff};
+  gUiStyle.rarityLegendary = (Color){0xf8, 0xad, 0x00, 0xff};
+  gUiStyle.rarityMythic = (Color){0xff, 0x35, 0x00, 0xff};
+}
+
+// 6×10 字形的独立副本。测试只认渲染回读的像素，不引用 ui_slot.c 的
+// 私有表：若绘制路径与这张表不一致，逐位比对立刻失败。
+static const uint64_t kExpectedDigits6x10[10] = {
+    0x07A186186186185EULL,  // 0
+    0x0384104104104184ULL,  // 1
+    0x0FC108421082085EULL,  // 2
+    0x07A182081C82085EULL,  // 3
+    0x041043F451494610ULL,  // 4
+    0x07A18208207C107FULL,  // 5
+    0x07A186185F04109CULL,  // 6
+    0x010410821042087FULL,  // 7
+    0x07A186185E86185EULL,  // 8
+    0x039082083E86185EULL,  // 9
+};
+
+// 槽位几何：52×52 足迹、2px 品阶边框、槽位底色、1px 共用分割线。
+// 同时构造一个越界品阶，确认颜色被钳制且告警只出现一次。
+static void CaseSlotGeometry(void) {
+  TestBeginCase(
+      "slot geometry: 52x52 footprint, rarity border, slot background, 1px "
+      "divider, and a clamped out-of-range rarity warning once");
+  ApplySlotProbeStyle();
+
+  const Color rare = gUiStyle.rarityRare;
+  const Color bg = gUiStyle.slotBg;
+  const Color divider = gUiStyle.slotDivider;
+
+  UiSlotItem item = (UiSlotItem){.icon = (Texture2D){0}, .rarity = 2,
+                                 .stack = 0};
+  BeginCanvas();
+  ClearBackground(BLACK);
+  UiDrawSlot(0, 0, &item);
+  EndCanvas();
+  Image image = LoadImageFromTexture(GetCanvasTexture());
+
+  TestCheckColor(PixelAt(image, 0, 0), rare,
+                 "top-left corner is the rarity color");
+  TestCheckColor(PixelAt(image, 51, 51), rare,
+                 "bottom-right corner is the rarity color");
+  TestCheckColor(PixelAt(image, 0, 51), rare,
+                 "bottom-left corner is the rarity color");
+  TestCheckColor(PixelAt(image, 51, 0), rare,
+                 "top-right corner is the rarity color");
+  TestCheckColor(PixelAt(image, 2, 2), bg,
+                 "(2,2) is the slot background");
+  TestCheckColor(PixelAt(image, 49, 49), bg,
+                 "(49,49) is the slot background");
+  TestCheckInt(CountInkPixels(image, 4, 4, 44, 44, rare), 0,
+               "the inner 44x44 area has no rarity color");
+  TestCheck(!IsInk(PixelAt(image, 52, 0), rare),
+            "the slot footprint ends before x=52");
+  UnloadImage(image);
+
+  // 两个槽位由网格负责共用分割线：x=52 整列都应是 slotDivider。
+  UiSlotItem pair[2] = {
+      (UiSlotItem){.icon = (Texture2D){0}, .rarity = 2, .stack = 0},
+      (UiSlotItem){.icon = (Texture2D){0}, .rarity = 2, .stack = 0},
+  };
+  BeginCanvas();
+  ClearBackground(BLACK);
+  UiDrawSlotGrid(0, 0, 2, 1, pair, 2);
+  EndCanvas();
+  image = LoadImageFromTexture(GetCanvasTexture());
+  int dividerPixels = 0;
+  for (int row = 0; row < UI_SLOT_SIZE; row++) {
+    if (IsInk(PixelAt(image, UI_SLOT_SIZE, row), divider)) dividerPixels++;
+  }
+  TestCheckInt(dividerPixels, UI_SLOT_SIZE,
+               "x=52 is a full-height 1px slotDivider column");
+  TestCheckColor(PixelAt(image, 0, 0), rare,
+                 "the first grid cell keeps its rarity frame");
+  TestCheckColor(PixelAt(image, UI_SLOT_PITCH, 0), rare,
+                 "the second grid cell starts one pitch to the right");
+  UnloadImage(image);
+
+  // 越界品阶：颜色钳到 5，静态标志保证告警只出现一次。
+  TestLogReset();
+  UiSlotItem bad = (UiSlotItem){.icon = (Texture2D){0}, .rarity = 7,
+                                .stack = 0};
+  BeginCanvas();
+  ClearBackground(BLACK);
+  UiDrawSlot(0, 0, &bad);
+  UiDrawSlot(0, 0, &bad);
+  EndCanvas();
+  image = LoadImageFromTexture(GetCanvasTexture());
+  TestCheckColor(PixelAt(image, 0, 0), gUiStyle.rarityMythic,
+                 "out-of-range rarity 7 is clamped to the mythic frame");
+  UnloadImage(image);
+  TestCheckInt(TestLogWarnCount(), 1,
+               "an out-of-range rarity warns only once across two draws");
+  TestCheckColor(UiRarityColor(-3), gUiStyle.rarityCommon,
+                 "UiRarityColor clamps a negative rarity to common");
+  TestCheckColor(UiRarityColor(99), gUiStyle.rarityMythic,
+                 "UiRarityColor clamps an oversized rarity to mythic");
+  TestEndCase();
+}
+
+// 点阵数字：每个数字单独画在干净画布上，6×10 区域逐位与字形表比对。
+// 这个用例补的是 CaseSlotGeometry 摸不到的一条路径：那边用 icon.id == 0
+// 的空图标，于是「图标画在哪个偏移」根本没被验证。历史上正是这里多缩了
+// 1px，48×48 的图标顶掉右/下边框各 1px，而所有断言照样通过。
+static void CaseSlotWithOpaqueIcon(void) {
+  TestBeginCase(
+      "slot with an opaque 48x48 icon: all four 2px borders stay intact and "
+      "the icon covers exactly the inner area");
+  ApplySlotProbeStyle();
+
+  const Color rare = gUiStyle.rarityRare;
+  const Color iconInk = MAGENTA;
+
+  Image raw = GenImageColor(UI_SLOT_ICON, UI_SLOT_ICON, iconInk);
+  Texture2D texture = LoadTextureFromImage(raw);
+  UnloadImage(raw);
+  TestCheckInt(texture.id != 0 ? 1 : 0, 1,
+               "the probe icon texture was created");
+
+  UiSlotItem item = (UiSlotItem){.icon = texture, .rarity = 2, .stack = 0};
+  BeginCanvas();
+  ClearBackground(BLACK);
+  UiDrawSlot(0, 0, &item);
+  EndCanvas();
+  Image image = LoadImageFromTexture(GetCanvasTexture());
+  UnloadTexture(texture);
+
+  TestCheckColor(PixelAt(image, 10, 0), rare, "top border row 0 is rarity");
+  TestCheckColor(PixelAt(image, 10, 1), rare, "top border row 1 is rarity");
+  TestCheckColor(PixelAt(image, 10, 50), rare, "bottom border row 50 is rarity");
+  TestCheckColor(PixelAt(image, 10, 51), rare, "bottom border row 51 is rarity");
+  TestCheckColor(PixelAt(image, 0, 10), rare, "left border col 0 is rarity");
+  TestCheckColor(PixelAt(image, 1, 10), rare, "left border col 1 is rarity");
+  TestCheckColor(PixelAt(image, 50, 10), rare, "right border col 50 is rarity");
+  TestCheckColor(PixelAt(image, 51, 10), rare, "right border col 51 is rarity");
+
+  TestCheckColor(PixelAt(image, 2, 2), iconInk, "inner area starts at (2,2)");
+  TestCheckColor(PixelAt(image, 49, 49), iconInk, "inner area ends at (49,49)");
+  TestCheckInt(CountInkPixels(image, 2, 2, UI_SLOT_ICON, UI_SLOT_ICON, iconInk),
+               UI_SLOT_ICON * UI_SLOT_ICON,
+               "the whole 48x48 inner area is covered by the icon");
+  UnloadImage(image);
+  TestEndCase();
+}
+
+static void CaseBitmapDigits(void) {
+  TestBeginCase(
+      "bitmap digits: every 6x10 glyph pixel matches the mask bit for bit");
+  ApplySlotProbeStyle();
+
+  const Color ink = WHITE;
+  for (int digit = 0; digit < 10; digit++) {
+    BeginCanvas();
+    ClearBackground(BLACK);
+    UiDrawNumber(0, 0, digit, 1, ink);
+    EndCanvas();
+    Image image = LoadImageFromTexture(GetCanvasTexture());
+
+    int mismatches = 0;
+    int litPixels = 0;
+    for (int row = 0; row < UI_DIGIT_H; row++) {
+      for (int column = 0; column < UI_DIGIT_W; column++) {
+        int bit = row * UI_DIGIT_W + column;
+        bool expected =
+            (kExpectedDigits6x10[digit] & (1ULL << bit)) != 0;
+        bool actual = IsInk(PixelAt(image, column, row), ink);
+        if (expected) litPixels++;
+        if (expected != actual) mismatches++;
+      }
+    }
+    UnloadImage(image);
+
+    char what[160];
+    snprintf(what, sizeof(what),
+             "digit %d matches all 60 mask positions", digit);
+    TestCheckInt(mismatches, 0, what);
+    snprintf(what, sizeof(what), "digit %d has at least one lit pixel", digit);
+    TestCheck(litPixels > 0, what);
+  }
+
+  TestCheckInt(UiNumberWidth(1), 6, "UiNumberWidth(1)");
+  TestCheckInt(UiNumberWidth(2), 13, "UiNumberWidth(2)");
+  TestCheckInt(UiNumberWidth(0), 0, "UiNumberWidth(0)");
+  TestCheckInt(UiNumberWidth(-3), 0, "UiNumberWidth(-3)");
+  TestEndCase();
+}
+
+// 网格数学：5 列 × 2 行、原点 (12,152)，节距 53。
+static void CaseGridMath(void) {
+  TestBeginCase(
+      "grid math: cell positions at pitch 53, centers hit their own cell, "
+      "dividers and outside points return -1");
+  ApplySlotProbeStyle();
+
+  static const int kIndices[4] = {0, 4, 5, 9};
+  static const int kExpectedX[4] = {12, 224, 12, 224};
+  static const int kExpectedY[4] = {152, 152, 205, 205};
+
+  for (int i = 0; i < 4; i++) {
+    UiPoint cell = UiGridCellPos(12, 152, 5, kIndices[i]);
+    char what[96];
+    snprintf(what, sizeof(what), "cell %d x is %d", kIndices[i],
+             kExpectedX[i]);
+    TestCheckInt(cell.x, kExpectedX[i], what);
+    snprintf(what, sizeof(what), "cell %d y is %d", kIndices[i],
+             kExpectedY[i]);
+    TestCheckInt(cell.y, kExpectedY[i], what);
+  }
+
+  for (int i = 0; i < 10; i++) {
+    UiPoint cell = UiGridCellPos(12, 152, 5, i);
+    int hit = UiGridIndexAt(12, 152, 5, 2, cell.x + 26, cell.y + 26);
+    char what[96];
+    snprintf(what, sizeof(what), "the center of cell %d maps back to %d", i, i);
+    TestCheckInt(hit, i, what);
+  }
+
+  TestCheckInt(UiGridIndexAt(12, 152, 5, 2, 64, 178), -1,
+               "the vertical divider at x=64 is not a cell");
+  TestCheckInt(UiGridIndexAt(12, 152, 5, 2, 38, 204), -1,
+               "the horizontal divider at y=204 is not a cell");
+  TestCheckInt(UiGridIndexAt(12, 152, 5, 2, 11, 152), -1,
+               "a point left of the grid returns -1");
+  TestCheckInt(UiGridIndexAt(12, 152, 5, 2, 276, 152), -1,
+               "a point right of the grid returns -1");
+  TestCheckInt(UiGridIndexAt(12, 152, 5, 2, 12, 257), -1,
+               "a point below the grid returns -1");
+  TestCheckInt(UiGridIndexAt(12, 152, 0, 2, 38, 178), -1,
+               "columns <= 0 returns -1");
+  TestCheckInt(UiGridIndexAt(12, 152, 5, 0, 38, 178), -1,
+               "rows <= 0 returns -1");
+  TestEndCase();
+}
+
+// 文本截断：按码点计数，不切开 UTF-8 序列，容量不足时保留完整码点。
+static void CaseTruncateUtf8(void) {
+  TestBeginCase(
+      "UTF-8 truncation: code point counting, capacity handling, empty and "
+      "NULL inputs, and invalid-sequence stop");
+  char buffer[64];
+
+  int written = UiTruncateUtf8("abcdefghij", 4, buffer, (int)sizeof(buffer));
+  TestCheckInt(written, 4, "ASCII cut to 4 returns 4 code points");
+  TestCheckStr(buffer, "abcd", "ASCII cut to 4 keeps abcd");
+
+  // 15 个汉字，每个 3 字节；截到 10 个码点应留下 30 字节。
+  const char* fifteen = "一二三四五六七八九十甲乙丙丁戊";
+  written = UiTruncateUtf8(fifteen, 10, buffer, (int)sizeof(buffer));
+  TestCheckInt(written, 10, "15 CJK code points cut to 10 returns 10");
+  TestCheckInt((int)strlen(buffer), 30,
+               "10 CJK code points occupy 30 UTF-8 bytes");
+  TestCheckInt(GetCodepointCount(buffer), 10,
+               "GetCodepointCount agrees the result has 10 code points");
+
+  // 5 字节只能放一个 3 字节汉字加结尾的 '\0'。
+  written = UiTruncateUtf8("汉字", 10, buffer, 5);
+  TestCheckInt(written, 1, "a 5-byte buffer holds exactly one CJK code point");
+  TestCheckStr(buffer, "汉", "the first complete CJK code point is kept");
+  TestCheckInt((int)strlen(buffer), 3, "one CJK code point is 3 bytes long");
+
+  buffer[0] = 'z';
+  written = UiTruncateUtf8("abc", 0, buffer, (int)sizeof(buffer));
+  TestCheckInt(written, 0, "maxCodepoints 0 returns 0");
+  TestCheckInt(buffer[0], '\0', "maxCodepoints 0 writes an empty string");
+
+  buffer[0] = 'x';
+  written = UiTruncateUtf8(NULL, 4, buffer, (int)sizeof(buffer));
+  TestCheckInt(written, 0, "a NULL source returns 0");
+  TestCheckInt(buffer[0], 'x', "a NULL source writes no memory");
+
+  buffer[0] = 'y';
+  written = UiTruncateUtf8("abc", 4, buffer, 0);
+  TestCheckInt(written, 0, "dstCapacity 0 returns 0");
+  TestCheckInt(buffer[0], 'y', "dstCapacity 0 writes no memory");
+
+  // 非法序列：'a' 之后是一个不完整的三字节序列，必须停在那里。
+  static const char kInvalid[] = {'a', (char)0xE4, (char)0xB8, 'z', '\0'};
+  written = UiTruncateUtf8(kInvalid, 10, buffer, (int)sizeof(buffer));
+  TestCheckInt(written, 1, "an invalid UTF-8 sequence stops truncation");
+  TestCheckStr(buffer, "a", "the bytes before the invalid sequence survive");
+  TestEndCase();
+}
+
+// 图鉴场景出图：切到 ui_gallery 画三帧，回读画布确认六种品阶色与
+// slotDivider 都真的出现在画面上。
+static void CaseGallerySceneRenders(void) {
+  TestBeginCase(
+      "ui_gallery scene: three frames render all six rarity colors and at "
+      "least one slotDivider pixel");
+  gUiStyle = kDefaultUiStyle;
+
+  InitSceneManager();
+  SceneManager_RequestSceneSwitch(&UiGalleryScene);
+  SceneManager_ProcessPendingSwitch();
+
+  for (int frame = 0; frame < 3; frame++) {
+    SceneManager_UpdateCurrentScene();
+    BeginCanvas();
+    ClearBackground(gUiStyle.desktop);
+    SceneManager_DrawCurrentScene();
+    EndCanvas();
+  }
+
+  Image image = LoadImageFromTexture(GetCanvasTexture());
+  int common = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH,
+                              GRAPH_DESIGN_HEIGHT, gUiStyle.rarityCommon);
+  int uncommon = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH,
+                                GRAPH_DESIGN_HEIGHT, gUiStyle.rarityUncommon);
+  int rare = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH, GRAPH_DESIGN_HEIGHT,
+                            gUiStyle.rarityRare);
+  int epic = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH, GRAPH_DESIGN_HEIGHT,
+                            gUiStyle.rarityEpic);
+  int legendary = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH,
+                                 GRAPH_DESIGN_HEIGHT, gUiStyle.rarityLegendary);
+  int mythic = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH,
+                              GRAPH_DESIGN_HEIGHT, gUiStyle.rarityMythic);
+  int divider = CountInkPixels(image, 0, 0, GRAPH_DESIGN_WIDTH,
+                               GRAPH_DESIGN_HEIGHT, gUiStyle.slotDivider);
+  UnloadImage(image);
+
+  TestCheck(common > 0, "rarity 0 (common) appears in the gallery");
+  TestCheck(uncommon > 0, "rarity 1 (uncommon) appears in the gallery");
+  TestCheck(rare > 0, "rarity 2 (rare) appears in the gallery");
+  TestCheck(epic > 0, "rarity 3 (epic) appears in the gallery");
+  TestCheck(legendary > 0, "rarity 4 (legendary) appears in the gallery");
+  TestCheck(mythic > 0, "rarity 5 (mythic) appears in the gallery");
+  TestCheck(divider > 0, "slotDivider appears in the gallery grid");
+
+  SceneManager_UnloadCurrentScene();
+  TestEndCase();
+}
+
 int main(void) {
   SetTraceLogLevel(LOG_WARNING);
 
@@ -638,6 +986,12 @@ int main(void) {
   CaseTripleMarginAtSize12();
   CaseButtonInkCentered();
   CaseBodyBlockCentered();
+  CaseSlotGeometry();
+  CaseSlotWithOpaqueIcon();
+  CaseBitmapDigits();
+  CaseGridMath();
+  CaseTruncateUtf8();
+  CaseGallerySceneRenders();
 
   int result = TestEnd();
 

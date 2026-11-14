@@ -51,6 +51,14 @@ typedef struct UiStyle {
   Color titleBar;    // box 标题栏底色
   Color titleText;   // box 标题栏文字色
   Color shadow;      // 阴影色
+  Color slotBg;      // 槽位内部底色，纯黑
+  Color slotDivider; // 相邻槽位之间 1px 分割线
+  Color rarityCommon;     // 品阶 0：普通，灰
+  Color rarityUncommon;   // 品阶 1：优秀，绿
+  Color rarityRare;       // 品阶 2：稀有，蓝
+  Color rarityEpic;       // 品阶 3：史诗，紫
+  Color rarityLegendary;  // 品阶 4：传说，橙
+  Color rarityMythic;     // 品阶 5：神话，红（最高阶）
   UiBorderStyle borderStyle;
   UiShadowStyle shadowStyle;
 } UiStyle;
