@@ -10,6 +10,8 @@
 #include "test_util.h"
 #include "theme.h"
 #include "ui.h"
+#include "ui_gallery_scene.h"
+#include "ui_page.h"
 #include "ui_slot.h"
 #include "utils.h"
 
@@ -95,6 +97,28 @@ static int CountInkPixels(Image image, int x, int y, int width, int height,
     }
   }
   return count;
+}
+
+// 与 CountInkPixels 相反：统计不是 color 的像素。页签容器的底层铺满
+// gUiStyle.background，用这个判「内容区确实画了东西」而不是只铺了底色。
+static int CountDifferentPixels(Image image, int x, int y, int width,
+                                int height, Color color) {
+  int count = 0;
+  for (int row = y; row < y + height; row++) {
+    for (int column = x; column < x + width; column++) {
+      if (!IsInk(PixelAt(image, column, row), color)) count++;
+    }
+  }
+  return count;
+}
+
+// 一行里第一个墨迹像素的横坐标，找不到返回 -1。滑块两端渐缩时用它判
+// 「居中没有跑偏」：只数宽度看不出 1px 的偏移。
+static int FirstInkX(Image image, int x, int y, int width, Color ink) {
+  for (int column = x; column < x + width; column++) {
+    if (IsInk(PixelAt(image, column, y), ink)) return column;
+  }
+  return -1;
 }
 
 // 收集含墨迹的行，并合并成若干条连续行段。同一段墨迹的高度就是字形墨迹
@@ -954,6 +978,303 @@ static void CaseGallerySceneRenders(void) {
   TestEndCase();
 }
 
+// === 批次 A2：页签栏 / 滚动条 / 状态条 / 页面容器 ===
+
+// 页签命中与页签栏钳制：四个边界点、越界点、tabCount 的上限与下限，
+// 以及「超出 9 项只告警一次」。这条用例必须排在任何 tabCount > 9 的
+// 绘制之前，否则静态告警标志已经置位，计数断言会永远得到 0。
+static void CasePageTabHit(void) {
+  TestBeginCase(
+      "page tabs: hit testing on both edges, out-of-range points, count "
+      "clamping, and a single clamp warning");
+  ApplyProbeStyle();
+
+  TestCheckInt(UiPageTabAt(0, 0, 6), 0, "(0,0) hits tab 0");
+  TestCheckInt(UiPageTabAt(39, 15, 6), 0, "(39,15) hits tab 0");
+  TestCheckInt(UiPageTabAt(0, 16, 6), 1, "(0,16) hits tab 1");
+  TestCheckInt(UiPageTabAt(39, 95, 6), 5, "(39,95) hits tab 5");
+  TestCheckInt(UiPageTabAt(40, 0, 6), -1, "x=40 is outside the tab strip");
+  TestCheckInt(UiPageTabAt(-1, 0, 6), -1, "a negative x returns -1");
+  TestCheckInt(UiPageTabAt(0, 96, 6), -1, "y=96 is below six tabs");
+  TestCheckInt(UiPageTabAt(0, 0, 0), -1, "tabCount 0 returns -1");
+  TestCheckInt(UiPageTabAt(0, 8 * UI_PAGE_TAB_HEIGHT, 12), 8,
+               "tabCount 12 is clamped to 9 and tab 8 still hits");
+
+  // 选中项越界：99 钳到最后一项，第一项保持未选中底色。
+  static const char* const kLabels[6] = {"A", "B", "C", "D", "E", "F"};
+  BeginCanvas();
+  ClearBackground(gUiStyle.desktop);
+  UiDrawPageTabs(99, 6, kLabels);
+  EndCanvas();
+  Image image = LoadImageFromTexture(GetCanvasTexture());
+  TestCheckColor(PixelAt(image, 0, 5 * UI_PAGE_TAB_HEIGHT), gUiStyle.button,
+                 "selectedTab 99 clamps to the last tab");
+  TestCheckColor(PixelAt(image, 0, 0), gUiStyle.background,
+                 "the first tab stays unselected");
+  UnloadImage(image);
+
+  // 12 项按 9 项画，告警只报一次。
+  static const char* const kManyLabels[12] = {"A", "B", "C", "D", "E", "F",
+                                               "G", "H", "I", "J", "K", "L"};
+  TestLogReset();
+  BeginCanvas();
+  ClearBackground(gUiStyle.desktop);
+  UiDrawPageTabs(0, 12, kManyLabels);
+  UiDrawPageTabs(0, 12, kManyLabels);
+  EndCanvas();
+  image = LoadImageFromTexture(GetCanvasTexture());
+  TestCheckColor(PixelAt(image, 0, 8 * UI_PAGE_TAB_HEIGHT),
+                 gUiStyle.background,
+                 "the ninth tab is drawn when the count is clamped to 9");
+  TestCheckColor(PixelAt(image, 0, 9 * UI_PAGE_TAB_HEIGHT),
+                 gUiStyle.desktop,
+                 "no tenth tab is drawn after clamping");
+  UnloadImage(image);
+  TestCheckInt(TestLogWarnCount(), 1,
+               "an oversized tab count warns only once across two draws");
+  TestCheck(TestLogHasWarn("UiPage: tab count"),
+            "the tab clamp warning names the module and the tab count");
+  TestEndCase();
+}
+
+// 滑块数学：内容不足一屏时不画；高度按下限钳制；firstVisible 取 0、
+// 中间、最大值时位置单调递增，且最大值处滑块底边正好贴住轨道底边。
+static void CaseScrollbarThumbMath(void) {
+  TestBeginCase(
+      "scrollbar thumb math: hidden when content fits, 6px minimum, and a "
+      "monotonic position that ends flush with the track bottom");
+  TestCheckInt(UiScrollbarThumbHeight(100, 10, 10), 0,
+               "content equal to the visible count hides the thumb");
+  TestCheckInt(UiScrollbarThumbHeight(100, 5, 10), 0,
+               "content smaller than the visible count hides the thumb");
+  TestCheckInt(UiScrollbarThumbY(100, 0, 10, 10, 0), 0,
+               "the thumb position is 0 when the thumb is hidden");
+  TestCheckInt(UiScrollbarThumbHeight(100, 100, 10), 10,
+               "a tenth of 100 rows gives a 10px thumb");
+  TestCheckInt(UiScrollbarThumbHeight(100, 1000, 10), 6,
+               "the thumb is clamped to the 6px minimum");
+
+  int height = UiScrollbarThumbHeight(100, 1000, 10);
+  int yTop = UiScrollbarThumbY(100, height, 1000, 10, 0);
+  int yMiddle = UiScrollbarThumbY(100, height, 1000, 10, 495);
+  int yBottom = UiScrollbarThumbY(100, height, 1000, 10, 990);
+  TestCheckInt(yTop, 0, "firstVisible 0 puts the thumb at the track top");
+  TestCheck(yMiddle > yTop && yMiddle < yBottom,
+            "the middle firstVisible puts the thumb strictly between the ends");
+  TestCheckInt(yBottom + height, 100,
+               "the last firstVisible puts the thumb bottom flush with the "
+               "track bottom");
+  TestCheckInt(UiScrollbarThumbY(100, height, 1000, 10, 99999), yBottom,
+               "firstVisible beyond the maximum is clamped");
+  TestCheckInt(UiScrollbarThumbY(100, height, 1000, 10, -5), 0,
+               "a negative firstVisible is clamped to 0");
+
+  TestCheckInt(UiScrollbarThumbHeight(0, 10, 5), 0,
+               "trackHeight 0 returns a 0 thumb height");
+  TestCheckInt(UiScrollbarThumbHeight(100, 0, 5), 0,
+               "contentCount 0 returns a 0 thumb height");
+  TestCheckInt(UiScrollbarThumbHeight(100, 10, 0), 0,
+               "visibleCount 0 returns a 0 thumb height");
+  TestEndCase();
+}
+
+// 滑块形状：100 行轨道、内容 20 可见 10，滑块高 50。首尾两行各 1px、
+// 次首尾两行 3px、其余直段 5px，且宽度居中对齐；轨道其余像素是底色。
+static void CaseScrollbarThumbShape(void) {
+  TestBeginCase(
+      "scrollbar thumb shape: 1/3/5 tapered ends, a 5px straight middle, and "
+      "no thumb when the content fits");
+  ApplyProbeStyle();
+
+  const int trackHeight = 100;
+  const int contentCount = 20;
+  const int visibleCount = 10;
+  const int thumbHeight =
+      UiScrollbarThumbHeight(trackHeight, contentCount, visibleCount);
+  TestCheckInt(thumbHeight, 50, "the probe thumb is 50 rows tall");
+
+  BeginCanvas();
+  ClearBackground(gUiStyle.desktop);
+  UiDrawScrollbar(0, 0, trackHeight, contentCount, visibleCount, 0);
+  EndCanvas();
+  Image image = LoadImageFromTexture(GetCanvasTexture());
+
+  TestCheckInt(CountInkPixels(image, 0, 0, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               1, "the first thumb row is exactly one pixel wide");
+  TestCheckInt(FirstInkX(image, 0, 0, UI_SCROLLBAR_WIDTH, gUiStyle.titleText),
+               2, "the first row's single pixel is centered at x=2");
+  TestCheckInt(CountInkPixels(image, 0, 1, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               3, "the second thumb row is three pixels wide");
+  TestCheckInt(FirstInkX(image, 0, 1, UI_SCROLLBAR_WIDTH, gUiStyle.titleText),
+               1, "the second row starts at x=1");
+  TestCheckInt(CountInkPixels(image, 0, 2, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               5, "the third thumb row is five pixels wide");
+  TestCheckInt(FirstInkX(image, 0, 2, UI_SCROLLBAR_WIDTH, gUiStyle.titleText),
+               0, "the five-pixel rows start at x=0");
+  TestCheckInt(CountInkPixels(image, 0, 25, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               5, "a straight middle row stays five pixels wide");
+  TestCheckInt(CountInkPixels(image, 0, 47, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               5, "the third row from the bottom is five pixels wide");
+  TestCheckInt(CountInkPixels(image, 0, 48, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               3, "the second row from the bottom is three pixels wide");
+  TestCheckInt(FirstInkX(image, 0, 48, UI_SCROLLBAR_WIDTH, gUiStyle.titleText),
+               1, "the penultimate row starts at x=1");
+  TestCheckInt(CountInkPixels(image, 0, 49, UI_SCROLLBAR_WIDTH, 1,
+                              gUiStyle.titleText),
+               1, "the last thumb row is exactly one pixel wide");
+  TestCheckInt(FirstInkX(image, 0, 49, UI_SCROLLBAR_WIDTH, gUiStyle.titleText),
+               2, "the last row's single pixel is centered at x=2");
+
+  int restRows = trackHeight - thumbHeight;
+  TestCheckInt(CountInkPixels(image, 0, thumbHeight, UI_SCROLLBAR_WIDTH,
+                              restRows, gUiStyle.titleText),
+               0, "the rest of the track has no thumb pixels");
+  TestCheckInt(CountInkPixels(image, 0, thumbHeight, UI_SCROLLBAR_WIDTH,
+                              restRows, gUiStyle.background),
+               UI_SCROLLBAR_WIDTH * restRows,
+               "the rest of the track is background color");
+  UnloadImage(image);
+
+  // 内容正好一屏：只画轨道，不画滑块。
+  BeginCanvas();
+  ClearBackground(gUiStyle.desktop);
+  UiDrawScrollbar(0, 0, 50, 5, 5, 0);
+  EndCanvas();
+  image = LoadImageFromTexture(GetCanvasTexture());
+  TestCheckInt(CountInkPixels(image, 0, 0, UI_SCROLLBAR_WIDTH, 50,
+                              gUiStyle.titleText),
+               0, "content that fits draws no thumb at all");
+  TestCheckInt(CountInkPixels(image, 0, 0, UI_SCROLLBAR_WIDTH, 50,
+                              gUiStyle.background),
+               UI_SCROLLBAR_WIDTH * 50, "the track is still painted");
+  UnloadImage(image);
+  TestEndCase();
+}
+
+// 状态条：填充宽度公式（整数除法四舍五入）、越界钳制，以及 100 宽、
+// 5/10 的条在一条内行上正好 49 个填充像素。
+static void CaseBarFill(void) {
+  TestBeginCase(
+      "bar fill: rounded fill width math, a clamped oversized value, and a "
+      "100px bar at 5/10 painting 49 line pixels per row");
+  TestCheckInt(UiBarFillWidth(100, 0, 10), 0, "value 0 gives an empty fill");
+  TestCheckInt(UiBarFillWidth(100, 5, 10), 49,
+               "half of a 100px bar is 49px after the 1px borders");
+  TestCheckInt(UiBarFillWidth(100, 10, 10), 98,
+               "value equal to max fills the whole inner width");
+  TestCheckInt(UiBarFillWidth(100, 11, 10), 98,
+               "value above max is clamped to the inner width");
+  TestCheckInt(UiBarFillWidth(100, 5, 0), 0, "max 0 gives an empty fill");
+  TestCheckInt(UiBarFillWidth(12, 3, 4), 8,
+               "three quarters of a 12px bar rounds to 8px");
+  TestCheckInt(UiBarFillWidth(2, 1, 2), 0,
+               "a bar narrower than 3px cannot hold the frame");
+
+  ApplySlotProbeStyle();
+  BeginCanvas();
+  ClearBackground(gUiStyle.desktop);
+  UiDrawBar(0, 0, 100, 5, 10);
+  EndCanvas();
+  Image image = LoadImageFromTexture(GetCanvasTexture());
+
+  TestCheckColor(PixelAt(image, 0, 0), gUiStyle.lineDim,
+                 "the outer corner is the lineDim frame");
+  TestCheckColor(PixelAt(image, 1, 1), gUiStyle.line,
+                 "the first inner pixel is fill");
+  TestCheckColor(PixelAt(image, 49, 1), gUiStyle.line,
+                 "the 49th inner column is fill");
+  TestCheckColor(PixelAt(image, 50, 1), gUiStyle.slotBg,
+                 "the 50th inner column is still track");
+  TestCheckInt(CountInkPixels(image, 1, 1, 98, 1, gUiStyle.line), 49,
+               "an inner row has exactly 49 fill pixels");
+  TestCheckInt(CountInkPixels(image, 1, 1, 98, UI_BAR_HEIGHT - 2,
+                              gUiStyle.line),
+               49 * (UI_BAR_HEIGHT - 2),
+               "the fill area is 49 columns by 10 rows");
+  UnloadImage(image);
+  TestEndCase();
+}
+
+// 页面容器：矩形是 {40,0,600,480}；页号钳到 0..5；六页各画一帧，内容区
+// 都有非底色像素；第 1 页出现全部六种品阶色。
+static void CasePageContainerRenders(void) {
+  TestBeginCase(
+      "page container: content rect is 40,0,600,480, every page paints inside "
+      "it, page 1 carries all six rarity colors, and the page index clamps");
+  gUiStyle = kDefaultUiStyle;
+
+  Rectangle content = UiPageContentRect();
+  TestCheckInt((int)content.x, 40, "the content rect starts at x=40");
+  TestCheckInt((int)content.y, 0, "the content rect starts at y=0");
+  TestCheckInt((int)content.width, 600, "the content rect is 600 wide");
+  TestCheckInt((int)content.height, 480, "the content rect is 480 tall");
+
+  UiGallerySetPage(-3);
+  TestCheckInt(UiGalleryGetPage(), 0, "a negative page clamps to 0");
+  UiGallerySetPage(99);
+  TestCheckInt(UiGalleryGetPage(), 5, "an oversized page clamps to 5");
+
+  InitSceneManager();
+  SceneManager_RequestSceneSwitch(&UiGalleryScene);
+  SceneManager_ProcessPendingSwitch();
+
+  for (int page = 0; page < 6; page++) {
+    UiGallerySetPage(page);
+    BeginCanvas();
+    ClearBackground(gUiStyle.desktop);
+    SceneManager_DrawCurrentScene();
+    EndCanvas();
+    Image image = LoadImageFromTexture(GetCanvasTexture());
+
+    int painted = CountDifferentPixels(image, (int)content.x, (int)content.y,
+                                       (int)content.width,
+                                       (int)content.height,
+                                       gUiStyle.background);
+    char what[128];
+    snprintf(what, sizeof(what),
+             "page %d paints non-background pixels inside the content rect",
+             page + 1);
+    TestCheck(painted > 0, what);
+
+    if (page == 0) {
+      TestCheck(CountInkPixels(image, (int)content.x, (int)content.y,
+                               (int)content.width, (int)content.height,
+                               gUiStyle.rarityCommon) > 0,
+                "page 1 shows rarity 0 (common)");
+      TestCheck(CountInkPixels(image, (int)content.x, (int)content.y,
+                               (int)content.width, (int)content.height,
+                               gUiStyle.rarityUncommon) > 0,
+                "page 1 shows rarity 1 (uncommon)");
+      TestCheck(CountInkPixels(image, (int)content.x, (int)content.y,
+                               (int)content.width, (int)content.height,
+                               gUiStyle.rarityRare) > 0,
+                "page 1 shows rarity 2 (rare)");
+      TestCheck(CountInkPixels(image, (int)content.x, (int)content.y,
+                               (int)content.width, (int)content.height,
+                               gUiStyle.rarityEpic) > 0,
+                "page 1 shows rarity 3 (epic)");
+      TestCheck(CountInkPixels(image, (int)content.x, (int)content.y,
+                               (int)content.width, (int)content.height,
+                               gUiStyle.rarityLegendary) > 0,
+                "page 1 shows rarity 4 (legendary)");
+      TestCheck(CountInkPixels(image, (int)content.x, (int)content.y,
+                               (int)content.width, (int)content.height,
+                               gUiStyle.rarityMythic) > 0,
+                "page 1 shows rarity 5 (mythic)");
+    }
+    UnloadImage(image);
+  }
+
+  SceneManager_UnloadCurrentScene();
+  TestEndCase();
+}
+
 int main(void) {
   SetTraceLogLevel(LOG_WARNING);
 
@@ -992,6 +1313,11 @@ int main(void) {
   CaseGridMath();
   CaseTruncateUtf8();
   CaseGallerySceneRenders();
+  CasePageTabHit();
+  CaseScrollbarThumbMath();
+  CaseScrollbarThumbShape();
+  CaseBarFill();
+  CasePageContainerRenders();
 
   int result = TestEnd();
 

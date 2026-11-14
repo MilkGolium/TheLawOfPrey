@@ -33,6 +33,7 @@ set(GAME_SOURCES
   src/strings.c
   src/theme.c
   src/ui.c
+  src/ui_page.c
   src/ui_slot.c
   src/utils.c
 )

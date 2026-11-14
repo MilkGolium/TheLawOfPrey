@@ -5,3 +5,13 @@ gallery_grid,网格与分割线
 gallery_digits,点阵数字
 gallery_truncate,文本截断
 gallery_long_text,这是用于验证截断的一行很长很长的中文文案
+gallery_tab_slots,槽位
+gallery_tab_grid,网格
+gallery_tab_digits,数字
+gallery_tab_truncate,截断
+gallery_tab_bars,状态条
+gallery_tab_scroll,滚动
+gallery_bar_hunger,饥饿
+gallery_bar_stamina,体力
+gallery_bar_health,生命
+gallery_scroll_note,滑块演示：中间与最大位置

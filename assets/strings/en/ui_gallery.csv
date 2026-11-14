@@ -5,3 +5,13 @@ gallery_grid,Grid and dividers
 gallery_digits,Bitmap digits
 gallery_truncate,Text truncation
 gallery_long_text,A deliberately long line used to verify truncation
+gallery_tab_slots,Slt
+gallery_tab_grid,Grd
+gallery_tab_digits,Num
+gallery_tab_truncate,Cut
+gallery_tab_bars,Bar
+gallery_tab_scroll,Scr
+gallery_bar_hunger,Hunger
+gallery_bar_stamina,Stamina
+gallery_bar_health,Health
+gallery_scroll_note,Thumb at middle and max positions
